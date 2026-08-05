@@ -1,123 +1,5 @@
 [
   {
-    "id": "CARON-1785965888:0:quest_advanced:1785965888618164000",
-    "agent": "CARON",
-    "run_id": "CARON-1785965888",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785965888.618165,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 14,
-    "map_name": "Route 3",
-    "coords": [
-      19,
-      4
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "DARON-1785965888:0:quest_advanced:1785965888663669000",
-    "agent": "DARON",
-    "run_id": "DARON-1785965888",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785965888.66367,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      31,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "AARON-1785965888:68:map_transition:1785965918483191000",
-    "agent": "AARON",
-    "run_id": "AARON-1785965888",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965918.4831932,
-    "step": 68,
-    "journey_step": 68,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785965888:68:map_transition:1785965918795123000",
-    "agent": "DARON",
-    "run_id": "DARON-1785965888",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965918.795125,
-    "step": 68,
-    "journey_step": 68,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
     "id": "AARON-1785965888:73:map_transition:1785965920638720000",
     "agent": "AARON",
     "run_id": "AARON-1785965888",
@@ -1406,5 +1288,140 @@
     "task": "QUEST: MT_MOON_NAV",
     "milestone": "mt_moon_nav",
     "live": false
+  },
+  {
+    "id": "AARON-1785967393:0:quest_advanced:1785967393246215000",
+    "agent": "AARON",
+    "run_id": "AARON-1785967393",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav",
+        "brock_quest"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785967393.246217,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 2,
+    "map_name": "Pewter City",
+    "coords": [
+      17,
+      18
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785967393:0:quest_advanced:1785967393293389000",
+    "agent": "BARON",
+    "run_id": "BARON-1785967393",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "brock_quest",
+      "title": "Derrotar Brock",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785967393.29339,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 2,
+    "map_name": "Pewter City",
+    "coords": [
+      17,
+      13
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "CARON-1785967393:0:quest_advanced:1785967393333851000",
+    "agent": "CARON",
+    "run_id": "CARON-1785967393",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav",
+        "brock_quest"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785967393.3338518,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 14,
+    "map_name": "Route 3",
+    "coords": [
+      19,
+      4
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "DARON-1785967393:0:quest_advanced:1785967393375646000",
+    "agent": "DARON",
+    "run_id": "DARON-1785967393",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav",
+        "brock_quest"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785967393.375647,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 2,
+    "map_name": "Pewter City",
+    "coords": [
+      17,
+      18
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
   }
 ]
