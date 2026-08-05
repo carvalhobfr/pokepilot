@@ -1,9 +1,5 @@
 # --- ROM ------------------------------------------------------------------
-# Pokémon Blue/Red são software comercial protegido por direitos autorais e não
-# podem ser distribuídos com este repositório. Traga sua própria cópia legal; o
-# SHA-1 é validado na inicialização por blue-agents/rom_identity.py.
-roms/*.gb
-roms/*.gbc
+
 
 # --- dependências ---------------------------------------------------------
 .env
