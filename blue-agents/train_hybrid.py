@@ -25,6 +25,7 @@ from script_aware_ppo import ScriptAwarePPO as PPO, ScriptedTransitionGuard
 from tensorboard_callback import TensorboardCallback
 from rom_identity import require_blue
 from journey_roster import load_or_create_roster
+from archetypes import archetype_for_slot, get_archetype
 
 
 def configure_torch(requested_device):
@@ -92,46 +93,6 @@ def make_hybrid_env(rank, env_conf, seed=0):
         "#8800ff",  # HARON - Violet
     ]
     
-    # Personality Profiles (Balanced with RNG variation)
-    # Format: [meta, exploration, collector, mission_focus]
-    base_personalities = [
-        [15, 85, 45, 55],   # AARON - Chaos Explorer (Total: 200)
-        [75, 60, 50, 80],   # BARON - Strategic Warrior (Total: 265)
-        [50, 85, 60, 50],   # CARON - Balanced Explorer (Total: 245)
-        [85, 40, 85, 70],   # DARON - Meta Collector (Total: 280)
-        [30, 70, 45, 60],   # EARON - Challenge Seeker (Total: 205)
-        [60, 90, 55, 50],   # FARON - Tactical Adventurer (Total: 255)
-        [85, 35, 75, 85],   # GARON - Min-Maxer (Total: 280)
-        [20, 75, 45, 50],   # HARON - Hard Mode Lover (Total: 190)
-    ]
-    
-    # Personality descriptions
-    personalities = [
-        "Chaos Explorer",
-        "Strategic Warrior",
-        "Balanced Explorer",
-        "Meta Collector",
-        "Challenge Seeker",
-        "Tactical Adventurer",
-        "Min-Maxer",
-        "Hard Mode Lover"
-    ]
-    
-    # Starter preferences based on meta score
-    # Meta < 40: Charmander (hard mode)
-    # Meta 40-79: Variety
-    # Meta 80+: Bulbasaur (optimal)
-    starter_preferences = [
-        2,  # AARON - Squirtle; reliable baseline while the journey is validated
-        0,  # BARON - Bulbasaur; second viable but distinct baseline
-        2,  # CARON - Squirtle
-        0,  # DARON - Bulbasaur (meta)
-        1,  # EARON - Charmander (challenge)
-        2,  # FARON - Squirtle
-        0,  # GARON - Bulbasaur (meta)
-        1,  # HARON - Charmander (chaos)
-    ]
-    
     def _init():
         import random
 
@@ -140,41 +101,29 @@ def make_hybrid_env(rank, env_conf, seed=0):
         identity_index = int(slot.get("identity_index", rank))
         idx = int(slot.get("profile_index", identity_index)) % len(agent_names)
 
-        # Get base personality
-        base_stats = base_personalities[idx].copy()
-        
-        # Add small RNG variation (±10) while maintaining balance
-        rng_seed = seed + identity_index
-        random.seed(rng_seed)
-        
-        varied_stats = []
-        for stat in base_stats:
-            variation = random.randint(-10, 10)
-            new_stat = max(0, min(100, stat + variation))
-            varied_stats.append(new_stat)
-        
-        # Ensure at least one stat > 70
-        if max(varied_stats) < 70:
-            highest_idx = varied_stats.index(max(varied_stats))
-            varied_stats[highest_idx] = 75
-        
-        # Ensure no stat is too low if others are also low
-        if sum(1 for s in varied_stats if s < 30) > 2:
-            for i in range(len(varied_stats)):
-                if varied_stats[i] < 30:
-                    varied_stats[i] = 35
-        
-        meta_score, exploration, collector, mission_focus = varied_stats
-        
+        # A fixed archetype beats a rolled personality when the point is to
+        # compare playing styles: the roll once pushed a trainer below every
+        # capture threshold, and a whole run looked like a policy bug.
+        archetype_name = archetype_for_slot(slot)
+        archetype = get_archetype(archetype_name)
+
+        traits = archetype["traits"]
+        meta_score = traits["meta_score"]
+        exploration = traits["exploration"]
+        collector = traits["collector"]
+        mission_focus = traits["mission_focus"]
+
         # Clone config and add personality
         local_conf = env_conf.copy()
         local_conf['agent_name'] = agent_name
-        local_conf['starter_preference'] = starter_preferences[idx]
+        local_conf['starter_preference'] = archetype["starter_preference"]
         local_conf['meta_score'] = meta_score
         local_conf['exploration'] = exploration
         local_conf['collector'] = collector
         local_conf['mission_focus'] = mission_focus
-        local_conf['personality'] = personalities[idx]
+        local_conf['personality'] = archetype["label"]
+        local_conf['archetype'] = archetype_name
+        local_conf['capture_stance'] = archetype["capture_stance"]
         trainer_dir = Path(env_conf["trainer_root"]) / agent_name
         local_conf['trainer_dir'] = str(trainer_dir)
         local_conf['ram_path'] = str(trainer_dir / "current.sav")
@@ -201,13 +150,13 @@ def make_hybrid_env(rank, env_conf, seed=0):
                 "env_id": rank,
                 "color": colors[idx],
                 "extra": f"Hybrid RL+LLM Agent #{rank}",
-                "starter": ["Bulbasaur", "Charmander", "Squirtle"][starter_preferences[idx]],
+                "starter": ["Bulbasaur", "Charmander", "Squirtle"][archetype["starter_preference"]],
                 "hard_mode": is_chaos_mode,
                 "meta_score": meta_score,
                 "exploration": exploration,
                 "collector": collector,
                 "mission_focus": mission_focus,
-                "personality": personalities[idx],
+                "personality": archetype["label"],
                 "guide": "Pokemon Blue: QuestGraph real até Mewtwo",
                 "guide_path": "knowledge/quests/main_quest_graph.json",
                 "mode": "real_emulator",
@@ -217,8 +166,8 @@ def make_hybrid_env(rank, env_conf, seed=0):
                 "trainer_profile": {
                     "id": agent_name.lower(),
                     "name": agent_name,
-                    "personality": personalities[idx],
-                    "starter": ["Bulbasaur", "Charmander", "Squirtle"][starter_preferences[idx]],
+                    "personality": archetype["label"],
+                    "starter": ["Bulbasaur", "Charmander", "Squirtle"][archetype["starter_preference"]],
                     "traits": {
                         "meta_score": meta_score,
                         "exploration": exploration,
@@ -332,11 +281,15 @@ if __name__ == "__main__":
         if requested_roster.is_absolute()
         else agent_root / requested_roster
     )
-    roster = load_or_create_roster(roster_path, slot_count=2)
+    # The requested agent count defines the roster size. Pinning it to two
+    # silently resized a three-slot roster back down and then refused to run
+    # with "only 2 thermal-safe slots" — a rule that contradicted the file it
+    # had just rewritten.
+    roster = load_or_create_roster(roster_path, slot_count=num_cpu)
     if num_cpu > len(roster["slots"]):
         raise ValueError(
-            f"Requested {num_cpu} agents, but the local roster has only "
-            f"{len(roster['slots'])} thermal-safe slots"
+            f"Requested {num_cpu} agents, but the roster only produced "
+            f"{len(roster['slots'])} slots"
         )
     active_slots = roster["slots"][:num_cpu]
     device = configure_torch(args.device)

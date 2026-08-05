@@ -35,6 +35,7 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
+from archetypes import DEFAULT_ARCHETYPE, MINIMUM_BACKUP_PARTY, get_archetype
 from trainer_directives import (
     MAIN_QUEST_EXECUTOR,
     DirectiveError,
@@ -211,6 +212,10 @@ class HybridGymEnv(RedGymEnv):
         self.collector = config.get('collector', 50)  # Pokemon catching desire
         self.mission_focus = config.get('mission_focus', 50)  # Story progression priority
         self.personality = config.get('personality', 'Balanced')
+        self.archetype = config.get('archetype', DEFAULT_ARCHETYPE)
+        self.capture_stance = config.get(
+            'capture_stance', get_archetype(self.archetype)["capture_stance"]
+        )
         self.personality_vector = np.array([
             self.meta_score,
             self.exploration,
@@ -1694,6 +1699,9 @@ class HybridGymEnv(RedGymEnv):
             "badges": badges,
             "task": getattr(self, "current_task", ""),
             "milestone": getattr(self, "current_milestone", "start"),
+            "archetype": getattr(self, "archetype", DEFAULT_ARCHETYPE),
+            "archetype_label": get_archetype(getattr(self, "archetype", None))["label"],
+            "capture_stance": getattr(self, "capture_stance", None),
             "battles": self.wild_battles_won + self.trainer_battles_won,
             "wild_battles_won": self.wild_battles_won,
             "trainer_battles_won": self.trainer_battles_won,
@@ -2057,6 +2065,27 @@ class HybridGymEnv(RedGymEnv):
                     "espécie já registrada na Pokédex"
                     + (" e presente na equipe" if quality["already_in_party"] else "")
                     + "; capturar repetido não agrega ao time"
+                ),
+            )
+
+        # The archetype answers the one question the traits never could: what
+        # to do with a wild Pokémon you *could* catch. Three trainers with the
+        # same map knowledge and different answers is the whole experiment.
+        stance = getattr(self, "capture_stance", "team_value_only")
+        if stance == "only_when_needed" and quality["party_size"] >= MINIMUM_BACKUP_PARTY:
+            return decision(
+                "defeat", "rush_skips_capture", "story_progression",
+                (
+                    "corrida focada na história: com reserva no time, capturar "
+                    "custa turnos que não avançam a jornada"
+                ),
+            )
+        if stance == "every_new_species":
+            return decision(
+                "capture", "completionist_new_species", "collector",
+                (
+                    "completista: espécie nova entra no registro mesmo sem vaga "
+                    "no time; o excedente vai para o PC"
                 ),
             )
 
