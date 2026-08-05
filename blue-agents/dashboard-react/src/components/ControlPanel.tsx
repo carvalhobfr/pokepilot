@@ -116,9 +116,13 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll,
                   <div className="text-[10px] text-gray-500 uppercase tracking-wider">Seen</div>
                   <div className="text-lg font-mono text-blue-400">{agent.pokedex_seen || 0}</div>
                 </div>
-                <div className="p-2 text-center">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">Owned</div>
-                  <div className="text-lg font-mono text-green-400">{agent.pokedex_owned || 0}</div>
+                <div className="p-2 text-center" title="Registros na Pokédex; uma evolução conta como espécie nova, então este número passa do tamanho do time">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">Pokédex / Time</div>
+                  <div className="text-lg font-mono text-green-400">
+                    {agent.pokedex_owned || 0}
+                    <span className="text-gray-500"> / </span>
+                    <span className="text-white">{agent.party?.length || 0}</span>
+                  </div>
                 </div>
               </div>
 
@@ -191,19 +195,25 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll,
                 <div className="mt-3 border-t border-white/5 pt-2">
                   <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Recent decisions</div>
                   {(agent.recent_events || []).filter((event: any) => [
-                    'capture_decision', 'capture', 'level_up', 'training_target',
-                    'battle_win', 'battle_loss', 'story_milestone', 'location_discovered',
+                    'capture_decision', 'capture_outcome', 'capture', 'healed', 'level_up',
+                    'training_target', 'battle_win', 'battle_loss', 'story_milestone',
+                    'location_discovered',
                   ].includes(event.type)).slice(-3).reverse().map((event: any, eventIndex: number) => (
                     <div key={String(event.id || eventIndex)} className="text-[9px] text-gray-400 truncate" title={event.data?.reason || ''}>
                       <span className="text-violet-300">{event.type}</span>{' · '}
                       {event.type === 'capture_decision'
                         ? `${event.data?.choice === 'capture' ? 'capturar' : 'derrotar'} #${event.data?.enemy_species_id || '?'} · ${event.data?.motivation || 'treino'}`
-                        : event.data?.title || event.data?.reason || 'confirmed'}
+                        : event.type === 'capture_outcome'
+                          ? `#${event.data?.enemy_species_id || '?'} · ${({ captured: 'capturou', defeated: 'derrotou', fled: 'fugiu', fainted: 'desmaiou' } as Record<string, string>)[event.data?.outcome] || event.data?.outcome}`
+                          : event.type === 'healed'
+                            ? `curou ${event.data?.hp_restored} HP · ${event.data?.map_name || ''}`
+                            : event.data?.title || event.data?.reason || 'confirmed'}
                     </div>
                   ))}
                   {!(agent.recent_events || []).some((event: any) => [
-                    'capture_decision', 'capture', 'level_up', 'training_target',
-                    'battle_win', 'battle_loss', 'story_milestone', 'location_discovered',
+                    'capture_decision', 'capture_outcome', 'capture', 'healed', 'level_up',
+                    'training_target', 'battle_win', 'battle_loss', 'story_milestone',
+                    'location_discovered',
                   ].includes(event.type)) && <div className="text-[9px] italic text-gray-600">Nenhum marco importante ainda.</div>}
                 </div>
 

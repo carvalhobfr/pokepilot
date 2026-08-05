@@ -2690,6 +2690,60 @@ class HybridGymEnv(RedGymEnv):
         except Exception as e:
             print(f"[{self.agent_name}] ⚠️ Failed to mark golden tiles: {e}")
 
+    def _track_healing(self, current_party):
+        """Report a real heal, confirmed by HP in RAM.
+
+        Walking into a Center and coming out is not evidence of anything: the
+        nurse dialogue can be skipped, and the pair spent a whole crossing at
+        1 HP with nothing in the feed either way. What counts is party HP
+        going from damaged to full while out of battle.
+        """
+        if self.in_battle or not current_party:
+            return
+        before = getattr(self, "last_party_info", []) or []
+        if len(before) != len(current_party):
+            return
+
+        def damaged(party):
+            return sum(
+                max(int(mon.get("max_hp") or 0) - int(mon.get("hp") or 0), 0)
+                for mon in party
+            )
+
+        missing_before = damaged(before)
+        if missing_before <= 0:
+            return
+        if damaged(current_party) > 0:
+            return
+        # A whiteout also restores full HP, and it is a defeat, not care taken.
+        # `death` owns that story; this event is only for a heal that was paid
+        # for by walking to the counter.
+        if any(int(mon.get("hp") or 0) == 0 for mon in before):
+            return
+
+        map_id = int(self.read_m(0xD35E))
+        map_name = self._map_name(map_id)
+        self.heal_count = getattr(self, "heal_count", 0) + 1
+        self._log_event("healed", {
+            "hp_restored": missing_before,
+            "party": current_party,
+            "party_size": len(current_party),
+            "map_id": map_id,
+            "map_name": map_name,
+            "source": (
+                "pokemon_center"
+                if "center" in str(map_name).lower()
+                else "item_or_event"
+            ),
+            "total_heals": self.heal_count,
+            "reason": (
+                f"HP da equipe voltou ao máximo ({missing_before} pontos) "
+                f"fora de batalha em {map_name}"
+            ),
+        })
+        # The panel shows HP bars; a full party is worth publishing at once.
+        self._update_agent_state()
+
     def _track_party_changes(self):
         """Track Level Ups, Captures and Party Swaps"""
         try:
@@ -2701,6 +2755,8 @@ class HybridGymEnv(RedGymEnv):
                 self.last_pokedex_owned = current_pokedex_owned
                 self.party_tracking_initialized = True
                 return
+
+            self._track_healing(current_party)
 
             evolution_detected = False
 

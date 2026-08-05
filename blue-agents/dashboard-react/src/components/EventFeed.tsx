@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Scroll, ArrowUpCircle, Archive, Zap, MapPin, Swords, Crosshair, Skull, Target, Sparkles, BookOpen, Award } from 'lucide-react';
+import { Scroll, ArrowUpCircle, Archive, Zap, MapPin, Swords, Crosshair, Skull, Target, Sparkles, BookOpen, Award, Heart } from 'lucide-react';
 
 interface EventLog {
   agent: string;
@@ -64,7 +64,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
     }
     return [
       'location_discovered', 'story_milestone', 'rare_encounter',
-      'capture_decision', 'capture_outcome', 'capture', 'capture_attempt', 'starter_selected',
+      'capture_decision', 'capture_outcome', 'capture', 'capture_attempt', 'healed', 'starter_selected',
       'level_up', 'move_learned', 'training_target', 'evolution', 'badge', 'pc_deposit',
       'battle_loss', 'death', 'objective_changed',
     ].includes(e.type);
@@ -100,6 +100,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   </div>
                 )}
                 {e.type === 'capture_attempt' && <Crosshair size={20} className="text-amber-300" />}
+                {e.type === 'healed' && <Heart size={20} className="text-pink-300" />}
                 {e.type === 'capture_outcome' && (
                   e.data.outcome === 'captured'
                     ? <Sparkles size={20} className="text-yellow-300" />
@@ -205,6 +206,12 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                         bolas usadas: {e.data.balls_thrown ?? 0} · restam {e.data.pokeballs ?? 0}
                         {e.data.outcome === 'captured' && ` · time: ${e.data.party_size}`}
                       </div>
+                    </span>
+                  )}
+                  {e.type === 'healed' && (
+                    <span className="text-pink-200">
+                      Equipe curada: <span className="font-bold">+{e.data.hp_restored} HP</span>
+                      <div className="text-gray-500">{e.data.map_name} · {e.data.source === 'pokemon_center' ? 'Centro Pokémon' : 'item ou evento'}</div>
                     </span>
                   )}
                   {e.type === 'battle_loss' && (
