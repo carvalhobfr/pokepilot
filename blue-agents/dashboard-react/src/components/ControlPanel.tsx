@@ -126,6 +126,33 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll,
                 </div>
               </div>
 
+              {/* Who this trainer is: the traits explain every capture below */}
+              <div className="p-3 border-b border-white/5 bg-violet-950/10">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-gray-500">Arquétipo</span>
+                  <span className="text-[11px] font-bold text-violet-200">{agent.journey?.archetype_label || '—'}</span>
+                </div>
+                {agent.journey?.archetype_summary && (
+                  <div className="mt-1 text-[9px] leading-tight text-gray-400">{agent.journey.archetype_summary}</div>
+                )}
+                <div className="mt-2 space-y-1">
+                  {([
+                    ['Meta', agent.journey?.traits?.meta_score, 'bg-blue-400'],
+                    ['Exploração', agent.journey?.traits?.exploration, 'bg-emerald-400'],
+                    ['Colecionador', agent.journey?.traits?.collector, 'bg-yellow-400'],
+                    ['Foco na missão', agent.journey?.traits?.mission_focus, 'bg-rose-400'],
+                  ] as [string, number | undefined, string][]).map(([label, value, color]) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className="w-20 shrink-0 text-[9px] text-gray-500">{label}</span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/5">
+                        <div className={`h-full ${color}`} style={{ width: `${Math.max(0, Math.min(100, value ?? 0))}%` }} />
+                      </div>
+                      <span className="w-6 shrink-0 text-right text-[9px] font-mono text-gray-300">{value ?? '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Real journey summary */}
               <div className="p-3 border-b border-white/5 bg-blue-950/10">
                 <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 flex items-center justify-between">

@@ -12,7 +12,10 @@ const ALLOWED_SPEEDS = new Set([0, 0.5, 1, 2]);
 fs.mkdirSync(TASKS_DIR, { recursive: true });
 
 let controls = {
-  global: { paused: false, speed: 1 },
+  // `viewers` is written by the relay, never by the dashboard: the throttle
+  // that makes the arena watchable is pure waste when nobody is watching, and
+  // the number of open dashboards is the only honest way to know.
+  global: { paused: false, speed: 1, viewers: 0 },
   agents: {},
 };
 
@@ -20,6 +23,13 @@ function writeControls() {
   const temporary = `${CONTROL_FILE}.tmp`;
   fs.writeFileSync(temporary, JSON.stringify(controls, null, 2));
   fs.renameSync(temporary, CONTROL_FILE);
+}
+
+function publishViewerCount() {
+  const viewers = dashboardClients.length;
+  if (controls.global.viewers === viewers) return;
+  controls.global.viewers = viewers;
+  writeControls();
 }
 
 function readTrainingPid() {
@@ -137,6 +147,7 @@ wss.on('connection', function connection(ws, req) {
   if (url === '/receive') {
     console.log(`📊 Dashboard client connected. Total: ${dashboardClients.length + 1}`);
     dashboardClients.push(ws);
+    publishViewerCount();
     sendJson(ws, { type: 'runtime_control_state', controls });
     broadcastStats();
 
@@ -144,6 +155,7 @@ wss.on('connection', function connection(ws, req) {
     ws.on('close', () => {
       dashboardClients = dashboardClients.filter(client => client !== ws);
       console.log('📉 Dashboard client disconnected');
+      publishViewerCount();
       broadcastStats();
     });
   } else if (url === '/broadcast') {

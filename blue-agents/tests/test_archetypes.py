@@ -79,6 +79,32 @@ class ArchetypeCaptureStanceTests(unittest.TestCase):
         decision = env._capture_policy(self.weakened_new_species())
         self.assertEqual("capture", decision["choice"])
 
+    def test_the_speedrunner_still_takes_a_pokemon_strong_enough_to_matter(self):
+        # Skipping every catch arrives at the gyms with nothing but a starter,
+        # and a gym that walls a lone starter costs more turns than the catch.
+        env = self.make_env(
+            "only_when_needed",
+            party=[{"species_id": 4, "level": 20}, {"species_id": 16, "level": 12}],
+            collector=15,
+        )
+        encounter = self.weakened_new_species()
+        encounter["enemy_species_id"] = 63  # Abra, valor estratégico 86
+        decision = env._capture_policy(encounter)
+        self.assertEqual("capture", decision["choice"])
+        self.assertEqual("rush_power_pick", decision["reason_code"])
+
+    def test_the_speedrunner_takes_anything_above_its_best_pokemon(self):
+        env = self.make_env(
+            "only_when_needed",
+            party=[{"species_id": 4, "level": 8}, {"species_id": 16, "level": 6}],
+            collector=15,
+        )
+        encounter = self.weakened_new_species()
+        encounter["enemy_level"] = 12
+        decision = env._capture_policy(encounter)
+        self.assertEqual("capture", decision["choice"])
+        self.assertEqual("rush_power_pick", decision["reason_code"])
+
     def test_the_team_builder_keeps_the_old_team_value_rules(self):
         env = self.make_env(
             "team_value_only", party=self.full_party(), collector=65, meta=95

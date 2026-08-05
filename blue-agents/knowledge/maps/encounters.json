@@ -1,0 +1,2594 @@
+{
+  "version": "blue",
+  "source": "pokeapi.co",
+  "areas": {
+    "celadon-city-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "poliwhirl": {
+        "species_id": 61,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "celadon-city-celadon-mansion": {
+      "eevee": {
+        "species_id": 133,
+        "min_level": 25,
+        "max_level": 25
+      }
+    },
+    "celadon-city-prize-corner": {
+      "abra": {
+        "species_id": 63,
+        "min_level": 6,
+        "max_level": 6
+      },
+      "clefairy": {
+        "species_id": 35,
+        "min_level": 12,
+        "max_level": 12
+      },
+      "dratini": {
+        "species_id": 147,
+        "min_level": 24,
+        "max_level": 24
+      },
+      "nidorino": {
+        "species_id": 33,
+        "min_level": 17,
+        "max_level": 17
+      },
+      "pinsir": {
+        "species_id": 127,
+        "min_level": 20,
+        "max_level": 20
+      },
+      "porygon": {
+        "species_id": 137,
+        "min_level": 18,
+        "max_level": 18
+      }
+    },
+    "cerulean-city-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "jynx": {
+        "species_id": 124,
+        "min_level": 23,
+        "max_level": 100
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "cinnabar-island-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "horsea": {
+        "species_id": 116,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "cinnabar-island-cinnabar-lab": {
+      "aerodactyl": {
+        "species_id": 142,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "electrode": {
+        "species_id": 101,
+        "min_level": 3,
+        "max_level": 100
+      },
+      "kabuto": {
+        "species_id": 140,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "omanyte": {
+        "species_id": 138,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "seel": {
+        "species_id": 86,
+        "min_level": 28,
+        "max_level": 100
+      },
+      "tangela": {
+        "species_id": 114,
+        "min_level": 22,
+        "max_level": 100
+      }
+    },
+    "digletts-cave-area": {
+      "diglett": {
+        "species_id": 50,
+        "min_level": 15,
+        "max_level": 22
+      },
+      "dugtrio": {
+        "species_id": 51,
+        "min_level": 29,
+        "max_level": 31
+      }
+    },
+    "fuchsia-city-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 15
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "seaking": {
+        "species_id": 119,
+        "min_level": 23,
+        "max_level": 23
+      }
+    },
+    "mt-moon-1f": {
+      "clefairy": {
+        "species_id": 35,
+        "min_level": 8,
+        "max_level": 8
+      },
+      "geodude": {
+        "species_id": 74,
+        "min_level": 8,
+        "max_level": 10
+      },
+      "paras": {
+        "species_id": 46,
+        "min_level": 8,
+        "max_level": 8
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 6,
+        "max_level": 11
+      }
+    },
+    "mt-moon-b1f": {
+      "clefairy": {
+        "species_id": 35,
+        "min_level": 9,
+        "max_level": 9
+      },
+      "geodude": {
+        "species_id": 74,
+        "min_level": 7,
+        "max_level": 9
+      },
+      "paras": {
+        "species_id": 46,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 7,
+        "max_level": 11
+      }
+    },
+    "mt-moon-b2f": {
+      "clefairy": {
+        "species_id": 35,
+        "min_level": 10,
+        "max_level": 12
+      },
+      "geodude": {
+        "species_id": 74,
+        "min_level": 9,
+        "max_level": 10
+      },
+      "paras": {
+        "species_id": 46,
+        "min_level": 10,
+        "max_level": 12
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 9,
+        "max_level": 12
+      }
+    },
+    "pallet-town-area": {
+      "bulbasaur": {
+        "species_id": 1,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "charmander": {
+        "species_id": 4,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "squirtle": {
+        "species_id": 7,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "rock-tunnel-b1f": {
+      "geodude": {
+        "species_id": 74,
+        "min_level": 16,
+        "max_level": 17
+      },
+      "machop": {
+        "species_id": 66,
+        "min_level": 15,
+        "max_level": 17
+      },
+      "onix": {
+        "species_id": 95,
+        "min_level": 13,
+        "max_level": 15
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 15,
+        "max_level": 18
+      }
+    },
+    "rock-tunnel-b2f": {
+      "geodude": {
+        "species_id": 74,
+        "min_level": 16,
+        "max_level": 18
+      },
+      "machop": {
+        "species_id": 66,
+        "min_level": 15,
+        "max_level": 17
+      },
+      "onix": {
+        "species_id": 95,
+        "min_level": 13,
+        "max_level": 17
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 16,
+        "max_level": 18
+      }
+    },
+    "kanto-route-1-area": {
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 2,
+        "max_level": 5
+      },
+      "rattata": {
+        "species_id": 19,
+        "min_level": 2,
+        "max_level": 4
+      }
+    },
+    "kanto-route-10-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "poliwhirl": {
+        "species_id": 61,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "sandshrew": {
+        "species_id": 27,
+        "min_level": 11,
+        "max_level": 17
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 13,
+        "max_level": 17
+      },
+      "voltorb": {
+        "species_id": 100,
+        "min_level": 14,
+        "max_level": 17
+      }
+    },
+    "kanto-route-11-area": {
+      "drowzee": {
+        "species_id": 96,
+        "min_level": 9,
+        "max_level": 15
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "nidorina": {
+        "species_id": 30,
+        "min_level": 16,
+        "max_level": 100
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "sandshrew": {
+        "species_id": 27,
+        "min_level": 12,
+        "max_level": 15
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 13,
+        "max_level": 17
+      }
+    },
+    "kanto-route-12-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 22,
+        "max_level": 26
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 15
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 23,
+        "max_level": 27
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "snorlax": {
+        "species_id": 143,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "venonat": {
+        "species_id": 48,
+        "min_level": 24,
+        "max_level": 26
+      },
+      "weepinbell": {
+        "species_id": 70,
+        "min_level": 28,
+        "max_level": 30
+      }
+    },
+    "kanto-route-13-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 22,
+        "max_level": 26
+      },
+      "ditto": {
+        "species_id": 132,
+        "min_level": 25,
+        "max_level": 25
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 15
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 25,
+        "max_level": 27
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "venonat": {
+        "species_id": 48,
+        "min_level": 24,
+        "max_level": 26
+      },
+      "weepinbell": {
+        "species_id": 70,
+        "min_level": 28,
+        "max_level": 30
+      }
+    },
+    "kanto-route-14-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 22,
+        "max_level": 26
+      },
+      "ditto": {
+        "species_id": 132,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "pidgeotto": {
+        "species_id": 17,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "venonat": {
+        "species_id": 48,
+        "min_level": 24,
+        "max_level": 26
+      },
+      "weepinbell": {
+        "species_id": 70,
+        "min_level": 30,
+        "max_level": 30
+      }
+    },
+    "kanto-route-15-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 22,
+        "max_level": 26
+      },
+      "ditto": {
+        "species_id": 132,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "pidgeotto": {
+        "species_id": 17,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "venonat": {
+        "species_id": 48,
+        "min_level": 26,
+        "max_level": 28
+      },
+      "weepinbell": {
+        "species_id": 70,
+        "min_level": 30,
+        "max_level": 30
+      }
+    },
+    "kanto-route-16-area": {
+      "doduo": {
+        "species_id": 84,
+        "min_level": 18,
+        "max_level": 22
+      },
+      "raticate": {
+        "species_id": 20,
+        "min_level": 23,
+        "max_level": 25
+      },
+      "rattata": {
+        "species_id": 19,
+        "min_level": 18,
+        "max_level": 22
+      },
+      "snorlax": {
+        "species_id": 143,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 20,
+        "max_level": 22
+      }
+    },
+    "kanto-route-17-area": {
+      "doduo": {
+        "species_id": 84,
+        "min_level": 24,
+        "max_level": 28
+      },
+      "fearow": {
+        "species_id": 22,
+        "min_level": 25,
+        "max_level": 27
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 15
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "raticate": {
+        "species_id": 20,
+        "min_level": 25,
+        "max_level": 29
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 20,
+        "max_level": 22
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 5
+      }
+    },
+    "kanto-route-18-area": {
+      "doduo": {
+        "species_id": 84,
+        "min_level": 24,
+        "max_level": 28
+      },
+      "fearow": {
+        "species_id": 22,
+        "min_level": 25,
+        "max_level": 29
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "lickitung": {
+        "species_id": 108,
+        "min_level": 23,
+        "max_level": 100
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 15
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "raticate": {
+        "species_id": 20,
+        "min_level": 25,
+        "max_level": 29
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 20,
+        "max_level": 22
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 5
+      }
+    },
+    "kanto-sea-route-19-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "horsea": {
+        "species_id": 116,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 40
+      }
+    },
+    "kanto-route-2-south-towards-viridian-city": {
+      "caterpie": {
+        "species_id": 10,
+        "min_level": 3,
+        "max_level": 5
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 3,
+        "max_level": 5
+      },
+      "rattata": {
+        "species_id": 19,
+        "min_level": 2,
+        "max_level": 5
+      }
+    },
+    "kanto-route-2-north-towards-pewter-city": {
+      "mr-mime": {
+        "species_id": 122,
+        "min_level": 8,
+        "max_level": 100
+      }
+    },
+    "kanto-sea-route-20-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "horsea": {
+        "species_id": 116,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 40
+      }
+    },
+    "kanto-sea-route-21-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "horsea": {
+        "species_id": 116,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "pidgeotto": {
+        "species_id": 17,
+        "min_level": 30,
+        "max_level": 32
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 21,
+        "max_level": 23
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "raticate": {
+        "species_id": 20,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "rattata": {
+        "species_id": 19,
+        "min_level": 21,
+        "max_level": 23
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "tangela": {
+        "species_id": 114,
+        "min_level": 28,
+        "max_level": 32
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 5,
+        "max_level": 40
+      }
+    },
+    "kanto-route-22-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "nidoran-f": {
+        "species_id": 29,
+        "min_level": 2,
+        "max_level": 4
+      },
+      "nidoran-m": {
+        "species_id": 32,
+        "min_level": 3,
+        "max_level": 4
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "rattata": {
+        "species_id": 19,
+        "min_level": 2,
+        "max_level": 4
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 3,
+        "max_level": 5
+      }
+    },
+    "kanto-route-24-area": {
+      "abra": {
+        "species_id": 63,
+        "min_level": 8,
+        "max_level": 12
+      },
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 12,
+        "max_level": 14
+      },
+      "caterpie": {
+        "species_id": 10,
+        "min_level": 7,
+        "max_level": 7
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "metapod": {
+        "species_id": 11,
+        "min_level": 8,
+        "max_level": 8
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 12,
+        "max_level": 13
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "kanto-route-25-area": {
+      "abra": {
+        "species_id": 63,
+        "min_level": 10,
+        "max_level": 12
+      },
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 12,
+        "max_level": 14
+      },
+      "caterpie": {
+        "species_id": 10,
+        "min_level": 8,
+        "max_level": 8
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "kakuna": {
+        "species_id": 14,
+        "min_level": 7,
+        "max_level": 7
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "metapod": {
+        "species_id": 11,
+        "min_level": 9,
+        "max_level": 9
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 13,
+        "max_level": 13
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "weedle": {
+        "species_id": 13,
+        "min_level": 8,
+        "max_level": 8
+      }
+    },
+    "kanto-route-3-area": {
+      "jigglypuff": {
+        "species_id": 39,
+        "min_level": 3,
+        "max_level": 7
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 6,
+        "max_level": 8
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 5,
+        "max_level": 8
+      }
+    },
+    "kanto-route-3-pokemon-center": {
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      }
+    },
+    "kanto-route-4-area": {
+      "rattata": {
+        "species_id": 19,
+        "min_level": 8,
+        "max_level": 12
+      },
+      "sandshrew": {
+        "species_id": 27,
+        "min_level": 6,
+        "max_level": 12
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 8,
+        "max_level": 12
+      }
+    },
+    "kanto-route-4-pokemon-center": {
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      }
+    },
+    "kanto-route-5-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 13,
+        "max_level": 16
+      },
+      "meowth": {
+        "species_id": 52,
+        "min_level": 10,
+        "max_level": 16
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 13,
+        "max_level": 16
+      }
+    },
+    "kanto-route-6-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 13,
+        "max_level": 16
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "meowth": {
+        "species_id": 52,
+        "min_level": 10,
+        "max_level": 16
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 13,
+        "max_level": 16
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "kanto-route-7-area": {
+      "bellsprout": {
+        "species_id": 69,
+        "min_level": 19,
+        "max_level": 22
+      },
+      "meowth": {
+        "species_id": 52,
+        "min_level": 17,
+        "max_level": 20
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 19,
+        "max_level": 22
+      },
+      "vulpix": {
+        "species_id": 37,
+        "min_level": 18,
+        "max_level": 20
+      }
+    },
+    "kanto-route-8-area": {
+      "meowth": {
+        "species_id": 52,
+        "min_level": 18,
+        "max_level": 20
+      },
+      "pidgey": {
+        "species_id": 16,
+        "min_level": 18,
+        "max_level": 20
+      },
+      "sandshrew": {
+        "species_id": 27,
+        "min_level": 17,
+        "max_level": 19
+      },
+      "vulpix": {
+        "species_id": 37,
+        "min_level": 15,
+        "max_level": 18
+      }
+    },
+    "kanto-route-9-area": {
+      "rattata": {
+        "species_id": 19,
+        "min_level": 14,
+        "max_level": 17
+      },
+      "sandshrew": {
+        "species_id": 27,
+        "min_level": 11,
+        "max_level": 17
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 13,
+        "max_level": 17
+      }
+    },
+    "seafoam-islands-1f": {
+      "golbat": {
+        "species_id": 42,
+        "min_level": 29,
+        "max_level": 29
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "seel": {
+        "species_id": 86,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "slowbro": {
+        "species_id": 80,
+        "min_level": 38,
+        "max_level": 38
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 28,
+        "max_level": 28
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 21,
+        "max_level": 21
+      }
+    },
+    "seafoam-islands-b1f": {
+      "dewgong": {
+        "species_id": 87,
+        "min_level": 38,
+        "max_level": 38
+      },
+      "kingler": {
+        "species_id": 99,
+        "min_level": 37,
+        "max_level": 37
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 30,
+        "max_level": 32
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "seel": {
+        "species_id": 86,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 32,
+        "max_level": 32
+      }
+    },
+    "seafoam-islands-b2f": {
+      "golbat": {
+        "species_id": 42,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "golduck": {
+        "species_id": 55,
+        "min_level": 37,
+        "max_level": 37
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 28,
+        "max_level": 30
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 30,
+        "max_level": 32
+      },
+      "seel": {
+        "species_id": 86,
+        "min_level": 30,
+        "max_level": 32
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 28,
+        "max_level": 28
+      }
+    },
+    "seafoam-islands-b3f": {
+      "dewgong": {
+        "species_id": 87,
+        "min_level": 37,
+        "max_level": 37
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "horsea": {
+        "species_id": 116,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "kingler": {
+        "species_id": 99,
+        "min_level": 39,
+        "max_level": 39
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 29,
+        "max_level": 31
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 31,
+        "max_level": 33
+      },
+      "seel": {
+        "species_id": 86,
+        "min_level": 31,
+        "max_level": 33
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 15,
+        "max_level": 31
+      }
+    },
+    "seafoam-islands-b4f": {
+      "articuno": {
+        "species_id": 144,
+        "min_level": 50,
+        "max_level": 50
+      },
+      "golbat": {
+        "species_id": 42,
+        "min_level": 32,
+        "max_level": 32
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "golduck": {
+        "species_id": 55,
+        "min_level": 39,
+        "max_level": 39
+      },
+      "horsea": {
+        "species_id": 116,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 31,
+        "max_level": 33
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 29,
+        "max_level": 31
+      },
+      "seel": {
+        "species_id": 86,
+        "min_level": 29,
+        "max_level": 31
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "staryu": {
+        "species_id": 120,
+        "min_level": 15,
+        "max_level": 33
+      }
+    },
+    "cerulean-cave-1f": {
+      "ditto": {
+        "species_id": 132,
+        "min_level": 53,
+        "max_level": 53
+      },
+      "dodrio": {
+        "species_id": 85,
+        "min_level": 49,
+        "max_level": 49
+      },
+      "golbat": {
+        "species_id": 42,
+        "min_level": 46,
+        "max_level": 46
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "hypno": {
+        "species_id": 97,
+        "min_level": 46,
+        "max_level": 46
+      },
+      "kadabra": {
+        "species_id": 64,
+        "min_level": 49,
+        "max_level": 49
+      },
+      "kingler": {
+        "species_id": 99,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "magneton": {
+        "species_id": 82,
+        "min_level": 46,
+        "max_level": 46
+      },
+      "parasect": {
+        "species_id": 47,
+        "min_level": 52,
+        "max_level": 52
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "raichu": {
+        "species_id": 26,
+        "min_level": 53,
+        "max_level": 53
+      },
+      "sandslash": {
+        "species_id": 28,
+        "min_level": 52,
+        "max_level": 52
+      },
+      "seadra": {
+        "species_id": 117,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "seaking": {
+        "species_id": 119,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "slowbro": {
+        "species_id": 80,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "venomoth": {
+        "species_id": 49,
+        "min_level": 49,
+        "max_level": 49
+      }
+    },
+    "cerulean-cave-2f": {
+      "chansey": {
+        "species_id": 113,
+        "min_level": 56,
+        "max_level": 56
+      },
+      "ditto": {
+        "species_id": 132,
+        "min_level": 55,
+        "max_level": 60
+      },
+      "dodrio": {
+        "species_id": 85,
+        "min_level": 51,
+        "max_level": 51
+      },
+      "electrode": {
+        "species_id": 101,
+        "min_level": 52,
+        "max_level": 52
+      },
+      "kadabra": {
+        "species_id": 64,
+        "min_level": 51,
+        "max_level": 51
+      },
+      "marowak": {
+        "species_id": 105,
+        "min_level": 52,
+        "max_level": 52
+      },
+      "rhydon": {
+        "species_id": 112,
+        "min_level": 52,
+        "max_level": 52
+      },
+      "venomoth": {
+        "species_id": 49,
+        "min_level": 51,
+        "max_level": 51
+      },
+      "wigglytuff": {
+        "species_id": 40,
+        "min_level": 54,
+        "max_level": 54
+      }
+    },
+    "cerulean-cave-b1f": {
+      "chansey": {
+        "species_id": 113,
+        "min_level": 64,
+        "max_level": 64
+      },
+      "ditto": {
+        "species_id": 132,
+        "min_level": 63,
+        "max_level": 67
+      },
+      "electrode": {
+        "species_id": 101,
+        "min_level": 55,
+        "max_level": 55
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "kingler": {
+        "species_id": 99,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "marowak": {
+        "species_id": 105,
+        "min_level": 55,
+        "max_level": 55
+      },
+      "mewtwo": {
+        "species_id": 150,
+        "min_level": 70,
+        "max_level": 70
+      },
+      "parasect": {
+        "species_id": 47,
+        "min_level": 64,
+        "max_level": 64
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "raichu": {
+        "species_id": 26,
+        "min_level": 64,
+        "max_level": 64
+      },
+      "rhydon": {
+        "species_id": 112,
+        "min_level": 55,
+        "max_level": 55
+      },
+      "sandslash": {
+        "species_id": 28,
+        "min_level": 57,
+        "max_level": 57
+      },
+      "seadra": {
+        "species_id": 117,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "seaking": {
+        "species_id": 119,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "slowbro": {
+        "species_id": 80,
+        "min_level": 23,
+        "max_level": 23
+      }
+    },
+    "vermilion-city-area": {
+      "farfetchd": {
+        "species_id": 83,
+        "min_level": 3,
+        "max_level": 100
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "vermilion-city-ss-anne-dock": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "shellder": {
+        "species_id": 90,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "viridian-city-area": {
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 15
+      },
+      "tentacool": {
+        "species_id": 72,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "viridian-forest-area": {
+      "caterpie": {
+        "species_id": 10,
+        "min_level": 3,
+        "max_level": 5
+      },
+      "kakuna": {
+        "species_id": 14,
+        "min_level": 4,
+        "max_level": 4
+      },
+      "metapod": {
+        "species_id": 11,
+        "min_level": 4,
+        "max_level": 6
+      },
+      "pikachu": {
+        "species_id": 25,
+        "min_level": 3,
+        "max_level": 5
+      },
+      "weedle": {
+        "species_id": 13,
+        "min_level": 3,
+        "max_level": 3
+      }
+    },
+    "kanto-route-23-area": {
+      "ditto": {
+        "species_id": 132,
+        "min_level": 33,
+        "max_level": 43
+      },
+      "fearow": {
+        "species_id": 22,
+        "min_level": 38,
+        "max_level": 43
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "kingler": {
+        "species_id": 99,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "sandshrew": {
+        "species_id": 27,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "sandslash": {
+        "species_id": 28,
+        "min_level": 41,
+        "max_level": 41
+      },
+      "seadra": {
+        "species_id": 117,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "seaking": {
+        "species_id": 119,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "slowbro": {
+        "species_id": 80,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "spearow": {
+        "species_id": 21,
+        "min_level": 26,
+        "max_level": 26
+      }
+    },
+    "kanto-power-plant-area": {
+      "electrode": {
+        "species_id": 101,
+        "min_level": 43,
+        "max_level": 43
+      },
+      "magnemite": {
+        "species_id": 81,
+        "min_level": 21,
+        "max_level": 23
+      },
+      "magneton": {
+        "species_id": 82,
+        "min_level": 32,
+        "max_level": 35
+      },
+      "pikachu": {
+        "species_id": 25,
+        "min_level": 20,
+        "max_level": 24
+      },
+      "raichu": {
+        "species_id": 26,
+        "min_level": 33,
+        "max_level": 36
+      },
+      "voltorb": {
+        "species_id": 100,
+        "min_level": 21,
+        "max_level": 40
+      },
+      "zapdos": {
+        "species_id": 145,
+        "min_level": 50,
+        "max_level": 50
+      }
+    },
+    "kanto-victory-road-2-1f": {
+      "geodude": {
+        "species_id": 74,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "golbat": {
+        "species_id": 42,
+        "min_level": 41,
+        "max_level": 41
+      },
+      "graveler": {
+        "species_id": 75,
+        "min_level": 41,
+        "max_level": 41
+      },
+      "machoke": {
+        "species_id": 67,
+        "min_level": 42,
+        "max_level": 42
+      },
+      "machop": {
+        "species_id": 66,
+        "min_level": 24,
+        "max_level": 24
+      },
+      "marowak": {
+        "species_id": 105,
+        "min_level": 43,
+        "max_level": 43
+      },
+      "onix": {
+        "species_id": 95,
+        "min_level": 36,
+        "max_level": 42
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 22,
+        "max_level": 22
+      }
+    },
+    "kanto-victory-road-2-2f": {
+      "geodude": {
+        "species_id": 74,
+        "min_level": 24,
+        "max_level": 24
+      },
+      "golbat": {
+        "species_id": 42,
+        "min_level": 40,
+        "max_level": 40
+      },
+      "graveler": {
+        "species_id": 75,
+        "min_level": 43,
+        "max_level": 43
+      },
+      "machoke": {
+        "species_id": 67,
+        "min_level": 41,
+        "max_level": 41
+      },
+      "machop": {
+        "species_id": 66,
+        "min_level": 22,
+        "max_level": 22
+      },
+      "marowak": {
+        "species_id": 105,
+        "min_level": 40,
+        "max_level": 40
+      },
+      "moltres": {
+        "species_id": 146,
+        "min_level": 50,
+        "max_level": 50
+      },
+      "onix": {
+        "species_id": 95,
+        "min_level": 36,
+        "max_level": 42
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 26,
+        "max_level": 26
+      }
+    },
+    "kanto-victory-road-2-3f": {
+      "geodude": {
+        "species_id": 74,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "golbat": {
+        "species_id": 42,
+        "min_level": 41,
+        "max_level": 41
+      },
+      "graveler": {
+        "species_id": 75,
+        "min_level": 43,
+        "max_level": 43
+      },
+      "machoke": {
+        "species_id": 67,
+        "min_level": 42,
+        "max_level": 45
+      },
+      "machop": {
+        "species_id": 66,
+        "min_level": 24,
+        "max_level": 24
+      },
+      "onix": {
+        "species_id": 95,
+        "min_level": 42,
+        "max_level": 45
+      },
+      "venomoth": {
+        "species_id": 49,
+        "min_level": 40,
+        "max_level": 40
+      },
+      "zubat": {
+        "species_id": 41,
+        "min_level": 22,
+        "max_level": 22
+      }
+    },
+    "pokemon-tower-3f": {
+      "cubone": {
+        "species_id": 104,
+        "min_level": 20,
+        "max_level": 22
+      },
+      "gastly": {
+        "species_id": 92,
+        "min_level": 18,
+        "max_level": 24
+      },
+      "haunter": {
+        "species_id": 93,
+        "min_level": 25,
+        "max_level": 25
+      }
+    },
+    "pokemon-tower-4f": {
+      "cubone": {
+        "species_id": 104,
+        "min_level": 20,
+        "max_level": 22
+      },
+      "gastly": {
+        "species_id": 92,
+        "min_level": 18,
+        "max_level": 24
+      },
+      "haunter": {
+        "species_id": 93,
+        "min_level": 25,
+        "max_level": 25
+      }
+    },
+    "pokemon-tower-5f": {
+      "cubone": {
+        "species_id": 104,
+        "min_level": 20,
+        "max_level": 22
+      },
+      "gastly": {
+        "species_id": 92,
+        "min_level": 18,
+        "max_level": 24
+      },
+      "haunter": {
+        "species_id": 93,
+        "min_level": 25,
+        "max_level": 25
+      }
+    },
+    "pokemon-tower-6f": {
+      "cubone": {
+        "species_id": 104,
+        "min_level": 22,
+        "max_level": 24
+      },
+      "gastly": {
+        "species_id": 92,
+        "min_level": 19,
+        "max_level": 24
+      },
+      "haunter": {
+        "species_id": 93,
+        "min_level": 26,
+        "max_level": 28
+      }
+    },
+    "pokemon-tower-7f": {
+      "cubone": {
+        "species_id": 104,
+        "min_level": 22,
+        "max_level": 24
+      },
+      "gastly": {
+        "species_id": 92,
+        "min_level": 20,
+        "max_level": 24
+      },
+      "haunter": {
+        "species_id": 93,
+        "min_level": 28,
+        "max_level": 30
+      }
+    },
+    "pokemon-mansion-1f": {
+      "grimer": {
+        "species_id": 88,
+        "min_level": 30,
+        "max_level": 32
+      },
+      "koffing": {
+        "species_id": 109,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "muk": {
+        "species_id": 89,
+        "min_level": 37,
+        "max_level": 37
+      },
+      "ponyta": {
+        "species_id": 77,
+        "min_level": 28,
+        "max_level": 34
+      },
+      "vulpix": {
+        "species_id": 37,
+        "min_level": 34,
+        "max_level": 34
+      },
+      "weezing": {
+        "species_id": 110,
+        "min_level": 39,
+        "max_level": 39
+      }
+    },
+    "pokemon-mansion-2f": {
+      "grimer": {
+        "species_id": 88,
+        "min_level": 30,
+        "max_level": 34
+      },
+      "koffing": {
+        "species_id": 109,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "muk": {
+        "species_id": 89,
+        "min_level": 39,
+        "max_level": 39
+      },
+      "ponyta": {
+        "species_id": 77,
+        "min_level": 28,
+        "max_level": 32
+      },
+      "vulpix": {
+        "species_id": 37,
+        "min_level": 32,
+        "max_level": 32
+      },
+      "weezing": {
+        "species_id": 110,
+        "min_level": 37,
+        "max_level": 37
+      }
+    },
+    "pokemon-mansion-3f": {
+      "grimer": {
+        "species_id": 88,
+        "min_level": 31,
+        "max_level": 35
+      },
+      "koffing": {
+        "species_id": 109,
+        "min_level": 34,
+        "max_level": 34
+      },
+      "magmar": {
+        "species_id": 126,
+        "min_level": 34,
+        "max_level": 34
+      },
+      "muk": {
+        "species_id": 89,
+        "min_level": 38,
+        "max_level": 40
+      },
+      "ponyta": {
+        "species_id": 77,
+        "min_level": 32,
+        "max_level": 36
+      },
+      "vulpix": {
+        "species_id": 37,
+        "min_level": 33,
+        "max_level": 33
+      },
+      "weezing": {
+        "species_id": 110,
+        "min_level": 42,
+        "max_level": 42
+      }
+    },
+    "pokemon-mansion-b1f": {
+      "grimer": {
+        "species_id": 88,
+        "min_level": 31,
+        "max_level": 33
+      },
+      "koffing": {
+        "species_id": 109,
+        "min_level": 35,
+        "max_level": 35
+      },
+      "magmar": {
+        "species_id": 126,
+        "min_level": 38,
+        "max_level": 38
+      },
+      "muk": {
+        "species_id": 89,
+        "min_level": 40,
+        "max_level": 40
+      },
+      "ponyta": {
+        "species_id": 77,
+        "min_level": 32,
+        "max_level": 34
+      },
+      "vulpix": {
+        "species_id": 37,
+        "min_level": 35,
+        "max_level": 35
+      },
+      "weezing": {
+        "species_id": 110,
+        "min_level": 42,
+        "max_level": 42
+      }
+    },
+    "kanto-safari-zone-middle": {
+      "chansey": {
+        "species_id": 113,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "dratini": {
+        "species_id": 147,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "exeggcute": {
+        "species_id": 102,
+        "min_level": 24,
+        "max_level": 25
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "nidoran-f": {
+        "species_id": 29,
+        "min_level": 22,
+        "max_level": 22
+      },
+      "nidorina": {
+        "species_id": 30,
+        "min_level": 31,
+        "max_level": 31
+      },
+      "nidorino": {
+        "species_id": 33,
+        "min_level": 31,
+        "max_level": 31
+      },
+      "parasect": {
+        "species_id": 47,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "pinsir": {
+        "species_id": 127,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "rhyhorn": {
+        "species_id": 111,
+        "min_level": 25,
+        "max_level": 25
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "venonat": {
+        "species_id": 48,
+        "min_level": 22,
+        "max_level": 22
+      }
+    },
+    "kanto-safari-zone-area-1-east": {
+      "doduo": {
+        "species_id": 84,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "dratini": {
+        "species_id": 147,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "exeggcute": {
+        "species_id": 102,
+        "min_level": 23,
+        "max_level": 25
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "kangaskhan": {
+        "species_id": 115,
+        "min_level": 25,
+        "max_level": 25
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "nidoran-f": {
+        "species_id": 29,
+        "min_level": 24,
+        "max_level": 24
+      },
+      "nidoran-m": {
+        "species_id": 32,
+        "min_level": 24,
+        "max_level": 24
+      },
+      "nidorina": {
+        "species_id": 30,
+        "min_level": 33,
+        "max_level": 33
+      },
+      "paras": {
+        "species_id": 46,
+        "min_level": 22,
+        "max_level": 22
+      },
+      "parasect": {
+        "species_id": 47,
+        "min_level": 25,
+        "max_level": 25
+      },
+      "pinsir": {
+        "species_id": 127,
+        "min_level": 28,
+        "max_level": 28
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "kanto-safari-zone-area-2-north": {
+      "chansey": {
+        "species_id": 113,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "dratini": {
+        "species_id": 147,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "exeggcute": {
+        "species_id": 102,
+        "min_level": 25,
+        "max_level": 27
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "nidoran-f": {
+        "species_id": 29,
+        "min_level": 22,
+        "max_level": 22
+      },
+      "nidorina": {
+        "species_id": 30,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "nidorino": {
+        "species_id": 33,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "paras": {
+        "species_id": 46,
+        "min_level": 23,
+        "max_level": 23
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "rhyhorn": {
+        "species_id": 111,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "tauros": {
+        "species_id": 128,
+        "min_level": 28,
+        "max_level": 28
+      },
+      "venomoth": {
+        "species_id": 49,
+        "min_level": 32,
+        "max_level": 32
+      }
+    },
+    "kanto-safari-zone-area-3-west": {
+      "doduo": {
+        "species_id": 84,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "dratini": {
+        "species_id": 147,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "exeggcute": {
+        "species_id": 102,
+        "min_level": 24,
+        "max_level": 26
+      },
+      "goldeen": {
+        "species_id": 118,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "kangaskhan": {
+        "species_id": 115,
+        "min_level": 28,
+        "max_level": 28
+      },
+      "krabby": {
+        "species_id": 98,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "magikarp": {
+        "species_id": 129,
+        "min_level": 5,
+        "max_level": 5
+      },
+      "nidoran-f": {
+        "species_id": 29,
+        "min_level": 25,
+        "max_level": 25
+      },
+      "nidoran-m": {
+        "species_id": 32,
+        "min_level": 25,
+        "max_level": 25
+      },
+      "nidorina": {
+        "species_id": 30,
+        "min_level": 33,
+        "max_level": 33
+      },
+      "poliwag": {
+        "species_id": 60,
+        "min_level": 10,
+        "max_level": 10
+      },
+      "psyduck": {
+        "species_id": 54,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "slowpoke": {
+        "species_id": 79,
+        "min_level": 15,
+        "max_level": 15
+      },
+      "tauros": {
+        "species_id": 128,
+        "min_level": 26,
+        "max_level": 26
+      },
+      "venomoth": {
+        "species_id": 49,
+        "min_level": 31,
+        "max_level": 31
+      },
+      "venonat": {
+        "species_id": 48,
+        "min_level": 23,
+        "max_level": 23
+      }
+    },
+    "saffron-city-fighting-dojo": {
+      "hitmonchan": {
+        "species_id": 107,
+        "min_level": 30,
+        "max_level": 30
+      },
+      "hitmonlee": {
+        "species_id": 106,
+        "min_level": 30,
+        "max_level": 30
+      }
+    },
+    "saffron-city-silph-co-7f": {
+      "lapras": {
+        "species_id": 131,
+        "min_level": 15,
+        "max_level": 15
+      }
+    },
+    "kanto-underground-path-area": {
+      "nidoran-f": {
+        "species_id": 29,
+        "min_level": 2,
+        "max_level": 100
+      }
+    }
+  }
+}

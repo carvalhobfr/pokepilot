@@ -1,0 +1,173 @@
+{
+  "version": "blue",
+  "gyms": [
+    {
+      "order": 1,
+      "city": "Pewter City",
+      "map_id": 54,
+      "leader": "Brock",
+      "type": "rock",
+      "counters": {
+        "weak_to": [
+          "fighting",
+          "grass",
+          "ground",
+          "steel",
+          "water"
+        ],
+        "resists": [
+          "fire",
+          "flying",
+          "normal",
+          "poison"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 2,
+      "city": "Cerulean City",
+      "map_id": 65,
+      "leader": "Misty",
+      "type": "water",
+      "counters": {
+        "weak_to": [
+          "electric",
+          "grass"
+        ],
+        "resists": [
+          "fire",
+          "ice",
+          "steel",
+          "water"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 3,
+      "city": "Vermilion City",
+      "map_id": 92,
+      "leader": "Lt. Surge",
+      "type": "electric",
+      "counters": {
+        "weak_to": [
+          "ground"
+        ],
+        "resists": [
+          "electric",
+          "flying",
+          "steel"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 4,
+      "city": "Celadon City",
+      "map_id": 134,
+      "leader": "Erika",
+      "type": "grass",
+      "counters": {
+        "weak_to": [
+          "bug",
+          "fire",
+          "flying",
+          "ice",
+          "poison"
+        ],
+        "resists": [
+          "electric",
+          "grass",
+          "ground",
+          "water"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 5,
+      "city": "Fuchsia City",
+      "map_id": 157,
+      "leader": "Koga",
+      "type": "poison",
+      "counters": {
+        "weak_to": [
+          "ground",
+          "psychic"
+        ],
+        "resists": [
+          "bug",
+          "fairy",
+          "fighting",
+          "grass",
+          "poison"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 6,
+      "city": "Saffron City",
+      "map_id": 178,
+      "leader": "Sabrina",
+      "type": "psychic",
+      "counters": {
+        "weak_to": [
+          "bug",
+          "dark",
+          "ghost"
+        ],
+        "resists": [
+          "fighting",
+          "psychic"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 7,
+      "city": "Cinnabar Island",
+      "map_id": 166,
+      "leader": "Blaine",
+      "type": "fire",
+      "counters": {
+        "weak_to": [
+          "ground",
+          "rock",
+          "water"
+        ],
+        "resists": [
+          "bug",
+          "fairy",
+          "fire",
+          "grass",
+          "ice",
+          "steel"
+        ],
+        "immune_to": []
+      }
+    },
+    {
+      "order": 8,
+      "city": "Viridian City",
+      "map_id": 45,
+      "leader": "Giovanni",
+      "type": "ground",
+      "counters": {
+        "weak_to": [
+          "grass",
+          "ice",
+          "water"
+        ],
+        "resists": [
+          "poison",
+          "rock"
+        ],
+        "immune_to": [
+          "electric"
+        ]
+      }
+    }
+  ]
+}

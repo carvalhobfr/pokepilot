@@ -35,7 +35,12 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
-from archetypes import DEFAULT_ARCHETYPE, MINIMUM_BACKUP_PARTY, get_archetype
+from archetypes import (
+    DEFAULT_ARCHETYPE,
+    MINIMUM_BACKUP_PARTY,
+    RUSH_POWER_VALUE,
+    get_archetype,
+)
 from trainer_directives import (
     MAIN_QUEST_EXECUTOR,
     DirectiveError,
@@ -286,6 +291,7 @@ class HybridGymEnv(RedGymEnv):
         self.runtime_control_file = Path("tasks/runtime_controls.json")
         self.agent_paused = False
         self.playback_speed = 1.0
+        self.viewer_count = 0
         self.agent_count = max(int(config.get("agent_count", 1)), 1)
         self.state_update_interval = max(
             int(config.get("state_update_interval", 100)), 1
@@ -690,6 +696,9 @@ class HybridGymEnv(RedGymEnv):
             agent_control = controls.get("agents", {}).get(self.agent_name, {})
             requested_speed = float(global_control.get("speed", 1.0))
             self.playback_speed = requested_speed if requested_speed in (0.0, 0.5, 1.0, 2.0) else 1.0
+            # The relay publishes how many dashboards are open. Missing means
+            # no relay at all, which is training with nobody watching.
+            self.viewer_count = max(int(global_control.get("viewers", 0) or 0), 0)
             self.agent_paused = bool(agent_control.get("paused", False))
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             # The relay writes atomically, but keeping the previous state is
@@ -703,8 +712,13 @@ class HybridGymEnv(RedGymEnv):
         `act_freq` frames. DummyVecEnv steps agents sequentially, so each agent
         contributes only its share of the target vector-step duration.
         Speed 0 means explicit uncapped training mode.
+
+        The throttle exists so a human can follow the arena. With every
+        dashboard closed it buys nothing and costs everything: the same binary
+        went from 4 to 446 PPO steps/s on an M1 with it removed. So an empty
+        audience is training mode, whatever the speed selector says.
         """
-        if self.playback_speed <= 0:
+        if self.playback_speed <= 0 or getattr(self, "viewer_count", 0) <= 0:
             return
         target_seconds = (
             float(self.act_freq) / 60.0 / self.playback_speed / self.agent_count
@@ -1701,7 +1715,16 @@ class HybridGymEnv(RedGymEnv):
             "milestone": getattr(self, "current_milestone", "start"),
             "archetype": getattr(self, "archetype", DEFAULT_ARCHETYPE),
             "archetype_label": get_archetype(getattr(self, "archetype", None))["label"],
+            "archetype_summary": get_archetype(getattr(self, "archetype", None))["summary"],
             "capture_stance": getattr(self, "capture_stance", None),
+            # The panel had no way to tell one trainer from another beyond the
+            # name. The traits are what explain every capture decision below.
+            "traits": {
+                "meta_score": self.meta_score,
+                "exploration": self.exploration,
+                "collector": self.collector,
+                "mission_focus": self.mission_focus,
+            },
             "battles": self.wild_battles_won + self.trainer_battles_won,
             "wild_battles_won": self.wild_battles_won,
             "trainer_battles_won": self.trainer_battles_won,
@@ -2072,14 +2095,32 @@ class HybridGymEnv(RedGymEnv):
         # to do with a wild Pokémon you *could* catch. Three trainers with the
         # same map knowledge and different answers is the whole experiment.
         stance = getattr(self, "capture_stance", "team_value_only")
-        if stance == "only_when_needed" and quality["party_size"] >= MINIMUM_BACKUP_PARTY:
-            return decision(
-                "defeat", "rush_skips_capture", "story_progression",
-                (
-                    "corrida focada na história: com reserva no time, capturar "
-                    "custa turnos que não avançam a jornada"
-                ),
+        if stance == "only_when_needed":
+            # Focused is not stubborn. A run that skips every catch arrives at
+            # the gyms with nothing but its starter, and a gym that walls a lone
+            # starter costs more turns than the catch ever would.
+            power_pick = (
+                quality["strategic_value"] >= RUSH_POWER_VALUE
+                or quality["enemy_level"] > quality["strongest_party_level"]
             )
+            if power_pick:
+                return decision(
+                    "capture", "rush_power_pick", "team_upgrade",
+                    (
+                        f"corrida focada, mas este vale a parada: valor "
+                        f"estratégico {quality['strategic_value']} e nível "
+                        f"{quality['enemy_level']} contra o melhor do time "
+                        f"({quality['strongest_party_level']})"
+                    ),
+                )
+            if quality["party_size"] >= MINIMUM_BACKUP_PARTY:
+                return decision(
+                    "defeat", "rush_skips_capture", "story_progression",
+                    (
+                        "corrida focada na história: com reserva no time, um "
+                        "Pokémon comum não paga os turnos da captura"
+                    ),
+                )
         if stance == "every_new_species":
             return decision(
                 "capture", "completionist_new_species", "collector",

@@ -42,8 +42,9 @@ ARCHETYPES = {
         "starter_preference": 1,
         "capture_stance": "only_when_needed",
         "summary": (
-            "História acima de tudo. Só captura o que a corrida precisa: um "
-            "reserva enquanto o time é pequeno, e nada além disso."
+            "História acima de tudo, mas não com um time de iniciais: captura "
+            "um reserva enquanto o time é pequeno e qualquer Pokémon forte o "
+            "bastante para limpar objetivo mais rápido."
         ),
     },
     "team_builder": {
@@ -68,6 +69,13 @@ DEFAULT_ARCHETYPE = "team_builder"
 # Below this the party is not a team yet, it is a single point of failure. Even
 # the speedrunner keeps a spare: a whiteout costs far more than a Poké Ball.
 MINIMUM_BACKUP_PARTY = 2
+
+# The speedrunner is focused, not stubborn. Skipping every catch ends the run
+# with nothing but starters, and a gym that walls a lone starter costs far more
+# turns than the catch would have. Above this strategic value the encounter is
+# not a distraction — Abra, Gastly, Lapras, Snorlax and the like clear
+# objectives faster than the story can be rushed without them.
+RUSH_POWER_VALUE = 78
 
 
 def archetype_names():
