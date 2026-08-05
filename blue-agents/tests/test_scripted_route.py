@@ -66,9 +66,11 @@ class ScriptedRouteTests(unittest.TestCase):
             for _ in range(24)
         ]
         self.assertEqual(WindowEvent.PRESS_ARROW_LEFT, actions[0])
-        self.assertIn(WindowEvent.PRESS_BUTTON_A, actions, "diálogo deve ser tentado")
+        # B primeiro: fecha menu e também avança texto na Geração I; A entra na
+        # vez seguinte, para os avisos que pedem confirmação.
+        self.assertIn(WindowEvent.PRESS_BUTTON_B, actions, "texto/menu deve ser tentado")
 
-        after_first_a = actions[actions.index(WindowEvent.PRESS_BUTTON_A) + 1:]
+        after_first_a = actions[actions.index(WindowEvent.PRESS_BUTTON_B) + 1:]
         self.assertTrue(
             any(
                 action in (WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP)

@@ -343,6 +343,16 @@ class RouteReplanningTests(unittest.TestCase):
         self.assertEqual(WindowEvent.PRESS_BUTTON_A, actions[0])
         self.assertIn(WindowEvent.PRESS_ARROW_UP, actions)
 
+    def test_a_menu_is_closed_with_b_not_only_a(self):
+        # A does not close a menu: on the START menu it opens a submenu, so the
+        # box never goes away. Two trainers stood on Route 1 and Route 3 for
+        # thousands of steps while the route pressed A at a menu only B closes.
+        agent = self.make_agent((14, 12), map_id=12)
+        agent.memory_probe.read_byte = lambda address: 1 if address == 0xCFC4 else 0
+        actions = [agent._follow_route("route2-12", [(10, 2)]) for _ in range(6)]
+        self.assertIn(WindowEvent.PRESS_BUTTON_B, actions, "B fecha menu")
+        self.assertIn(WindowEvent.PRESS_BUTTON_A, actions, "A ainda confirma aviso")
+
     def test_dialogue_is_never_recorded_as_a_wall(self):
         # Text that does not clear looks exactly like a wall from the outside:
         # the position stops changing either way. Attributing it to the last

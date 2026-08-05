@@ -1948,16 +1948,25 @@ class ScriptedAgent(BaseAgent):
         return ROUTE_EVENTS[direction]
 
     def _route_text(self):
-        """Press A to advance text, and make sure it is not read as a wall.
+        """Clear whatever is holding the input, alternating B and A.
 
-        Text that does not clear looks exactly like a wall from the outside:
-        the position stops changing either way. Attributing it to the last
-        direction walled in the starter table at Oak's lab — every tile in
-        front of the balls ended up with all four sides blocked, in shared
-        knowledge, for every trainer at once.
+        A advances dialogue; it does **not** close a menu — on the START menu
+        it opens a submenu instead, so the box never goes away. Two trainers
+        stood on Route 1 and Route 3 for thousands of steps in front of a menu
+        that only B could close, while the route pressed A forever. B also
+        advances text in Gen I, so leading with it is safe; A still gets its
+        turn for the prompts that need a confirmation.
+
+        Whatever it presses, the failure must not be read as a wall: text and
+        walls look identical from outside, and guessing wrong writes a
+        permanent lie into knowledge every trainer shares.
         """
         self.route_last_issue = "text"
-        return WindowEvent.PRESS_BUTTON_A
+        presses = getattr(self, "route_menu_presses", 0)
+        return (
+            WindowEvent.PRESS_BUTTON_B if presses % 2 == 0
+            else WindowEvent.PRESS_BUTTON_A
+        )
 
     def _get_typing_sequence(self, name):
         """
