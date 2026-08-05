@@ -247,6 +247,14 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
         env = self.make_env([self.mon(pp=10, hp=0), self.mon(pp=0, hp=18)])
         self.assertEqual(1, env._switch_target_slot())
 
+    def test_the_use_next_pokemon_prompt_is_answered_before_the_list(self):
+        # A faint does not open the battle menu: the game asks first. Walking
+        # the 2x2 cursor there does nothing at all.
+        env = self.make_env([self.mon(pp=10, hp=0), self.mon(pp=12, hp=18)])
+        env.read_m = lambda address: 1 if address == 0xCFC4 else 0
+        self.assertEqual("A", env._next_switch_action(), "responde ao aviso")
+        self.assertTrue(env.switch_menu_open)
+
     def test_a_lone_pokemon_has_nobody_to_switch_to(self):
         env = self.make_env([self.mon(pp=0)])
         self.assertIsNone(env._switch_target_slot())

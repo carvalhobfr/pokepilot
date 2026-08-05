@@ -2541,6 +2541,21 @@ class HybridGymEnv(RedGymEnv):
             self.switch_plan = []
             return None
 
+        # A faint does not open the battle menu: the game asks "Use next
+        # POKéMON?" first, and only then shows the party list. Walking the 2x2
+        # cursor there does nothing — the prompt has to be answered.
+        if not getattr(self, "switch_menu_open", False) and self._battle_prompt_open():
+            party = self.get_party_info()
+            try:
+                active_slot = int(self.read_m(ACTIVE_PARTY_SLOT_ADDRESS))
+            except Exception:
+                active_slot = 0
+            active = party[active_slot] if 0 <= active_slot < len(party) else None
+            if active is not None and int(active.get("hp") or 0) <= 0:
+                self.switch_menu_open = True
+                self.switch_steps = 0
+                return "A"
+
         if getattr(self, "switch_menu_open", False):
             self.switch_steps = getattr(self, "switch_steps", 0) + 1
             if self.switch_steps > SWITCH_MENU_STEP_LIMIT:
@@ -2582,6 +2597,13 @@ class HybridGymEnv(RedGymEnv):
         if not self.switch_plan and action == "A":
             self.switch_menu_open = True
         return action
+
+    def _battle_prompt_open(self):
+        """Whether a text box or prompt is currently taking the input."""
+        try:
+            return int(self.read_m(0xCFC4)) == 1
+        except Exception:
+            return False
 
     def _battle_menu_path_to_pokemon(self):
         """Move the remembered 2x2 battle cursor to PKMN."""
