@@ -80,10 +80,22 @@ ARCHETYPES = {
         "starter_preference": 1,
         "capture_stance": "preferred_types",
         "preferred_types": ("fire", "dragon"),
+        # Kanto quase não oferece fogo ou dragão antes da Rota 7: Vulpix e
+        # Ponyta aparecem tarde e Dratini mais tarde ainda. Sem reforço de
+        # passagem, o tema seria um Charmander sozinho contra Brock e Misty —
+        # os dois piores ginásios possíveis para ele — e a corrida morreria
+        # antes de existir. O tema é o time final, não uma promessa de nunca
+        # aceitar ajuda para chegar lá.
+        "provisional_team_floor": 3,
+        # A Geração I insiste que Gyarados é Água/Voador, e pela tabela ele
+        # ficaria de fora. Mas o Magikarp de 500 do Mt. Moon é a única "linha
+        # de dragão" que Kanto oferece cedo, e ninguém olha um Gyarados e vê
+        # outra coisa. Entra por decisão declarada, não por engano de dado.
+        "honorary_species": (129, 130),
         "summary": (
-            "Só quer fogo e dragão no time. É a corrida mais difícil de Kanto: "
-            "Brock e Misty são justamente os dois primeiros ginásios, e Dratini "
-            "só aparece muito depois."
+            "Só quer fogo e dragão no time final. Enquanto Kanto não oferece "
+            "nenhum dos dois, aceita reforço de passagem — e devolve o lugar "
+            "assim que aparece um do tema."
         ),
     },
 }
@@ -100,6 +112,10 @@ MINIMUM_BACKUP_PARTY = 2
 # not a distraction — Abra, Gastly, Lapras, Snorlax and the like clear
 # objectives faster than the story can be rushed without them.
 RUSH_POWER_VALUE = 78
+
+# Um reforço de passagem só vale se resolver alguma coisa: Metapod vira
+# Butterfree e derruba Brock e Misty, um Rattata não muda nada.
+PROVISIONAL_VALUE = 65
 
 
 def archetype_names():

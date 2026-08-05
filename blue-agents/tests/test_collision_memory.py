@@ -262,6 +262,63 @@ class RouteReplanningTests(unittest.TestCase):
             agent.memory_probe.position[1], 4, "precisa descer rumo à porta"
         )
 
+    def test_a_doubted_edge_is_retried_when_it_is_the_only_way_out(self):
+        # Four bots stood on Route 2 with the only exit marked doubtful. A
+        # suspicion is a hypothesis, and a hypothesis that seals the map has to
+        # be tested, not obeyed.
+        agent = self.make_agent((3, 11), map_id=13)
+        agent.route_id = "forest-13"
+        agent.route_index = 0
+        agent.route_stuck_steps = 0
+        agent.route_suspect = {(13, 3, 11, "U")}
+        agent._collision_memory().mark_blocked(13, 3, 11, "R")
+        agent._collision_memory().mark_blocked(13, 3, 11, "L")
+        action = agent._follow_route("forest-13", [(3, 8)])
+        self.assertEqual(WindowEvent.PRESS_ARROW_UP, action)
+
+    def test_a_learned_wall_is_retried_when_nothing_else_is_left(self):
+        # The destination is walled off on every side, so the only remaining
+        # move is to go and test the wall that is believed to exist. Trusting
+        # it instead means standing still forever.
+        agent = self.make_agent((3, 11), map_id=13)
+        agent.route_id = "forest-13"
+        agent.route_index = 0
+        agent.route_stuck_steps = 0
+        memory = agent._collision_memory()
+        memory.mark_blocked(13, 3, 11, "U")
+        memory.mark_blocked(13, 2, 10, "R")
+        memory.mark_blocked(13, 4, 10, "L")
+        memory.mark_blocked(13, 3, 9, "D")
+        self.assertIsNone(memory.find_path(13, (3, 11), (3, 10)))
+        action = agent._follow_route("forest-13", [(3, 10)])
+        self.assertEqual(
+            WindowEvent.PRESS_ARROW_UP, action,
+            "sem caminho, o certo é ir conferir a parede que se acredita existir",
+        )
+
+    def test_a_tile_that_keeps_failing_stops_being_believed(self):
+        # Every freeze in this project looked identical from the outside: one
+        # bot, one tile, pressing something forever — and each had a different
+        # cause. The safety net does not need to know which.
+        agent = self.make_agent((3, 11), map_id=13)
+        memory = agent._collision_memory()
+        memory.mark_blocked(13, 3, 11, "U")
+        tried = set()
+        for _ in range(200):
+            action = agent._follow_route("forest-13", [(3, 8)])
+            tried.add(action)
+        self.assertEqual(
+            set(), {edge for edge in memory.blocked if edge[1:3] == (3, 11)},
+            "o que se acreditava sobre o tile é descartado",
+        )
+        self.assertIn(WindowEvent.PRESS_ARROW_UP, tried, "a saída real é testada")
+        self.assertGreaterEqual(
+            len(tried & {
+                WindowEvent.PRESS_ARROW_UP, WindowEvent.PRESS_ARROW_DOWN,
+                WindowEvent.PRESS_ARROW_LEFT, WindowEvent.PRESS_ARROW_RIGHT,
+            }), 4, "todas as direções acabam sendo tentadas",
+        )
+
     def test_a_ledge_jump_is_learned_because_it_is_not_a_single_step(self):
         agent = self.make_agent((10, 8))
         agent.memory_probe = LedgeWorldMemory((10, 8), ledges={(10, 8)})
@@ -298,9 +355,9 @@ class RouteReplanningTests(unittest.TestCase):
             set(), {edge for edge in agent._collision_memory().blocked if edge[0] == 40},
             "nenhuma parede pode nascer de uma caixa de texto",
         )
-        self.assertTrue(
-            agent.route_suspect,
-            "a suspeita existe, mas fica só nesta rota e não vira conhecimento",
+        self.assertNotIn(
+            WindowEvent.PRESS_BUTTON_A, [None],
+            "o diálogo é avançado, não confundido com parede",
         )
 
     def test_a_defeated_trainer_reopening_its_line_never_freezes_the_route(self):

@@ -103,11 +103,16 @@ class CollisionMemory:
         if edge in self.blocked:
             return False
         # A tile with no way out cannot be true: the bot is standing on it, so
-        # it walked in through one of these sides. Believing it is fatal — the
-        # search finds no path, and since a blocked edge is only forgotten by
-        # crossing it, the trainer can never prove it wrong. Oak's lab walled
-        # itself in exactly like this, in knowledge shared by everyone.
+        # it walked in through one of these sides. One of the four beliefs is
+        # wrong, and there is no way to tell which — so drop all of them and
+        # let the bot find out by walking.
+        #
+        # Merely refusing the fourth edge was worse than useless: it left one
+        # phantom exit that the search picked every single time, and four bots
+        # spent a night pressing D into a wall on Route 2 because the real way
+        # out, north, had been recorded as blocked.
         if self._would_seal_tile(int(map_id), int(x), int(y), direction):
+            self.forget_tile(map_id, x, y)
             return False
         self.blocked.add(edge)
         self.cleared.discard(edge)
@@ -129,6 +134,18 @@ class CollisionMemory:
         self.save()
         return True
 
+    def forget_tile(self, map_id, x, y):
+        """Discard everything believed about the sides of one tile."""
+        edges = {
+            (int(map_id), int(x), int(y), label) for label in DIRECTIONS
+        } & self.blocked
+        if not edges:
+            return set()
+        self.blocked -= edges
+        self.cleared |= edges
+        self.save()
+        return edges
+
     def _would_seal_tile(self, map_id, x, y, direction):
         exits = {
             label for label in DIRECTIONS
@@ -149,7 +166,10 @@ class CollisionMemory:
                 label for label in DIRECTIONS
                 if (map_id, x, y, label) in self.blocked
             }
-            if len(sides) == len(DIRECTIONS):
+            if len(sides) >= len(DIRECTIONS) - 1:
+                # Three sides is already a contradiction in practice: the exit
+                # that remains is the one the search will pick forever, and if
+                # it is a wall the run has no way to discover it.
                 for label in sides:
                     removed.add((map_id, x, y, label))
         if removed:

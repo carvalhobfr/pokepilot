@@ -189,6 +189,23 @@ def species_types(species_id):
     return {str(name) for name in entry.get("types") or []}
 
 
+def species_of_types(map_name, wanted_types, badges=None):
+    """Reachable species here that match any of these types.
+
+    A themed trainer needs to know where its team actually lives: in Blue there
+    is almost no fire or dragon before Route 7, and none at all in the early
+    routes. This turns "procurar fogo" into a fact about the current map instead
+    of a hope.
+    """
+    wanted = {str(name) for name in wanted_types or ()}
+    if not wanted:
+        return set()
+    return {
+        species_id for species_id in area_species(map_name, badges)
+        if species_types(species_id) & wanted
+    }
+
+
 def area_target(badges=None):
     """Completion target: everything reachable, at every stage of the run.
 

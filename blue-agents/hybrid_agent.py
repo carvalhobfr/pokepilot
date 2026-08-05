@@ -40,11 +40,13 @@ from area_knowledge import (
     area_target,
     encounter_chance,
     is_rare_here,
+    species_of_types,
     species_types,
 )
 from archetypes import (
     DEFAULT_ARCHETYPE,
     MINIMUM_BACKUP_PARTY,
+    PROVISIONAL_VALUE,
     RUSH_POWER_VALUE,
     get_archetype,
 )
@@ -2172,11 +2174,45 @@ class HybridGymEnv(RedGymEnv):
             # theme is experience, never a party slot. Kanto punishes fire and
             # dragon early on purpose — Brock and Misty come first, and Dratini
             # is a long way off — which is exactly what makes it worth watching.
-            wanted = set(get_archetype(getattr(self, "archetype", None)).get(
-                "preferred_types", ()
-            ))
+            archetype = get_archetype(getattr(self, "archetype", None))
+            wanted = set(archetype.get("preferred_types", ()))
             types = species_types(quality_species_id)
+            honorary = set(archetype.get("honorary_species", ()))
+            if quality_species_id in honorary:
+                return decision(
+                    "capture", "honorary_theme_species", "team_building",
+                    (
+                        "espécie honorária do tema: a tabela da Geração I diz "
+                        "outra coisa, mas ela pertence a este time"
+                    ),
+                )
             if wanted and types and not (types & wanted):
+                # The theme is the final team, not a promise to refuse help on
+                # the way there. Kanto offers almost no fire or dragon before
+                # Route 7, so a themed run that never accepts a stand-in dies
+                # at Brock and Misty — the two worst gyms for it — and the
+                # character never gets to exist. The stand-in has to be worth
+                # it, and it gives the slot back when the theme shows up.
+                floor = int(archetype.get("provisional_team_floor", 0))
+                theme_members = sum(
+                    1 for mon in self.get_party_info()
+                    if species_types(mon.get("species_id")) & wanted
+                )
+                provisional = (
+                    floor
+                    and len(self.get_party_info()) < floor
+                    and theme_members < floor
+                    and quality["strategic_value"] >= PROVISIONAL_VALUE
+                )
+                if provisional:
+                    return decision(
+                        "capture", "provisional_until_theme", "team_building",
+                        (
+                            f"reforço de passagem: {'/'.join(sorted(types))} não é "
+                            f"{'/'.join(sorted(wanted))}, mas segura a corrida até "
+                            "aparecer um do tema"
+                        ),
+                    )
                 return decision(
                     "defeat", "off_theme_species", "team_building",
                     (
@@ -2185,11 +2221,15 @@ class HybridGymEnv(RedGymEnv):
                     ),
                 )
             if wanted and types:
+                here = species_of_types(
+                    self._map_name(), wanted, self._badge_count()
+                )
+                scarcity = f"; esta área tem {len(here)} do tema" if here else ""
                 return decision(
                     "capture", "on_theme_species", "team_building",
                     (
                         f"{'/'.join(sorted(types))} serve ao time temático de "
-                        f"{'/'.join(sorted(wanted))}"
+                        f"{'/'.join(sorted(wanted))}{scarcity}"
                     ),
                 )
 

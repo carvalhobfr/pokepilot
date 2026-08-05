@@ -109,11 +109,37 @@ class ArchetypeCaptureStanceTests(unittest.TestCase):
         self.assertEqual("capture", decision["choice"])
         self.assertEqual("rush_power_pick", decision["reason_code"])
 
-    def test_the_themed_team_refuses_anything_off_type(self):
-        env = self.make_env("preferred_types", party=[{"species_id": 4, "level": 20}])
+    def test_the_themed_team_refuses_off_type_once_it_has_a_team(self):
+        env = self.make_env("preferred_types", party=[
+            {"species_id": 4, "level": 20},   # Charmander
+            {"species_id": 37, "level": 18},  # Vulpix
+            {"species_id": 77, "level": 16},  # Ponyta
+        ])
         env.archetype = "fire_dragon"
         encounter = self.weakened_new_species()
         encounter["enemy_species_id"] = 10  # Caterpie, bug
+        decision = env._capture_policy(encounter)
+        self.assertEqual("defeat", decision["choice"])
+        self.assertEqual("off_theme_species", decision["reason_code"])
+
+    def test_a_lone_themed_starter_accepts_a_stand_in_that_matters(self):
+        # Kanto offers almost no fire or dragon before Route 7. A themed run
+        # that refuses every stand-in dies at Brock and Misty — the two worst
+        # gyms for it — and never gets to be a themed run at all. Metapod
+        # becomes Butterfree and settles both.
+        env = self.make_env("preferred_types", party=[{"species_id": 4, "level": 20}])
+        env.archetype = "fire_dragon"
+        encounter = self.weakened_new_species()
+        encounter["enemy_species_id"] = 11  # Metapod
+        decision = env._capture_policy(encounter)
+        self.assertEqual("capture", decision["choice"])
+        self.assertEqual("provisional_until_theme", decision["reason_code"])
+
+    def test_a_stand_in_still_has_to_be_worth_a_slot(self):
+        env = self.make_env("preferred_types", party=[{"species_id": 4, "level": 20}])
+        env.archetype = "fire_dragon"
+        encounter = self.weakened_new_species()
+        encounter["enemy_species_id"] = 19  # Rattata, valor 55
         decision = env._capture_policy(encounter)
         self.assertEqual("defeat", decision["choice"])
         self.assertEqual("off_theme_species", decision["reason_code"])
@@ -134,6 +160,23 @@ class ArchetypeCaptureStanceTests(unittest.TestCase):
         encounter["enemy_species_id"] = 147  # Dratini
         decision = env._capture_policy(encounter)
         self.assertEqual("capture", decision["choice"])
+
+    def test_gyarados_belongs_to_the_dragon_team_by_declaration(self):
+        # Gen I calls it Water/Flying, so the table would refuse it. The 500-
+        # coin Magikarp from Mt. Moon is the only dragon-shaped line Kanto
+        # offers early, and nobody looks at a Gyarados and sees anything else.
+        env = self.make_env("preferred_types", party=[
+            {"species_id": 4, "level": 20},
+            {"species_id": 37, "level": 18},
+            {"species_id": 77, "level": 16},
+        ])
+        env.archetype = "fire_dragon"
+        for species in (129, 130):  # Magikarp, Gyarados
+            encounter = self.weakened_new_species()
+            encounter["enemy_species_id"] = species
+            decision = env._capture_policy(encounter)
+            self.assertEqual("capture", decision["choice"])
+            self.assertEqual("honorary_theme_species", decision["reason_code"])
 
     def test_the_team_builder_keeps_the_old_team_value_rules(self):
         env = self.make_env(

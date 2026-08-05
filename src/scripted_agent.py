@@ -19,6 +19,10 @@ MENU_PRESS_LIMIT = 12
 # interiors are small; this clears any of them.
 BLIND_EXIT_REACH = 10
 
+# Failed cycles on the same tile before the route stops believing anything it
+# knows about that tile. Each cycle is four steps plus a text attempt.
+STUCK_TILE_AMNESTY_CYCLES = 6
+
 # Learned walls live with the rest of the map knowledge, not inside a trainer:
 # geometry is the same for everyone who walks it.
 SHARED_COLLISION_PATH = (
@@ -1761,6 +1765,26 @@ class ScriptedAgent(BaseAgent):
         if self.route_stuck_steps >= 4:
             self.route_stuck_steps = 0
             self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
+
+            # Last resort, and the only rule that does not depend on guessing
+            # the cause right. Every freeze this project has had looked the
+            # same from here — a bot on one tile, pressing something, forever —
+            # and each had a different explanation: a text box, a warp, a
+            # ledge, an NPC, a wall learned wrong. So after enough failed
+            # cycles on the same tile, stop trusting anything about it: drop
+            # what was learned around it, drop the suspicions, and walk through
+            # every direction in turn. Being wrong for four steps beats being
+            # stuck for a night.
+            if self.route_stuck_cycles >= STUCK_TILE_AMNESTY_CYCLES:
+                self._collision_memory().forget_tile(map_id, current_x, current_y)
+                self.route_suspect = set()
+                self.route_plan = None
+                order = ("U", "R", "L", "D")
+                direction = order[
+                    (self.route_stuck_cycles - STUCK_TILE_AMNESTY_CYCLES) % len(order)
+                ]
+                return self._route_move(direction)
+
             if self.route_stuck_cycles == 1:
                 return self._route_text()
             if last_direction is not None:
@@ -1890,14 +1914,22 @@ class ScriptedAgent(BaseAgent):
         memory = self._collision_memory()
         suspect = getattr(self, "route_suspect", set())
         directions = memory.find_path(map_id, start, goal, avoid=suspect)
+
+        # Unreachable according to what we believe — so stop believing it, in
+        # order of how little each belief is worth.
+        #
+        # A wrong wall is invisible: the search never goes there again, and an
+        # edge is only forgiven by being crossed, which is exactly what became
+        # impossible. Both kinds of belief have sealed a run: suspicions kept
+        # four bots standing on Route 2 with the only way out marked doubtful,
+        # and learned walls made a bot walk every corner of Pewter Gym except
+        # the one that was the door.
+        if directions is None and suspect:
+            self.route_suspect = set()
+            suspect = self.route_suspect
+            directions = memory.find_path(map_id, start, goal)
         if directions is None:
-            # Unreachable according to what we believe — so stop believing it.
-            # A wrong wall is invisible: the search never goes there again, and
-            # an edge is only forgiven by being crossed. A bot walked every
-            # corner of Pewter Gym and skipped the one that was the door,
-            # because that door had once been learned as a wall. Going to look
-            # costs a few steps; trusting a bad map costs the run.
-            directions = memory.find_path(map_id, start, goal, avoid=suspect, relax=True)
+            directions = memory.find_path(map_id, start, goal, relax=True)
         if not directions:
             return None
         index = {start: 0}

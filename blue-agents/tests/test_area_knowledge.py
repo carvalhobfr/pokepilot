@@ -8,6 +8,7 @@ from area_knowledge import (
     area_target,
     encounter_chance,
     is_rare_here,
+    species_of_types,
 )
 from archetypes import get_archetype
 from hybrid_agent import GOT_POKEDEX_ADDRESS, GOT_POKEDEX_MASK, HybridGymEnv
@@ -71,6 +72,23 @@ class ReachabilityTests(unittest.TestCase):
     def test_coverage_ignores_what_cannot_be_met_yet(self):
         coverage = area_coverage("Route 12", set(), badges=1)
         self.assertEqual(coverage["total"], len(area_species("Route 12", badges=1)))
+
+
+class ThemeAvailabilityTests(unittest.TestCase):
+    """Onde o tema de um treinador realmente mora."""
+
+    def test_the_early_forest_has_no_fire_and_no_dragon(self):
+        # É por isso que o temático precisa de reforço de passagem: até a Rota
+        # 7 não existe um único Pokémon do tema dele em lugar nenhum.
+        self.assertEqual(set(), species_of_types("Viridian Forest", ("fire", "dragon")))
+        self.assertEqual(set(), species_of_types("Route 1", ("fire", "dragon")))
+
+    def test_vulpix_is_the_first_fire_available(self):
+        self.assertIn(37, species_of_types("Route 7", ("fire", "dragon")))
+        self.assertIn(37, species_of_types("Route 8", ("fire", "dragon")))
+
+    def test_asking_for_no_type_answers_nothing(self):
+        self.assertEqual(set(), species_of_types("Route 7", ()))
 
 
 class RarityTests(unittest.TestCase):
