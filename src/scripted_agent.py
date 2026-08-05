@@ -852,9 +852,12 @@ class ScriptedAgent(BaseAgent):
             self.current_step += 1
             return None
 
+        # (6,4) is occupied once the rival has taken his starter, so the row in
+        # front of the table is not a through path. Drop to y=5 first; the exit
+        # corridor is reached from there.
         return self._follow_route(
             "oak-rival-trigger",
-            [(5, 4), (5, 10), (5, 12)],
+            [(7, 5), (5, 5), (5, 10), (5, 12)],
         )
 
     def _run_parcel_event(self):
@@ -1627,13 +1630,31 @@ class ScriptedAgent(BaseAgent):
             self.route_stuck_steps += 1
         else:
             self.route_stuck_steps = 0
+            self.route_stuck_cycles = 0
         self.route_last_position = current_position
 
-        # Dialogue and map transitions temporarily ignore movement. Advance
-        # text deterministically, then resume the same waypoint.
+        # Two different reasons make a waypoint step produce no movement, and
+        # they need different answers. Dialogue and map transitions ignore
+        # input, so A clears them. A wall or an NPC standing on the path never
+        # clears, and the previous code alternated A forever — a bot could burn
+        # thousands of steps in front of an occupied tile.
         if self.route_stuck_steps >= 4:
             self.route_stuck_steps = 0
-            return WindowEvent.PRESS_BUTTON_A
+            self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
+            if self.route_stuck_cycles == 1:
+                return WindowEvent.PRESS_BUTTON_A
+            # Blocked by geometry: step aside on the free axis so the next
+            # waypoint attempt approaches from a different tile. The route
+            # itself is unchanged; only this detour is improvised.
+            target_x, target_y = waypoints[min(self.route_index, len(waypoints) - 1)]
+            horizontal = current_x != target_x
+            sidesteps = (
+                (WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP)
+                if horizontal
+                else (WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT)
+            )
+            self.last_action_was_move = True
+            return sidesteps[self.route_stuck_cycles % 2]
 
         while (
             self.route_index < len(waypoints) - 1

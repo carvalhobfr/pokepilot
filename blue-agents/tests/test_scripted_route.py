@@ -53,6 +53,34 @@ class ScriptedRouteTests(unittest.TestCase):
         action = agent._follow_route("mt-moon-61", MT_MOON_B2F_ROUTE)
         self.assertEqual(WindowEvent.PRESS_ARROW_LEFT, action)
 
+    def test_blocked_route_advances_text_once_then_steps_aside(self):
+        # An NPC standing on the path never clears with A. Before the sidestep,
+        # a bot burned thousands of steps pressing A at an occupied tile.
+        agent = self.make_agent((16, 4))
+        actions = [
+            agent._follow_route("mt-moon-61", MT_MOON_B2F_ROUTE)
+            for _ in range(24)
+        ]
+        self.assertEqual(WindowEvent.PRESS_ARROW_LEFT, actions[0])
+        self.assertIn(WindowEvent.PRESS_BUTTON_A, actions, "diálogo deve ser tentado")
+
+        after_first_a = actions[actions.index(WindowEvent.PRESS_BUTTON_A) + 1:]
+        self.assertTrue(
+            any(
+                action in (WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP)
+                for action in after_first_a
+            ),
+            "rota travada precisa desviar no eixo livre, não repetir A",
+        )
+
+    def test_movement_resets_the_stuck_recovery(self):
+        agent = self.make_agent((16, 4))
+        for _ in range(6):
+            agent._follow_route("mt-moon-61", MT_MOON_B2F_ROUTE)
+        agent.emulator.memory.position = (15, 4)
+        agent._follow_route("mt-moon-61", MT_MOON_B2F_ROUTE)
+        self.assertEqual(0, agent.route_stuck_cycles)
+
 
 if __name__ == "__main__":
     unittest.main()

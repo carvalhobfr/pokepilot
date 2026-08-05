@@ -133,6 +133,65 @@ nó — mas só faça isso se o executor conseguir chegar lá a partir da posiç
 atual, senão o bot fica girando. Foi exatamente o que aconteceu ao reabrir
 `buy_pokeballs` de um treinador que já estava na Route 2 norte.
 
+## BUG ABERTO: livelock na entrada da Floresta de Viridian
+
+Registrado em 2026-08-05. **Bloqueia BARON e CARON no momento.**
+
+Os dois oscilam entre o portão norte de Viridian (mapa 50) e a entrada da
+Floresta (mapa 51) num ciclo de ~35s, sem nunca atravessar:
+
+```
+15:08:18  BARON m50[4,5]     CARON m50[4,5]
+15:08:30  BARON m51[15,47]   CARON m51[15,47]    entram
+15:08:42  BARON m51[5,0]     CARON m50[4,2]      voltam
+15:09:06  BARON m51[15,47]   CARON m51[16,47]    entram
+15:09:18  BARON m50[4,3]     CARON m50[4,7]      voltam
+```
+
+**Não é geometria.** A sonda partindo do save real confirma que o caminho
+existe e é curto:
+
+```
+start=(51, 15, 47)  target=(51, 17, 47)  steps=2  path=RR
+reachable=400  x=1..32  y=6..47
+```
+
+`routes[51]` em `_run_viridian_forest_nav` começa exatamente em `(17, 47)`, a
+dois passos do tile de entrada. O executor certo está sendo despachado
+(`journey.json` mostra `route_2_nav` concluído e a task ativa é
+`QUEST: VIRIDIAN_FOREST_NAV`).
+
+**Suspeito principal:** o desvio de colisão que adicionei em `_follow_route` no
+mesmo dia. Quando o movimento horizontal não produz deslocamento, ele tenta
+`DOWN` primeiro — e em `y=47`, descer é justamente o warp de volta para o
+portão. Se qualquer coisa atrasar um passo à direita, o desvio empurra o bot
+para fora do mapa. A hipótese ainda **não foi confirmada**; confirmar exige
+instrumentar `route_stuck_cycles` durante a travessia.
+
+Correção provável: o desvio precisa conhecer a direção de onde o bot veio e
+nunca escolher o eixo que leva de volta ao mapa anterior, ou ser desativado nos
+primeiros passos após uma transição de mapa.
+
+**Segundo problema, independente:** o Bulbasaur do BARON está preso em `1/25`
+HP e nenhum passo do `viridian_forest_nav` cura. `_run_pokemon_center` existe e
+é usado em Cerulean e Pewter, mas não neste trecho. Entrar na Floresta com 1 HP
+garante whiteout no primeiro encontro selvagem — o que produziria um segundo
+livelock, este por derrota, mesmo depois de a navegação ser corrigida.
+
+### Por que "usar o AARON para guiar" não resolve
+
+AARON não é um agente de tipo diferente. Os três rodam exatamente o mesmo
+`ScriptedAgent` + `SimpleBattleAgent`, com os mesmos predicados de RAM e as
+mesmas rotas — inclusive esta rota da Floresta, que é código compartilhado.
+AARON chegou mais longe porque as rotas dele foram medidas e corrigidas ao
+longo de várias sessões, não porque ele tenha um mecanismo próprio.
+
+Também não existe hoje nenhum canal de um bot guiar outro: `HiveMind` só é
+consultado quando `current_task == "EXPLORE"`, e nunca durante um nó do
+QuestGraph. Guiar exigiria construir esse canal do zero. O que o AARON de fato
+oferece já está incorporado: as rotas validadas dele estão no código que
+BARON e CARON executam.
+
 ## Asset do mapa: marcas d'água removidas
 
 O `kanto_big_done1.png` vinha do fork com três marcas d'água gravadas sobre a
@@ -153,6 +212,30 @@ out.save(path, transparency=0)
 Resultado verificado: 11.044 pixels alterados, todos dentro das três caixas
 (`x 943..1511`, `y 4448..5087`), contagem de pixels transparentes idêntica à do
 original. Backup do arquivo com as marcas fica fora do repositório.
+
+## Dashboard: navegação do mapa
+
+Reescrita em 2026-08-05 (`MapViz.tsx`). O que existia era zoom por roda que
+escalava em torno da origem do container — o mapa fugia do cursor — e listeners
+de arraste em `window`, então arrastar sobre a barra lateral ou o feed também
+movia o mapa.
+
+| Gesto | Comportamento |
+|---|---|
+| Roda do mouse | zoom **na direção do cursor** |
+| Pinça no trackpad | zoom; chega como `wheel` com `ctrlKey`, com constante mais suave |
+| Pinça por toque | dois ponteiros, escala pela razão da distância, centrada no ponto médio |
+| Arrastar | mover; quebra o modo seguir |
+| Clicar no bot | seleciona **e** trava a câmera nele |
+
+Escala limitada a `0.08..6`. Todos os listeners ficam no canvas, com Pointer
+Events e `touchAction: none`.
+
+**Modo seguir:** a câmera recentra no sprite a cada frame do ticker, depois da
+animação, para o bot não ficar um quadro atrás. Ao ativar, o zoom sobe para
+`FOLLOW_SCALE = 2` se estiver mais afastado — seguir na escala do mapa inteiro
+não mostra nada. Arrastar cancela; os chips no canto inferior esquerdo ligam e
+desligam por treinador.
 
 ## Dashboard: sprites no mapa
 

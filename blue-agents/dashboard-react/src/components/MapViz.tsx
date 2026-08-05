@@ -1,10 +1,30 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
+import { Crosshair, Minus, Maximize2, Plus } from 'lucide-react';
 
 interface MapVizProps {
   ws: React.MutableRefObject<WebSocket | null>;
   connected: boolean;
   onAgentClick: (agent: any) => void;
+}
+
+const MIN_SCALE = 0.08;
+const MAX_SCALE = 6;
+const DEFAULT_SCALE = 0.5;
+// Following a sprite at the same scale as the whole-region view is useless;
+// this is close enough to read the tiles the bot is standing on.
+const FOLLOW_SCALE = 2;
+
+interface SpriteEntry {
+  container: PIXI.Container;
+  label: PIXI.Text;
+  badge: PIXI.Text;
+  startTime: number;
+  path: number[][];
+  animating: boolean;
+  duration: number;
+  lastUpdateAt: number;
+  meta: any;
 }
 
 const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
@@ -13,30 +33,15 @@ const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
   const mapContainerRef = useRef<PIXI.Container | null>(null);
   // One persistent entry per agent, keyed by trainer name. Sprites are never
   // destroyed when their animation ends: coordinate frames arrive only every
-  // `upload_interval` steps (~15s of wall clock at 1x), and during a battle the
-  // position does not change at all. Destroying on animation end made both bots
-  // blink in and out of the map instead of showing where they actually are.
-  const spritesRef = useRef<Map<string, {
-    container: PIXI.Container,
-    label: PIXI.Text,
-    badge: PIXI.Text,
-    startTime: number,
-    path: number[][],
-    animating: boolean,
-    duration: number,
-    lastUpdateAt: number,
-    meta: any,
-  }>>(new Map());
-  const hasPannedRef = useRef(false);
-
-  // Coordinate Conversion (Simplified for now, needs real map data)
-  // We'll use a basic scaling factor if we don't have the full map JSON loaded yet
-  // But to match the Python backend, we need the offsets.
-  // For this MVP, I'll assume the backend sends correct global coords or we use a simplified scaler.
-  // Actually, the backend sends game coords (x, y, map_id). The JS frontend had a complex `coordConversionFunc`.
-  // I will try to port a simplified version or fetch the map_data.json.
-
+  // `upload_interval` steps, and during a battle the position does not change
+  // at all. Destroying on animation end made both bots blink in and out.
+  const spritesRef = useRef<Map<string, SpriteEntry>>(new Map());
   const mapDataRef = useRef<any>(null);
+
+  const followRef = useRef<string | null>(null);
+  const [followTarget, setFollowTarget] = useState<string | null>(null);
+  const [agentNames, setAgentNames] = useState<string[]>([]);
+  const [zoom, setZoom] = useState(DEFAULT_SCALE);
 
   useEffect(() => {
     fetch('/assets/map_data.json')
@@ -50,20 +55,61 @@ const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
   }, []);
 
   const coordConversion = (coords: number[]) => {
-    if (!mapDataRef.current) return [coords[0], coords[1]]; // Fallback
-    const mapId = String(coords[2]); // Ensure string key
-    const region = mapDataRef.current[mapId];
+    if (!mapDataRef.current) return [coords[0], coords[1]];
+    const region = mapDataRef.current[String(coords[2])];
     if (region) {
-      const mapX = region.coordinates[0];
-      const mapY = region.coordinates[1];
-      // Magic numbers from original visualizer_live.js
-      return [coords[0] + mapX - 217.5, coords[1] + mapY - 221.5];
+      // Offsets from the original visualizer: region origin minus half the
+      // stitched map's tile span.
+      return [
+        coords[0] + region.coordinates[0] - 217.5,
+        coords[1] + region.coordinates[1] - 221.5,
+      ];
     }
-    // If map ID not found, return raw coords (will be at center)
     return [coords[0], coords[1]];
   };
 
-  // Initialize PixiJS
+  /** Scale about a screen point so the tile under the cursor stays put. */
+  const zoomAt = useCallback((screenX: number, screenY: number, factor: number) => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+    const current = container.scale.x;
+    const next = Math.min(Math.max(current * factor, MIN_SCALE), MAX_SCALE);
+    if (next === current) return;
+    const worldX = (screenX - container.x) / current;
+    const worldY = (screenY - container.y) / current;
+    container.scale.set(next);
+    container.x = screenX - worldX * next;
+    container.y = screenY - worldY * next;
+    setZoom(next);
+  }, []);
+
+  const zoomByButton = useCallback((factor: number) => {
+    const app = appRef.current;
+    if (!app) return;
+    zoomAt(app.screen.width / 2, app.screen.height / 2, factor);
+  }, [zoomAt]);
+
+  const stopFollowing = useCallback(() => {
+    followRef.current = null;
+    setFollowTarget(null);
+  }, []);
+
+  const follow = useCallback((name: string | null) => {
+    followRef.current = name;
+    setFollowTarget(name);
+  }, []);
+
+  const resetView = useCallback(() => {
+    const app = appRef.current;
+    const container = mapContainerRef.current;
+    if (!app || !container) return;
+    stopFollowing();
+    container.scale.set(DEFAULT_SCALE);
+    container.x = app.screen.width / 2;
+    container.y = app.screen.height / 2;
+    setZoom(DEFAULT_SCALE);
+  }, [stopFollowing]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -71,8 +117,7 @@ const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
       resizeTo: containerRef.current,
       backgroundAlpha: 0,
       // A full devicePixelRatio canvas is unnecessarily expensive on Retina
-      // displays for a pixel-art map. Cap the backing resolution while keeping
-      // the CSS output sharp enough for inspection.
+      // displays for a pixel-art map.
       resolution: Math.min(window.devicePixelRatio || 1, 1.5),
       autoDensity: true,
     });
@@ -84,246 +129,345 @@ const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
     app.stage.addChild(container);
     mapContainerRef.current = container;
 
-    // Load Assets
+    // The asset promise can resolve before PixiJS has sized its screen, which
+    // left the 6976x7104 map anchored at (0,0) with scale 1 — technically on
+    // stage, visually off it. Fall back to the element's own size and retry.
+    let centered = false;
+    const centerMap = () => {
+      if (centered) return true;
+      const element = containerRef.current;
+      const width = app.screen?.width || element?.clientWidth || 0;
+      const height = app.screen?.height || element?.clientHeight || 0;
+      if (!width || !height) return false;
+      container.x = width / 2;
+      container.y = height / 2;
+      container.scale.set(DEFAULT_SCALE);
+      centered = true;
+      return true;
+    };
+
     PIXI.Assets.load([
-      "/assets/kanto_big_done1.png",
-      "/assets/characters_transparent.png"
+      '/assets/kanto_big_done1.png',
+      '/assets/characters_transparent.png',
     ]).then(() => {
-      // Background
-      const bgTexture = PIXI.Texture.from("/assets/kanto_big_done1.png");
-      const bg = new PIXI.Sprite(bgTexture);
+      const bg = new PIXI.Sprite(PIXI.Texture.from('/assets/kanto_big_done1.png'));
       bg.anchor.set(0.5);
-
-      // Create two layers like original: Smooth and Sharp
-      // For simplicity/performance, just one for now
-      container.addChild(bg);
-
-      // Center Map (wait for app to be ready)
-      if (app && app.screen) {
-        container.x = app.screen.width / 2;
-        container.y = app.screen.height / 2;
-        container.scale.set(0.5);
-      } else {
-        console.warn('⚠️ App screen not ready yet');
-      }
+      container.addChildAt(bg, 0);
+      centerMap();
     });
 
-    // Animation Loop
     app.ticker.add(() => {
       const now = Date.now();
+      if (!centered) centerMap();
 
-      spritesRef.current.forEach((obj) => {
+      spritesRef.current.forEach(obj => {
         if (!obj.animating || obj.path.length === 0) return;
         if (!obj.startTime) obj.startTime = now;
-        const timeDelta = now - obj.startTime;
-        const progress = Math.min(timeDelta / obj.duration, 1);
+        const progress = Math.min((now - obj.startTime) / obj.duration, 1);
 
         const segments = Math.max(obj.path.length - 1, 0);
         const currentIndex = Math.floor(progress * segments);
         const nextIndex = Math.min(currentIndex + 1, segments);
-        const pointProgress = (progress * segments) - currentIndex;
+        const pointProgress = progress * segments - currentIndex;
 
-        const currentPoint = coordConversion(obj.path[currentIndex]);
-        const nextPoint = coordConversion(obj.path[nextIndex]);
+        const from = coordConversion(obj.path[currentIndex]);
+        const to = coordConversion(obj.path[nextIndex]);
+        obj.container.position.set(
+          16 * (from[0] + (to[0] - from[0]) * pointProgress),
+          16 * (from[1] + (to[1] - from[1]) * pointProgress),
+        );
 
-        // Interpolate
-        const x = 16 * (currentPoint[0] + (nextPoint[0] - currentPoint[0]) * pointProgress);
-        const y = 16 * (currentPoint[1] + (nextPoint[1] - currentPoint[1]) * pointProgress);
-
-        obj.container.position.set(x, y);
-
-        // Park at the last known tile instead of disappearing. The next frame
-        // of coordinates restarts the animation from here.
+        // Park at the last known tile instead of disappearing.
         if (progress >= 1) {
           obj.animating = false;
           obj.path = [obj.path[obj.path.length - 1]];
         }
       });
+
+      // Camera lock. Runs after sprite movement so the followed bot never
+      // trails the viewport by a frame.
+      const target = followRef.current
+        ? spritesRef.current.get(followRef.current)
+        : null;
+      if (target) {
+        const scale = container.scale.x;
+        container.x = app.screen.width / 2 - target.container.x * scale;
+        container.y = app.screen.height / 2 - target.container.y * scale;
+      }
     });
 
-    // Zoom/Pan
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const scaleFactor = 1 - e.deltaY * 0.001;
-      container.scale.x *= scaleFactor;
-      container.scale.y *= scaleFactor;
-    };
-    if (app.view) {
-      (app.view as HTMLCanvasElement).addEventListener('wheel', onWheel as any);
-    }
+    // --- input ------------------------------------------------------------
+    // Everything is bound to the canvas, not to window: dragging over the
+    // sidebar, the event feed or the control bar used to pan the map.
+    const view = app.view as HTMLCanvasElement;
+    const pointers = new Map<number, { x: number; y: number }>();
+    let dragging = false;
+    let last = { x: 0, y: 0 };
+    let pinchDistance = 0;
 
-    // Dragging
-    let isDragging = false;
-    let lastPos = { x: 0, y: 0 };
-    const onMouseDown = (e: MouseEvent) => {
-      isDragging = true;
-      lastPos = { x: e.clientX, y: e.clientY };
-      hasPannedRef.current = true;
+    const localPoint = (event: PointerEvent | WheelEvent) => {
+      const rect = view.getBoundingClientRect();
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top };
     };
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      container.x += e.clientX - lastPos.x;
-      container.y += e.clientY - lastPos.y;
-      lastPos = { x: e.clientX, y: e.clientY };
-    };
-    const onMouseUp = () => { isDragging = false; };
 
-    window.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const point = localPoint(event);
+      // A trackpad pinch arrives as a wheel event with ctrlKey set; a mouse
+      // wheel arrives without it. Both zoom, but the pinch needs a gentler
+      // constant or it overshoots badly.
+      const intensity = event.ctrlKey ? 0.01 : 0.0015;
+      zoomAt(point.x, point.y, Math.exp(-event.deltaY * intensity));
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      view.setPointerCapture?.(event.pointerId);
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 1) {
+        dragging = true;
+        last = { x: event.clientX, y: event.clientY };
+      } else if (pointers.size === 2) {
+        dragging = false;
+        const [a, b] = [...pointers.values()];
+        pinchDistance = Math.hypot(a.x - b.x, a.y - b.y);
+      }
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!pointers.has(event.pointerId)) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+      if (pointers.size >= 2) {
+        const [a, b] = [...pointers.values()];
+        const distance = Math.hypot(a.x - b.x, a.y - b.y);
+        if (pinchDistance > 0 && distance > 0) {
+          const rect = view.getBoundingClientRect();
+          zoomAt(
+            (a.x + b.x) / 2 - rect.left,
+            (a.y + b.y) / 2 - rect.top,
+            distance / pinchDistance,
+          );
+        }
+        pinchDistance = distance;
+        return;
+      }
+
+      if (!dragging) return;
+      const dx = event.clientX - last.x;
+      const dy = event.clientY - last.y;
+      if (dx || dy) {
+        // Panning by hand is an explicit request to look elsewhere.
+        if (followRef.current) stopFollowing();
+        container.x += dx;
+        container.y += dy;
+        last = { x: event.clientX, y: event.clientY };
+      }
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinchDistance = 0;
+      if (pointers.size === 0) dragging = false;
+      view.releasePointerCapture?.(event.pointerId);
+    };
+
+    view.addEventListener('wheel', onWheel, { passive: false });
+    view.addEventListener('pointerdown', onPointerDown);
+    view.addEventListener('pointermove', onPointerMove);
+    view.addEventListener('pointerup', onPointerUp);
+    view.addEventListener('pointercancel', onPointerUp);
+    view.addEventListener('pointerleave', onPointerUp);
+    view.style.touchAction = 'none';
+    view.style.cursor = 'grab';
 
     return () => {
+      view.removeEventListener('wheel', onWheel);
+      view.removeEventListener('pointerdown', onPointerDown);
+      view.removeEventListener('pointermove', onPointerMove);
+      view.removeEventListener('pointerup', onPointerUp);
+      view.removeEventListener('pointercancel', onPointerUp);
+      view.removeEventListener('pointerleave', onPointerUp);
       app.destroy(true, { children: true });
-      window.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
     };
-  }, []);
+  }, [zoomAt, stopFollowing]);
 
-  // Handle WebSocket Messages for Sprites
+  // --- agent stream -------------------------------------------------------
   useEffect(() => {
     if (!connected || !ws.current) return;
 
     const handleMessage = async (event: MessageEvent) => {
-      let data;
-
-      // Handle Blob or ArrayBuffer data
+      let data: any;
       if (event.data instanceof Blob) {
-        const text = await event.data.text();
         try {
-          data = JSON.parse(text);
-        } catch (error) {
-          console.error("Failed to parse Blob as JSON:", error);
+          data = JSON.parse(await event.data.text());
+        } catch {
           return;
         }
       } else if (typeof event.data === 'string') {
         try {
           data = JSON.parse(event.data);
-        } catch (error) {
-          console.error("Failed to parse string as JSON:", error);
+        } catch {
           return;
         }
       } else {
         return;
       }
 
-      // Log first agent update to confirm data flow
-      if (data.agents && data.agents.length > 0 && Math.random() < 0.01) {
-        console.log("💓 Data Heartbeat: Received agents", data.agents.length);
+      if (data.stats) return;
+      const { coords: path, metadata: meta } = data;
+      if (!meta || !meta.user) return;
+      if (!mapContainerRef.current) return;
+      if (!PIXI.Assets.get('/assets/characters_transparent.png')) return;
+
+      const key = String(meta.user);
+      let entry = spritesRef.current.get(key);
+
+      if (!entry) {
+        const baseTex = PIXI.Texture.from('/assets/characters_transparent.png');
+        const spriteId = parseInt(meta.sprite_id || '0');
+        const tex = new PIXI.Texture(
+          baseTex.baseTexture,
+          new PIXI.Rectangle(9 + 17, 34 + 17 * spriteId, 16, 16),
+        );
+
+        const sprite = new PIXI.Sprite(tex);
+        sprite.anchor.set(0.5);
+
+        const subContainer = new PIXI.Container();
+        subContainer.addChild(sprite);
+
+        const label = new PIXI.Text(meta.user, {
+          fontFamily: 'Arial', fontSize: 14, fill: meta.color || 'white',
+          align: 'center', stroke: 'black', strokeThickness: 2,
+        });
+        label.y = -12;
+        label.anchor.set(0.5);
+        subContainer.addChild(label);
+
+        // Battle marker: the bot keeps its map position while fighting, so the
+        // map answers "where is it" and "what is it doing" at once.
+        const badge = new PIXI.Text('⚔', {
+          fontFamily: 'Arial', fontSize: 13, fill: '#ff4d4d',
+          align: 'center', stroke: 'black', strokeThickness: 3,
+        });
+        badge.x = 10;
+        badge.y = -10;
+        badge.anchor.set(0.5);
+        badge.visible = false;
+        subContainer.addChild(badge);
+
+        subContainer.eventMode = 'static';
+        subContainer.cursor = 'pointer';
+        subContainer.on('pointertap', (e: any) => {
+          e.stopPropagation();
+          const current = spritesRef.current.get(key);
+          onAgentClick(current?.meta ?? meta);
+          follow(key);
+        });
+
+        mapContainerRef.current.addChild(subContainer);
+        entry = {
+          container: subContainer,
+          label,
+          badge,
+          startTime: 0,
+          path: [],
+          animating: false,
+          duration: 1000,
+          lastUpdateAt: 0,
+          meta,
+        };
+        spritesRef.current.set(key, entry);
+        setAgentNames(names => (names.includes(key) ? names : [...names, key].sort()));
       }
 
-      if (data.stats) return;
+      entry.meta = meta;
+      const inBattle = Boolean(meta.status === 'battle' || meta?.battle_info?.is_battle);
+      entry.badge.visible = inBattle;
+      entry.container.alpha = inBattle ? 0.85 : 1;
 
-      const { coords: path, metadata: meta } = data;
-
-      if (!meta || !meta.user) return;
-
-      if (mapContainerRef.current && PIXI.Assets.get("/assets/characters_transparent.png")) {
-        // One sprite per trainer, reused across updates.
-        const key = String(meta.user);
-        let entry = spritesRef.current.get(key);
-
-        if (!entry) {
-          const baseTex = PIXI.Texture.from("/assets/characters_transparent.png");
-          const spriteId = parseInt(meta.sprite_id || "0");
-          const sx = 9 + 17 * 1; // Direction offset
-          const sy = 34 + 17 * spriteId;
-          const tex = new PIXI.Texture(baseTex.baseTexture, new PIXI.Rectangle(sx, sy, 16, 16));
-
-          const sprite = new PIXI.Sprite(tex);
-          sprite.anchor.set(0.5);
-
-          const subContainer = new PIXI.Container();
-          subContainer.addChild(sprite);
-
-          // Label
-          const label = new PIXI.Text(meta.user, {
-            fontFamily: 'Arial', fontSize: 14, fill: meta.color || 'white', align: 'center',
-            stroke: 'black', strokeThickness: 2
-          });
-          label.x = 0;
-          label.y = -12;
-          label.anchor.set(0.5);
-          subContainer.addChild(label);
-
-          // Battle marker: the bot keeps its map position while fighting, so
-          // the map answers "where is it" and "what is it doing" at once.
-          const badge = new PIXI.Text('⚔', {
-            fontFamily: 'Arial', fontSize: 13, fill: '#ff4d4d', align: 'center',
-            stroke: 'black', strokeThickness: 3
-          });
-          badge.x = 10;
-          badge.y = -10;
-          badge.anchor.set(0.5);
-          badge.visible = false;
-          subContainer.addChild(badge);
-
-          // Interactive
-          subContainer.eventMode = 'static';
-          subContainer.cursor = 'pointer';
-          subContainer.on('pointerdown', (e) => {
-            e.stopPropagation();
-            onAgentClick(spritesRef.current.get(key)?.meta ?? meta);
-          });
-
-          mapContainerRef.current.addChild(subContainer);
-
-          entry = {
-            container: subContainer,
-            label,
-            badge,
-            startTime: 0,
-            path: [],
-            animating: false,
-            // Replay each batch of coordinates over the real gap between
-            // updates instead of a fixed 1s burst followed by a long freeze.
-            duration: 1000,
-            lastUpdateAt: 0,
-            meta,
-          };
-          spritesRef.current.set(key, entry);
+      if (path && path.length > 0) {
+        const now = Date.now();
+        if (entry.lastUpdateAt) {
+          // Replay each batch over the real gap between updates instead of a
+          // fixed burst followed by a long freeze.
+          entry.duration = Math.min(Math.max(now - entry.lastUpdateAt, 500), 20000);
         }
-
-        entry.meta = meta;
-        const inBattle = Boolean(
-          meta.status === 'battle' || meta?.battle_info?.is_battle
-        );
-        entry.badge.visible = inBattle;
-        // Dim slightly while fighting so a parked sprite does not read as stuck.
-        entry.container.alpha = inBattle ? 0.85 : 1;
-
-        if (path && path.length > 0) {
-          const now = Date.now();
-          if (entry.lastUpdateAt) {
-            entry.duration = Math.min(Math.max(now - entry.lastUpdateAt, 500), 20000);
-          }
-          entry.lastUpdateAt = now;
-          entry.path = path;
-          entry.startTime = 0; // ticker stamps it
-          entry.animating = true;
-        }
-
-        // Auto-center on first agent if user hasn't moved map
-        if (!hasPannedRef.current && path && path.length > 0) {
-          const firstPoint = coordConversion(path[0]);
-          const x = 16 * firstPoint[0];
-          const y = 16 * firstPoint[1];
-
-          if (mapContainerRef.current && appRef.current) {
-            const scale = mapContainerRef.current.scale.x;
-            mapContainerRef.current.x = appRef.current.screen.width / 2 - x * scale;
-            mapContainerRef.current.y = appRef.current.screen.height / 2 - y * scale;
-            hasPannedRef.current = true;
-          }
-        }
+        entry.lastUpdateAt = now;
+        entry.path = path;
+        entry.startTime = 0;
+        entry.animating = true;
       }
     };
 
     ws.current.addEventListener('message', handleMessage);
     return () => ws.current?.removeEventListener('message', handleMessage);
-  }, [connected, ws, onAgentClick]);
+  }, [connected, ws, onAgentClick, follow]);
 
-  return <div ref={containerRef} className="w-full h-full bg-[#1a1a1a]" />;
+  // Snap to a comfortable reading zoom the moment a lock starts.
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!followTarget || !container) return;
+    if (container.scale.x < FOLLOW_SCALE) {
+      container.scale.set(FOLLOW_SCALE);
+      setZoom(FOLLOW_SCALE);
+    }
+  }, [followTarget]);
+
+  const buttonClass =
+    'rounded-lg border border-white/10 bg-black/60 p-2 text-white backdrop-blur-md ' +
+    'transition-all hover:bg-white/20 active:scale-95';
+
+  return (
+    <div ref={containerRef} className="w-full h-full bg-[#1a1a1a] relative">
+      <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2 items-start">
+        {agentNames.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 max-w-[260px]">
+            {agentNames.map(name => {
+              const active = followTarget === name;
+              return (
+                <button
+                  key={name}
+                  onClick={() => (active ? stopFollowing() : follow(name))}
+                  title={active ? `Parar de seguir ${name}` : `Seguir ${name}`}
+                  className={
+                    'flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[10px] ' +
+                    'font-bold uppercase tracking-wider backdrop-blur-md transition-all ' +
+                    'active:scale-95 ' +
+                    (active
+                      ? 'border-blue-400/60 bg-blue-500/30 text-white'
+                      : 'border-white/10 bg-black/60 text-slate-300 hover:bg-white/20')
+                  }
+                >
+                  <Crosshair size={12} className={active ? 'text-blue-300' : 'text-slate-400'} />
+                  {name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => zoomByButton(1 / 1.4)} title="Afastar" className={buttonClass}>
+            <Minus size={16} />
+          </button>
+          <span className="min-w-[52px] rounded-lg border border-white/10 bg-black/60 px-2 py-1.5 text-center font-mono text-[10px] text-slate-300 backdrop-blur-md">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button onClick={() => zoomByButton(1.4)} title="Aproximar" className={buttonClass}>
+            <Plus size={16} />
+          </button>
+          <button onClick={resetView} title="Enquadrar Kanto inteiro" className={buttonClass}>
+            <Maximize2 size={16} />
+          </button>
+        </div>
+
+        <p className="rounded-lg border border-white/10 bg-black/50 px-2 py-1 font-mono text-[9px] text-slate-500 backdrop-blur-md">
+          arrastar: mover · roda/pinça: zoom · clicar no bot: seguir
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default MapViz;
