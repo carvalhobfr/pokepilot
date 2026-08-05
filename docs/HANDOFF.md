@@ -239,12 +239,15 @@ CARON  (7,30) → (25,20) → (1,18) → (6,1), a um passo da saída norte
 Os dois atravessaram a barreira de `y=30` que os prendia, com 44 e 188 arestas
 aprendidas no mapa 51. Nenhum waypoint novo foi medido à mão.
 
-**Chegar a Pewter ainda não foi observado numa corrida só**, e o motivo não é
-navegação: cada um desmaiou uma vez (`deaths: 1`) — BARON entrou na Floresta com
-`1/25` HP, CARON caiu a `5/48` — e o whiteout devolve o bot a Pallet/Viridian,
-recomeçando a travessia. É exatamente a lacuna de cura já registrada em "Cura
-antes da Floresta (pendente)" e nas regras de comportamento, agora
-desbloqueadas por esta navegação.
+BARON completou a travessia: chegou a Pewter e entrou no ginásio, **mapa 54
+`(4,4)`**. CARON continua na metade norte da Floresta.
+
+O custo da travessia ainda é alto porque cada bot desmaiou uma vez pelo caminho
+(`deaths: 1` no bloco anterior) — BARON entrou na Floresta com `1/25` HP, CARON
+caiu a `5/48` — e o whiteout devolve o bot a Pallet/Viridian, recomeçando o
+percurso. Isso é a lacuna de cura já registrada em "Cura antes da Floresta
+(pendente)", não navegação, e é a primeira coisa a resolver agora que dá para
+chegar a qualquer porta sem medir waypoints à mão.
 
 ## BUG ABERTO (histórico): `_follow_route` não replaneja — a causa raiz
 
