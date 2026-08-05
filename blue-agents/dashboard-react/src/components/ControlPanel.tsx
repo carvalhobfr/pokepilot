@@ -164,6 +164,34 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll,
                   <div className="rounded bg-white/5 p-1.5"><span className="text-gray-500">Milestone</span><div className="truncate text-gray-200">{agent.journey?.milestone || '—'}</div></div>
                   <div className="rounded bg-white/5 p-1.5"><span className="text-gray-500">Battles / decisions</span><div className="text-gray-200">{agent.journey?.battles ?? 0} / {agent.journey?.decision_count ?? 0}</div></div>
                   <div className="rounded bg-white/5 p-1.5"><span className="text-gray-500">Captures / levels</span><div className="text-gray-200">{agent.journey?.captures ?? 0} / {agent.journey?.level_ups ?? 0}</div></div>
+                  <div className="col-span-2 rounded bg-white/5 p-1.5">
+                    <span className="text-gray-500">Poké Bolas</span>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-gray-200">
+                      {(() => {
+                        const balls = agent.journey?.balls;
+                        const kinds: [string, string, string][] = [
+                          ['poke', 'Poké', 'text-red-300'],
+                          ['great', 'Great', 'text-blue-300'],
+                          ['ultra', 'Ultra', 'text-yellow-300'],
+                          ['master', 'Master', 'text-fuchsia-300'],
+                        ];
+                        const held = kinds.filter(([key]) => (balls?.[key] ?? 0) > 0);
+                        if (!balls || balls.total === 0) {
+                          return <span className="italic text-amber-300/80">nenhuma — não dá para capturar</span>;
+                        }
+                        return (
+                          <>
+                            <span className="font-bold">{balls.total}</span>
+                            {held.map(([key, label, tone]) => (
+                              <span key={key} className={`rounded bg-black/30 px-1 ${tone}`}>
+                                {label} {balls[key]}
+                              </span>
+                            ))}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
                 </div>
               </div>
 

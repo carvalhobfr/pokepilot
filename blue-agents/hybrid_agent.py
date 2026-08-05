@@ -1609,6 +1609,24 @@ class HybridGymEnv(RedGymEnv):
             if item["item_id"] in CAPTURE_BALL_IDS
         ]
 
+    def _ball_inventory_by_kind(self):
+        """Balls in the bag, by kind, for the panel.
+
+        A single total hides the decision: a run with one Master Ball and a run
+        with one Poké Ball are not in the same situation, and the capture policy
+        already spends them in different orders.
+        """
+        names = {1: "master", 2: "ultra", 3: "great", 4: "poke"}
+        counts = {name: 0 for name in names.values()}
+        for item in self._capture_ball_inventory():
+            kind = names.get(int(item["item_id"]))
+            if kind:
+                counts[kind] += int(item.get("quantity") or 0)
+        counts["total"] = sum(
+            value for key, value in counts.items() if key != "total"
+        )
+        return counts
+
     def _select_capture_ball(self, shiny_candidate=False):
         inventory = self._capture_ball_inventory()
         priority = (1, 2, 3, 4) if shiny_candidate else (4, 3, 2, 1)
@@ -1762,6 +1780,7 @@ class HybridGymEnv(RedGymEnv):
             "archetype_label": get_archetype(getattr(self, "archetype", None))["label"],
             "archetype_summary": get_archetype(getattr(self, "archetype", None))["summary"],
             "capture_stance": getattr(self, "capture_stance", None),
+            "balls": self._ball_inventory_by_kind(),
             # The panel had no way to tell one trainer from another beyond the
             # name. The traits are what explain every capture decision below.
             "traits": {

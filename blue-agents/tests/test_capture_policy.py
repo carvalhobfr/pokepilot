@@ -270,6 +270,28 @@ class CapturePolicyTests(unittest.TestCase):
         self.assertEqual("defeat", decision["choice"])
         self.assertEqual("training_value", decision["reason_code"])
 
+    def test_the_panel_sees_each_kind_of_ball(self):
+        # A run with one Master Ball and a run with one Poké Ball are not in
+        # the same situation, and a single total hides exactly that.
+        env, _ = self.make_env()
+        env._read_bag_items = lambda: [
+            {"item_id": 4, "quantity": 7, "slot": 0},
+            {"item_id": 3, "quantity": 2, "slot": 1},
+            {"item_id": 1, "quantity": 1, "slot": 2},
+            {"item_id": 20, "quantity": 5, "slot": 3},  # Poção, não é bola
+        ]
+        counts = env._ball_inventory_by_kind()
+        self.assertEqual(7, counts["poke"])
+        self.assertEqual(2, counts["great"])
+        self.assertEqual(1, counts["master"])
+        self.assertEqual(0, counts["ultra"])
+        self.assertEqual(10, counts["total"])
+
+    def test_an_empty_bag_reports_zero_of_everything(self):
+        env, _ = self.make_env()
+        env._read_bag_items = lambda: []
+        self.assertEqual(0, env._ball_inventory_by_kind()["total"])
+
     def test_pokedex_counter_counts_bits_not_byte_values(self):
         env, ram = self.make_env()
         ram[POKEDEX_OWNED_START] = 0xFF
