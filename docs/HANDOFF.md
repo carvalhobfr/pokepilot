@@ -226,6 +226,23 @@ em nada, portanto nunca aprendia nada. Agora o plano é mantido e seguido tile a
 tile; só é refeito quando surge uma colisão nova, quando o objetivo muda ou
 quando o bot está fora do corredor planejado.
 
+### Warp atravessado sem querer também é aresta bloqueada
+
+Um warp é **invisível** para a colisão aprendida: pisar numa porta funciona,
+logo nada parece bloqueado. Ao sair do ginásio de Brock o bot cai no tile da
+porta em Pewter, o plano até a âncora seguinte cruzava esse mesmo tile, e os
+dois ficaram quicando ginásio → cidade → ginásio:
+
+```text
+m54 [4,13] → m2 [16,18] → m54 [16,17] → m54 [4,13] → …
+```
+
+Troca de mapa no meio da rota agora grava `(mapa, x, y, direção)` como
+bloqueada, igual a uma parede. **Só as não intencionais:** rotas terminam de
+propósito num warp — o último waypoint costuma ficar um tile além da borda — e
+marcar essas selaria toda saída de mapa. O critério é o índice do waypoint
+perseguido: final = saída legítima, meio da rota = engano.
+
 ### Validado no cartucho (2026-08-05, `start.py --no-browser`)
 
 Partindo exatamente do save travado, BARON em `(6,30)` e CARON em `(7,30)`:
@@ -239,8 +256,9 @@ CARON  (7,30) → (25,20) → (1,18) → (6,1), a um passo da saída norte
 Os dois atravessaram a barreira de `y=30` que os prendia, com 44 e 188 arestas
 aprendidas no mapa 51. Nenhum waypoint novo foi medido à mão.
 
-BARON completou a travessia: chegou a Pewter e entrou no ginásio, **mapa 54
-`(4,4)`**. CARON continua na metade norte da Floresta.
+BARON completou a travessia, venceu Brock (`badges: 1`) e seguiu; CARON fez o
+mesmo trecho depois. Corrigido o quique do ginásio, os dois saíram de Pewter e
+estão na **Rota 3 (mapa 14)**, a caminho de Mt. Moon.
 
 O custo da travessia ainda é alto porque cada bot desmaiou uma vez pelo caminho
 (`deaths: 1` no bloco anterior) — BARON entrou na Floresta com `1/25` HP, CARON
