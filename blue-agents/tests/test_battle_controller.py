@@ -314,7 +314,11 @@ class MissionRestartTests(unittest.TestCase):
             env._watch_for_stagnation()
         self.assertIn("mission_restarted", [kind for kind, _ in env.logged])
         self.assertFalse(hasattr(env.scripted_agent, "route_id"), "rota é descartada")
-        self.assertFalse(hasattr(env.scripted_agent, "current_task_name"))
+        self.assertEqual(
+            "mt_moon_nav", env.scripted_agent.current_task_name,
+            "a missão continua a mesma: limpar a tarefa fazia a detecção de "
+            "checkpoint devolver todo mundo para a luta do rival",
+        )
 
     def test_moving_resets_the_count(self):
         env = self.make_env((14, 19, 4))
