@@ -132,16 +132,22 @@ def make_hybrid_env(rank, env_conf, seed=0):
         is_chaos_mode = meta_score < 40
         local_conf['hard_mode_bonus'] = is_chaos_mode
         
-        # COMPETITIVE MODE: Staggered Start
-        # Agents start within 10 seconds of each other
-        import random
-        delay_frames = 0 if os.getenv("POKEAI_NO_DELAY", "0") == "1" else random.randint(0, 600)
+        # Everyone leaves the bedroom together. The staggered start was pure
+        # decoration — each bot drives its own emulator, so nothing in Oak's
+        # errand or anywhere else depends on it — and it made the four runs
+        # incomparable from the first step, which is the opposite of the point.
+        # POKEAI_STAGGER_START=1 brings the old random delay back.
+        delay_frames = 0
+        if os.getenv("POKEAI_STAGGER_START", "0") == "1":
+            import random
+            delay_frames = random.randint(0, 600)
         local_conf['delay_steps'] = delay_frames
         local_conf['agent_index'] = rank  # Stable runtime slot for ranking/comparison
         local_conf['profile_index'] = idx
         local_conf['identity_index'] = identity_index
         
-        print(f"⏱️  Slot {rank}: {agent_name} starts after {delay_frames/60:.1f}s")
+        if delay_frames:
+            print(f"⏱️  Slot {rank}: {agent_name} começa {delay_frames/60:.1f}s depois")
         
         env = StreamWrapper(
             HybridGymEnv(local_conf),
