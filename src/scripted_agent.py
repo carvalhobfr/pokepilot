@@ -9,6 +9,14 @@ from src.llm_agent import LLMAgent
 
 from src.navigation import Navigation
 from src.exploration_tracker import ExplorationTracker
+from src.collision_memory import DIRECTIONS, CollisionMemory
+
+ROUTE_EVENTS = {
+    "U": WindowEvent.PRESS_ARROW_UP,
+    "D": WindowEvent.PRESS_ARROW_DOWN,
+    "L": WindowEvent.PRESS_ARROW_LEFT,
+    "R": WindowEvent.PRESS_ARROW_RIGHT,
+}
 
 class ScriptedAgent(BaseAgent):
     def __init__(self, walkthrough_path, emulator=None, player_name="AARON", save_dir=".", starter_choice=None):
@@ -1598,6 +1606,7 @@ class ScriptedAgent(BaseAgent):
             return WindowEvent.PRESS_BUTTON_A
 
         current_x, current_y = self.emulator.memory.get_player_pos()
+        map_id = int(self.emulator.memory.get_map_id())
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
 
@@ -1619,80 +1628,48 @@ class ScriptedAgent(BaseAgent):
                 else closest_index
             )
             self.route_last_position = None
+            self.route_last_direction = None
+            self.route_plan = None
             self.route_stuck_steps = 0
 
-        current_position = (
-            self.emulator.memory.get_map_id(),
-            current_x,
-            current_y,
-        )
-        if current_position == getattr(self, "route_last_position", None):
+        current_position = (map_id, current_x, current_y)
+        previous_position = getattr(self, "route_last_position", None)
+        last_direction = getattr(self, "route_last_direction", None)
+        if current_position == previous_position:
             self.route_stuck_steps += 1
         else:
+            # The step that just landed proves the edge behind us is walkable.
+            # An NPC standing on the path is indistinguishable from a wall while
+            # it is there, so a learned block has to expire when it is crossed.
+            if previous_position is not None and last_direction is not None:
+                delta = DIRECTIONS[last_direction]
+                expected = (
+                    previous_position[1] + delta[0],
+                    previous_position[2] + delta[1],
+                )
+                if previous_position[0] == map_id and expected == (current_x, current_y):
+                    self._collision_memory().mark_open(
+                        map_id, previous_position[1], previous_position[2],
+                        last_direction,
+                    )
             self.route_stuck_steps = 0
             self.route_stuck_cycles = 0
         self.route_last_position = current_position
 
-        # Two different reasons make a waypoint step produce no movement, and
-        # they need different answers. Dialogue and map transitions ignore
-        # input, so A clears them. A wall or an NPC standing on the path never
-        # clears, and the previous code alternated A forever — a bot could burn
-        # thousands of steps in front of an occupied tile.
+        # Two different reasons make a step produce no movement, and they need
+        # different answers. Dialogue and map transitions ignore input, so A
+        # clears them. A wall or an NPC never clears: that edge is recorded as
+        # blocked and the search below plans around it on the very next call.
         if self.route_stuck_steps >= 4:
             self.route_stuck_steps = 0
             self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
             if self.route_stuck_cycles == 1:
                 return WindowEvent.PRESS_BUTTON_A
-            # Blocked by geometry: step aside on the free axis so the next
-            # waypoint attempt approaches from a different tile. The route
-            # itself is unchanged; only this detour is improvised.
-            #
-            # The detour must lean toward the route, never away from it. A
-            # blind "try down first" walked bots onto the warp tile they had
-            # just entered through — at the Viridian Forest mouth that produced
-            # an endless gate/forest bounce.
-            index = min(self.route_index, len(waypoints) - 1)
-            target_x, target_y = waypoints[index]
-            horizontal = current_x != target_x
-
-            def preference(current, goal, positive, negative):
-                if goal > current:
-                    return positive, negative
-                if goal < current:
-                    return negative, positive
-                return None
-
-            if horizontal:
-                order = preference(
-                    current_y, target_y,
-                    WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP,
+            if last_direction is not None:
+                self._collision_memory().mark_blocked(
+                    map_id, current_x, current_y, last_direction
                 )
-                if order is None and index + 1 < len(waypoints):
-                    # Already aligned on the free axis: follow where the route
-                    # goes next instead of guessing.
-                    order = preference(
-                        current_y, waypoints[index + 1][1],
-                        WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP,
-                    )
-                order = order or (
-                    WindowEvent.PRESS_ARROW_UP, WindowEvent.PRESS_ARROW_DOWN
-                )
-            else:
-                order = preference(
-                    current_x, target_x,
-                    WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT,
-                )
-                if order is None and index + 1 < len(waypoints):
-                    order = preference(
-                        current_x, waypoints[index + 1][0],
-                        WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT,
-                    )
-                order = order or (
-                    WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT
-                )
-
-            self.last_action_was_move = True
-            return order[self.route_stuck_cycles % 2]
+                self.route_plan = None
 
         while (
             self.route_index < len(waypoints) - 1
@@ -1701,29 +1678,83 @@ class ScriptedAgent(BaseAgent):
             self.route_index += 1
 
         target_x, target_y = waypoints[min(self.route_index, len(waypoints) - 1)]
-        self.last_action_was_move = True
+
+        # Waypoints are route anchors, not the only way to travel. Search the
+        # walkable tiles from wherever the bot actually stands, so leaving the
+        # straight line stops being a state with no way back.
+        #
+        # The plan is kept and followed tile by tile instead of being recomputed
+        # every step. Two equally short detours around a half-known wall make a
+        # per-step search flip between them, and the bot paces between two free
+        # tiles forever without ever colliding — so without ever learning
+        # anything. Replanning happens on a new collision, on a new goal, or
+        # when the bot is somewhere the plan does not pass through.
+        goal = (target_x, target_y)
+        plan = getattr(self, "route_plan", None)
+        if not (
+            plan
+            and plan["map"] == map_id
+            and plan["goal"] == goal
+            and (current_x, current_y) in plan["index"]
+        ):
+            plan = self._plan_route(map_id, (current_x, current_y), goal)
+            self.route_plan = plan
+        if plan:
+            step = plan["index"][(current_x, current_y)]
+            if step < len(plan["directions"]):
+                return self._route_move(plan["directions"][step])
+
         if current_x < target_x:
-            return WindowEvent.PRESS_ARROW_RIGHT
+            return self._route_move("R")
         if current_x > target_x:
-            return WindowEvent.PRESS_ARROW_LEFT
+            return self._route_move("L")
         if current_y < target_y:
-            return WindowEvent.PRESS_ARROW_DOWN
+            return self._route_move("D")
         if current_y > target_y:
-            return WindowEvent.PRESS_ARROW_UP
+            return self._route_move("U")
 
         # The final waypoint may be one tile beyond the visible map boundary;
         # repeat the last direction until the map transition is observable.
         if len(waypoints) >= 2:
             previous_x, previous_y = waypoints[-2]
             if target_x > previous_x:
-                return WindowEvent.PRESS_ARROW_RIGHT
+                return self._route_move("R")
             if target_x < previous_x:
-                return WindowEvent.PRESS_ARROW_LEFT
+                return self._route_move("L")
             if target_y > previous_y:
-                return WindowEvent.PRESS_ARROW_DOWN
+                return self._route_move("D")
             if target_y < previous_y:
-                return WindowEvent.PRESS_ARROW_UP
+                return self._route_move("U")
         return None
+
+    def _collision_memory(self):
+        """Per-trainer collision memory, persisted beside ``journey.json``."""
+        memory = getattr(self, "collision_memory", None)
+        if memory is None:
+            save_dir = getattr(self, "save_dir", None)
+            path = Path(save_dir) / "collision.json" if save_dir else None
+            memory = CollisionMemory(path)
+            self.collision_memory = memory
+        return memory
+
+    def _plan_route(self, map_id, start, goal):
+        """Breadth-first plan plus the tile → step index it passes through."""
+        directions = self._collision_memory().find_path(map_id, start, goal)
+        if not directions:
+            return None
+        index = {start: 0}
+        tile = start
+        for step, direction in enumerate(directions, start=1):
+            delta = DIRECTIONS[direction]
+            tile = (tile[0] + delta[0], tile[1] + delta[1])
+            index[tile] = step
+        return {"map": map_id, "goal": goal, "directions": directions, "index": index}
+
+    def _route_move(self, direction):
+        """Issue a D-pad press and remember it, so a failure can be attributed."""
+        self.last_action_was_move = True
+        self.route_last_direction = direction
+        return ROUTE_EVENTS[direction]
 
     def _get_typing_sequence(self, name):
         """

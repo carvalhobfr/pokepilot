@@ -55,9 +55,11 @@ começa do estado inicial com seu próprio SRAM.
 
 ## Próximo bloqueio de jogabilidade
 
-**Prioridade atual: a navegação** (ver "BUG ABERTO" abaixo). BARON e CARON estão
-parados dentro da Floresta de Viridian, e quase toda regra de comportamento
-pedida depende de "chegar até X e interagir".
+A navegação deixou de ser o bloqueio: `_follow_route` agora planeja por busca em
+largura sobre colisão aprendida (ver "Navegação" abaixo). Com isso destravam as
+regras de comportamento pedidas, todas do formato "chegar até X e interagir":
+curar e comprar Poké Bolas ao chegar numa cidade, curar por bom senso com Centro
+acessível, e cobertura de tipos na captura.
 
 `vermilion_gym_quest` existe no grafo, mas ainda não possui executor. O próximo
 trabalho é automatizar e validar:
@@ -169,9 +171,85 @@ Consequência para a jornada: PP só se recupera em Centro Pokémon. Sem a rotin
 de cura (tarefas #2 e #4), um bot fica sem dano e depende de desmaiar para
 restaurar — o whiteout é hoje o único mecanismo de recuperação de PP.
 
-## BUG ABERTO: `_follow_route` não replaneja — a causa raiz
+## Navegação: busca em largura sobre colisão aprendida
 
-Registrado em 2026-08-05. **Bloqueia BARON e CARON.**
+Registrado em 2026-08-05, substitui o "BUG ABERTO" descrito na seção seguinte.
+
+`_follow_route` não persegue mais o waypoint em linha reta. A cada passo ele
+planeja um caminho **do tile onde o bot realmente está** até a âncora seguinte,
+por busca em largura sobre os tiles caminháveis. Os waypoints continuam sendo
+âncoras de rota; deixaram de ser o único meio de navegar. Sair da linha parou de
+ser um estado sem retorno, porque o replanejamento parte da posição atual.
+
+A colisão vem do próprio jogo, aprendida enquanto joga. Não existe leitura de
+colisão no projeto e as duas alternativas eram caras: `wTilesetCollisionPtr`
+(`0xD530`) exige lidar com troca de banco de ROM, e `tools/probe_route.py`
+descobre paredes ramificando save states — inviável a cada passo. Mas o agente
+já produzia o dado e o jogava fora: apertou uma direção e não saiu do lugar,
+logo aquela aresta é bloqueada.
+
+| Caminho | Responsabilidade |
+|---|---|
+| `src/collision_memory.py` | conjunto de arestas bloqueadas + BFS |
+| `trainers/<AGENTE>/collision.json` | memória persistida por treinador |
+
+Regras do controlador:
+
+- aresta desconhecida conta como **livre**. O primeiro plano num mapa novo é a
+  linha reta, e cada colisão o estreita;
+- sem deslocamento por 4 passos: o primeiro ciclo aperta `A` (diálogo e
+  transição de mapa ignoram o D-pad), os seguintes gravam
+  `(mapa, x, y, direção)` como bloqueado e o BFS já desvia na chamada seguinte;
+- **atravessou uma aresta bloqueada → esquece o bloqueio.** Um NPC parado é
+  indistinguível de parede enquanto está lá; sem esse esquecimento a memória
+  planejaria para sempre em volta de alguém que já saiu;
+- troca de mapa replaneja sozinha: a chave do plano inclui o mapa;
+- BFS limitado a uma caixa de `margin=15` em volta de origem e destino e a 6000
+  nós. Sem caminho dentro da caixa, cai no passo por eixo antigo — é o que
+  mantém o último waypoint "um tile além da borda" funcionando;
+- empate de caminho expande na ordem `U, R, L, D`. "Sul por último" é
+  deliberado: várias rotas entram por um warp na borda sul, e preferir sul ali
+  devolvia o bot ao mapa anterior.
+- escrita atômica com `os.replace`; arquivo corrompido é ignorado, não derruba a
+  jornada (o bot reaprende andando).
+
+`trainers/` é ignorado pelo git: `collision.json` é estado de execução, cresce
+sozinho a cada corrida e não é versionado.
+
+### O plano é guardado, não recalculado a cada passo
+
+A primeira versão refazia o BFS toda chamada e **um bot ficou 800 passos indo e
+voltando entre dois tiles livres**, sem gravar uma única aresta nova. Com meio
+muro conhecido, o desvio pelo norte e o pelo sul custam o mesmo; o desempate
+mudava conforme o tile de origem e o bot alternava entre os dois — nunca batia
+em nada, portanto nunca aprendia nada. Agora o plano é mantido e seguido tile a
+tile; só é refeito quando surge uma colisão nova, quando o objetivo muda ou
+quando o bot está fora do corredor planejado.
+
+### Validado no cartucho (2026-08-05, `start.py --no-browser`)
+
+Partindo exatamente do save travado, BARON em `(6,30)` e CARON em `(7,30)`:
+
+```text
+BARON  (6,30) → aprende o muro em y=30 → (10,32) → (18,33) → (27,25)
+       → (1,18) → sai da Floresta → mapa 13 (Rota 2 norte)
+CARON  (7,30) → (25,20) → (1,18) → (6,1), a um passo da saída norte
+```
+
+Os dois atravessaram a barreira de `y=30` que os prendia, com 44 e 188 arestas
+aprendidas no mapa 51. Nenhum waypoint novo foi medido à mão.
+
+**Chegar a Pewter ainda não foi observado numa corrida só**, e o motivo não é
+navegação: cada um desmaiou uma vez (`deaths: 1`) — BARON entrou na Floresta com
+`1/25` HP, CARON caiu a `5/48` — e o whiteout devolve o bot a Pallet/Viridian,
+recomeçando a travessia. É exatamente a lacuna de cura já registrada em "Cura
+antes da Floresta (pendente)" e nas regras de comportamento, agora
+desbloqueadas por esta navegação.
+
+## BUG ABERTO (histórico): `_follow_route` não replaneja — a causa raiz
+
+Registrado em 2026-08-05, **corrigido pela seção acima**. Mantido porque explica
+por que waypoints medidos à mão nunca resolveram o problema.
 
 O livelock na boca da Floresta (descrito abaixo) foi **confirmado e corrigido**:
 o desvio de colisão escolhia `DOWN` primeiro e, em `y=47`, descer é o warp de
