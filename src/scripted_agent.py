@@ -20,6 +20,10 @@ MENU_PRESS_LIMIT = 12
 # in Gen I pace on their own; walls do not.
 SPRITE_PATIENCE_STEPS = 6
 
+# Steps spent unable to get any closer before the route gives up on this anchor
+# and backs up to the previous one.
+UNREACHABLE_PATIENCE_STEPS = 8
+
 # How far south to aim when leaving a map whose door was never observed. Kanto
 # interiors are small; this clears any of them.
 BLIND_EXIT_REACH = 10
@@ -1687,6 +1691,8 @@ class ScriptedAgent(BaseAgent):
                 min(closest + 1, len(waypoints) - 1) if on_waypoint else closest
             )
             self.route_blocked_steps = 0
+            self.route_best_distance = None
+            self.route_unreachable_steps = 0
 
         # Record doors as they are crossed: the tile the bot stood on when the
         # map changed is a fact every trainer can use.
@@ -1705,6 +1711,41 @@ class ScriptedAgent(BaseAgent):
         index = min(self.route_index, len(waypoints) - 1)
         target_x, target_y = waypoints[index]
         blocked = self._tile_truth()
+
+        # Path around what is in front, using the visible screen — also read
+        # from the cartridge, so it is truth and not memory. Single steps are
+        # enough to avoid a wall and not enough to go around one: a bot whose
+        # waypoint sat north of a cliff paced between two tiles forever,
+        # because from each of them the other looked equally good.
+        # Progress is measured in distance to the anchor, not in steps taken:
+        # a bot bouncing between two tiles takes a step every time and gets
+        # nowhere, which is exactly how this looked for hours.
+        distance = abs(target_x - current_x) + abs(target_y - current_y)
+        best = getattr(self, "route_best_distance", None)
+        if best is None or distance < best or index != getattr(self, "route_best_index", None):
+            self.route_best_distance = distance
+            self.route_best_index = index
+            self.route_unreachable_steps = 0
+        else:
+            self.route_unreachable_steps = getattr(self, "route_unreachable_steps", 0) + 1
+
+        step = self._visible_step(target_x - current_x, target_y - current_y)
+        if step is not None and self.route_unreachable_steps < UNREACHABLE_PATIENCE_STEPS:
+            return self._route_move(step)
+
+        # Not getting closer: this anchor cannot be reached from here, usually
+        # because the route was measured coming from the other side. Back up one
+        # anchor and approach again instead of pacing.
+        if self.route_unreachable_steps >= UNREACHABLE_PATIENCE_STEPS:
+            self.route_unreachable_steps = 0
+            self.route_best_distance = None
+            if self.route_index > 0:
+                self.route_index -= 1
+                index = self.route_index
+                target_x, target_y = waypoints[index]
+                step = self._visible_step(target_x - current_x, target_y - current_y)
+                if step is not None:
+                    return self._route_move(step)
 
         # Directions that close the distance, longer axis first, then the two
         # sidesteps as a way around whatever is in the way.
@@ -1738,6 +1779,20 @@ class ScriptedAgent(BaseAgent):
             if direction not in blocked and direction not in wanted:
                 return self._route_move(direction)
         return None
+
+    def _visible_step(self, target_dx, target_dy):
+        """Step toward the target using the walkability visible on screen."""
+        reader = getattr(self, "tile_collision", None)
+        if reader is None:
+            pyboy = getattr(self.emulator, "pyboy", None)
+            if pyboy is None:
+                return None
+            reader = TileCollision(pyboy)
+            self.tile_collision = reader
+        try:
+            return reader.path_step(target_dx, target_dy)
+        except Exception:
+            return None
 
     @staticmethod
     def _axis_steps(current, target, positive, negative):

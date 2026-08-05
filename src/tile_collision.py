@@ -86,6 +86,78 @@ class TileCollision:
             occupied.add((dx, dy))
         return occupied
 
+    def local_grid(self):
+        """Walkability of every tile visible on screen, relative to the player.
+
+        The four adjacent tiles are enough to avoid walking into a wall, and
+        not enough to walk *around* one: a bot whose waypoint sat north of a
+        cliff paced between two tiles forever, because each single step looked
+        equally good. The screen shows about ten by nine map tiles — enough to
+        find the way around what is in front.
+        """
+        walkable = self.walkable_tiles()
+        occupied = self.occupied_offsets()
+        grid = {}
+        for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
+            for dx in range(
+                -(PLAYER_TILEMAP_COLUMN // 2),
+                (TILEMAP_COLUMNS - PLAYER_TILEMAP_COLUMN) // 2,
+            ):
+                column = PLAYER_TILEMAP_COLUMN + dx * 2
+                row = PLAYER_TILEMAP_ROW + dy * 2
+                if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
+                    continue
+                tile = self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column)
+                grid[(dx, dy)] = tile in walkable and (dx, dy) not in occupied
+        grid[(0, 0)] = True
+        return grid
+
+    def path_step(self, target_dx, target_dy):
+        """First direction of the shortest visible path toward that offset.
+
+        Only the screen is considered, so this never pretends to know the map.
+        When the target is off screen it walks to the visible tile closest to
+        it, which is the same thing a person does.
+        """
+        try:
+            grid = self.local_grid()
+        except Exception:
+            return None
+        if not grid:
+            return None
+        from collections import deque
+
+        came = {(0, 0): None}
+        queue = deque([(0, 0)])
+        while queue:
+            tile = queue.popleft()
+            for direction, (dx, dy) in DIRECTION_STEPS.items():
+                neighbour = (tile[0] + dx, tile[1] + dy)
+                if neighbour in came or not grid.get(neighbour, False):
+                    continue
+                came[neighbour] = (tile, direction)
+                queue.append(neighbour)
+
+        reachable = [tile for tile in came if tile != (0, 0)]
+        if not reachable:
+            return None
+        goal = min(
+            reachable,
+            key=lambda tile: (
+                abs(tile[0] - target_dx) + abs(tile[1] - target_dy),
+                abs(tile[0]) + abs(tile[1]),
+            ),
+        )
+        if abs(goal[0] - target_dx) + abs(goal[1] - target_dy) >= (
+            abs(target_dx) + abs(target_dy)
+        ):
+            # Nothing visible gets closer; let the caller decide.
+            return None
+        node = goal
+        while came[node][0] != (0, 0):
+            node = came[node][0]
+        return came[node][1]
+
     def blocked_directions(self):
         """Which of the four steps the game would refuse right now, and why."""
         try:
