@@ -1,6 +1,6 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-04 23:00 (Europe/Madrid)**.
+Última atualização: **2026-08-05 15:40 (Europe/Madrid)**.
 
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
@@ -55,6 +55,10 @@ começa do estado inicial com seu próprio SRAM.
 
 ## Próximo bloqueio de jogabilidade
 
+**Prioridade atual: a navegação** (ver "BUG ABERTO" abaixo). BARON e CARON estão
+parados dentro da Floresta de Viridian, e quase toda regra de comportamento
+pedida depende de "chegar até X e interagir".
+
 `vermilion_gym_quest` existe no grafo, mas ainda não possui executor. O próximo
 trabalho é automatizar e validar:
 
@@ -88,33 +92,20 @@ então lançar numa vida cheia é quase bola jogada fora **e** um turno grátis 
 o selvagem. Aplicar status (sono, paralisia) multiplicaria mais ainda a taxa —
 está registrado como trabalho futuro, ainda não implementado.
 
-
-
-Corrigido em 2026-08-05 depois de dois treinadores ficarem permanentemente com
-um único Pokémon. Eram três causas somadas, todas em `hybrid_agent.py`:
+As regras 3 e 4 chegaram antes, quando dois treinadores ficaram permanentemente
+com um único Pokémon. Havia três causas somadas:
 
 1. Os ramos de captura exigiam `collector >= 55` ou `meta_score >= 45`. Os
    traços são sorteados por execução; BARON tirou 42 e CARON 52/41, então
-   nenhum dos dois alcançava os limiares. CARON não conseguia capturar nada.
+   nenhum dos dois alcançava os limiares — CARON não conseguia capturar nada.
 2. `upgrade_candidate` julgava só por nível. Um starter nível 9 faz todo
    Caterpie da Floresta parecer pior do que o time atual.
-3. `_run_buy_pokeballs` comprava **uma** Poké Bola. Uma tentativa falha
+3. `_run_buy_pokeballs` comprava **uma** Poké Bola, e uma tentativa falha
    esgotava o inventário.
 
-Ordem de decisão agora (`_capture_policy`), do mais forte ao mais fraco:
-
-| # | Regra | Código |
-|---|---|---|
-| 1 | Treinador / captura desativada / história travada / sem bolas | vários |
-| 2 | Candidato a shiny da Geração II | `shiny_priority` |
-| 3 | **Espécie já na Pokédex → nunca capturar** | `duplicate_species` |
-| 4 | **Vaga livre no time + espécie nova → capturar** | `party_slot_new_species` |
-| 5 | Time cheio: personalidade decide | `collector_new_species`, `team_upgrade` |
-| 6 | Nada disso | `training_value` |
-
-As regras 3 e 4 são novas. A 4 ignora personalidade de propósito: com menos de
-`PARTY_TARGET = 6` no time, uma vaga vazia é fraqueza maior que qualquer
-preferência. Personalidade volta a mandar só com o time completo.
+A regra 4 ignora personalidade de propósito: com menos de `PARTY_TARGET = 6` no
+time, uma vaga vazia é fraqueza maior que qualquer preferência sorteada.
+Personalidade volta a mandar só com o time completo.
 
 `STRATEGIC_CAPTURE_VALUE` passou a valer pela **linha evolutiva**, não pela
 forma encontrada no mato: Metapod vale 70 porque Butterfree segura as primeiras

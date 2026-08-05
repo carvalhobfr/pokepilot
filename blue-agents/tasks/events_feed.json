@@ -1,449 +1,5 @@
 [
   {
-    "id": "CARON-1785936098:5646:battle_started:1785936757559651000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_started",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 123,
-      "enemy_species_id": 10,
-      "enemy_level": 4,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "map_name": "Viridian Forest",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 11,
-        "hp": 3,
-        "max_hp": 32,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 0
-          },
-          {
-            "id": 39,
-            "pp": 30
-          },
-          {
-            "id": 145,
-            "pp": 14
-          }
-        ],
-        "selected_move_slot": 2
-      },
-      "pokeballs": 8,
-      "shiny_candidate": false
-    },
-    "timestamp": 1785936757.559652,
-    "step": 5646,
-    "journey_step": 5646,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785936098:5646:capture_decision:1785936757562583000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "capture_decision",
-    "data": {
-      "enemy_id": 123,
-      "enemy_species_id": 10,
-      "enemy_level": 4,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "strategic_value": 70,
-      "weakest_party_level": 11,
-      "strongest_party_level": 11,
-      "level_advantage": -7,
-      "party_size": 1,
-      "party_has_room": true,
-      "party_slots_free": 5,
-      "already_in_party": false,
-      "pokeballs": 8,
-      "collector": 52,
-      "meta_score": 41,
-      "story_complete": true,
-      "capture_unlocked": true,
-      "shiny_candidate": false,
-      "ball_item_id": 4,
-      "ball_slot": 0,
-      "choice": "capture",
-      "reason_code": "party_slot_new_species",
-      "motivation": "team_building",
-      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)"
-    },
-    "timestamp": 1785936757.5625842,
-    "step": 5646,
-    "journey_step": 5646,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": true
-  },
-  {
-    "id": "CARON-1785936098:5646:battle_decision:1785936757569626000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_decision",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 123,
-      "enemy_species_id": 10,
-      "enemy_level": 4,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 11,
-        "hp": 3,
-        "max_hp": 32,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 0
-          },
-          {
-            "id": 39,
-            "pp": 30
-          },
-          {
-            "id": 145,
-            "pp": 14
-          }
-        ],
-        "selected_move_slot": 2
-      },
-      "policy_choice": "capture",
-      "executed_choice": "menu_navigation",
-      "execution_status": "capture_fallback_to_attack",
-      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)",
-      "reason_code": "party_slot_new_species",
-      "motivation": "team_building",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 2,
-        "move_id": 145,
-        "pp": 14,
-        "type": "WATER",
-        "power": 20,
-        "effectiveness": 1.0,
-        "stab": 1.5,
-        "score": 30.0
-      },
-      "pokeballs": 8,
-      "collector": 52,
-      "meta_score": 41,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": true,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785936757.5696268,
-    "step": 5646,
-    "journey_step": 5647,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": true
-  },
-  {
-    "id": "CARON-1785936098:5708:battle_end:1785936757885361000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 123,
-      "active_pokemon": 177,
-      "player_hp_at_end": 2,
-      "battle_map_id": 51,
-      "end_map_id": 51
-    },
-    "timestamp": 1785936757.885362,
-    "step": 5708,
-    "journey_step": 5708,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785936098:5708:battle_win:1785936757888592000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 123,
-      "total_trainer_wins": 0,
-      "total_wild_wins": 15
-    },
-    "timestamp": 1785936757.888593,
-    "step": 5708,
-    "journey_step": 5708,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785936098:5729:battle_started:1785936757996983000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_started",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 124,
-      "enemy_species_id": 11,
-      "enemy_level": 4,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "map_name": "Viridian Forest",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 11,
-        "hp": 2,
-        "max_hp": 32,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 0
-          },
-          {
-            "id": 39,
-            "pp": 30
-          },
-          {
-            "id": 145,
-            "pp": 12
-          }
-        ],
-        "selected_move_slot": 2
-      },
-      "pokeballs": 8,
-      "shiny_candidate": false
-    },
-    "timestamp": 1785936757.996984,
-    "step": 5729,
-    "journey_step": 5729,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785936098:5729:capture_decision:1785936758002048000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "capture_decision",
-    "data": {
-      "enemy_id": 124,
-      "enemy_species_id": 11,
-      "enemy_level": 4,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "strategic_value": 70,
-      "weakest_party_level": 11,
-      "strongest_party_level": 11,
-      "level_advantage": -7,
-      "party_size": 1,
-      "party_has_room": true,
-      "party_slots_free": 5,
-      "already_in_party": false,
-      "pokeballs": 8,
-      "collector": 52,
-      "meta_score": 41,
-      "story_complete": true,
-      "capture_unlocked": true,
-      "shiny_candidate": false,
-      "ball_item_id": 4,
-      "ball_slot": 0,
-      "choice": "capture",
-      "reason_code": "party_slot_new_species",
-      "motivation": "team_building",
-      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)"
-    },
-    "timestamp": 1785936758.002049,
-    "step": 5729,
-    "journey_step": 5729,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": true
-  },
-  {
-    "id": "CARON-1785936098:5729:battle_decision:1785936758009239000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_decision",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 124,
-      "enemy_species_id": 11,
-      "enemy_level": 4,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 11,
-        "hp": 2,
-        "max_hp": 32,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 0
-          },
-          {
-            "id": 39,
-            "pp": 30
-          },
-          {
-            "id": 145,
-            "pp": 12
-          }
-        ],
-        "selected_move_slot": 2
-      },
-      "policy_choice": "capture",
-      "executed_choice": "menu_navigation",
-      "execution_status": "capture_fallback_to_attack",
-      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)",
-      "reason_code": "party_slot_new_species",
-      "motivation": "team_building",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 2,
-        "move_id": 145,
-        "pp": 12,
-        "type": "WATER",
-        "power": 20,
-        "effectiveness": 1.0,
-        "stab": 1.5,
-        "score": 30.0
-      },
-      "pokeballs": 8,
-      "collector": 52,
-      "meta_score": 41,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": true,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785936758.0092402,
-    "step": 5729,
-    "journey_step": 5730,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": true
-  },
-  {
-    "id": "CARON-1785936098:5791:battle_end:1785936758335398000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 124,
-      "active_pokemon": 177,
-      "player_hp_at_end": 2,
-      "battle_map_id": 51,
-      "end_map_id": 51
-    },
-    "timestamp": 1785936758.335398,
-    "step": 5791,
-    "journey_step": 5791,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785936098:5791:battle_win:1785936758338680000",
-    "agent": "CARON",
-    "run_id": "CARON-1785936098",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 124,
-      "total_trainer_wins": 0,
-      "total_wild_wins": 16
-    },
-    "timestamp": 1785936758.33868,
-    "step": 5791,
-    "journey_step": 5791,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      8,
-      30
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
     "id": "CARON-1785936098:5953:battle_started:1785936759279841000",
     "agent": "CARON",
     "run_id": "CARON-1785936098",
@@ -2445,6 +2001,530 @@
       "capture_controller": false
     },
     "timestamp": 1785938743.2552488,
+    "step": 173,
+    "journey_step": 174,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785938792:0:quest_advanced:1785938792068361000",
+    "agent": "BARON",
+    "run_id": "BARON-1785938792",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "viridian_forest_nav",
+      "title": "Atravessar a Floresta de Viridian e chegar a Pewter",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785938792.068362,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785938792:0:quest_advanced:1785938792110444000",
+    "agent": "CARON",
+    "run_id": "CARON-1785938792",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "viridian_forest_nav",
+      "title": "Atravessar a Floresta de Viridian e chegar a Pewter",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785938792.110445,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785938792:120:battle_started:1785938794023246000",
+    "agent": "BARON",
+    "run_id": "BARON-1785938792",
+    "type": "battle_started",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 113,
+      "enemy_species_id": 14,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 9,
+        "hp": 2,
+        "max_hp": 29,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785938794.023247,
+    "step": 120,
+    "journey_step": 121,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "BARON-1785938792:120:capture_decision:1785938794026757000",
+    "agent": "BARON",
+    "run_id": "BARON-1785938792",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 113,
+      "enemy_species_id": 14,
+      "enemy_level": 4,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 58,
+      "weakest_party_level": 9,
+      "strongest_party_level": 9,
+      "level_advantage": -5,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "enemy_hp_fraction": 1.0,
+      "own_hp_fraction": 0.069,
+      "pokeballs": 8,
+      "collector": 42,
+      "meta_score": 69,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "defeat",
+      "reason_code": "self_preservation",
+      "motivation": "survival",
+      "reason": "Pok\u00e9mon ativo com 6% de HP; vencer a batalha vem antes de tentar capturar"
+    },
+    "timestamp": 1785938794.026758,
+    "step": 120,
+    "journey_step": 121,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785938792:120:training_target:1785938794029781000",
+    "agent": "BARON",
+    "run_id": "BARON-1785938792",
+    "type": "training_target",
+    "data": {
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 9,
+        "hp": 2,
+        "max_hp": 29,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 9,
+        "hp": 2,
+        "max_hp": 29,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
+    },
+    "timestamp": 1785938794.029782,
+    "step": 120,
+    "journey_step": 121,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785938792:120:battle_decision:1785938794033843000",
+    "agent": "BARON",
+    "run_id": "BARON-1785938792",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 113,
+      "enemy_species_id": 14,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 9,
+        "hp": 2,
+        "max_hp": 29,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon ativo com 6% de HP; vencer a batalha vem antes de tentar capturar",
+      "reason_code": "self_preservation",
+      "motivation": "survival",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {},
+      "pokeballs": 8,
+      "collector": 42,
+      "meta_score": 69,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785938794.033844,
+    "step": 120,
+    "journey_step": 121,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785938792:173:battle_started:1785938794357528000",
+    "agent": "CARON",
+    "run_id": "CARON-1785938792",
+    "type": "battle_started",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 6,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 12,
+        "hp": 3,
+        "max_hp": 34,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 0
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785938794.3575292,
+    "step": 173,
+    "journey_step": 174,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "CARON-1785938792:173:capture_decision:1785938794361561000",
+    "agent": "CARON",
+    "run_id": "CARON-1785938792",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 6,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 12,
+      "strongest_party_level": 12,
+      "level_advantage": -6,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "enemy_hp_fraction": 0.091,
+      "own_hp_fraction": 0.088,
+      "pokeballs": 8,
+      "collector": 52,
+      "meta_score": 41,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "defeat",
+      "reason_code": "self_preservation",
+      "motivation": "survival",
+      "reason": "Pok\u00e9mon ativo com 8% de HP; vencer a batalha vem antes de tentar capturar"
+    },
+    "timestamp": 1785938794.361561,
+    "step": 173,
+    "journey_step": 174,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785938792:173:training_target:1785938794365516000",
+    "agent": "CARON",
+    "run_id": "CARON-1785938792",
+    "type": "training_target",
+    "data": {
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 12,
+        "hp": 3,
+        "max_hp": 34,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 0
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 12,
+        "hp": 3,
+        "max_hp": 34,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 0
+          }
+        ]
+      },
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
+    },
+    "timestamp": 1785938794.3655171,
+    "step": 173,
+    "journey_step": 174,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785938792:173:battle_decision:1785938794368180000",
+    "agent": "CARON",
+    "run_id": "CARON-1785938792",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 6,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 12,
+        "hp": 3,
+        "max_hp": 34,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 0
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 0
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon ativo com 8% de HP; vencer a batalha vem antes de tentar capturar",
+      "reason_code": "self_preservation",
+      "motivation": "survival",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {},
+      "pokeballs": 8,
+      "collector": 52,
+      "meta_score": 41,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785938794.368181,
     "step": 173,
     "journey_step": 174,
     "map_id": 51,
