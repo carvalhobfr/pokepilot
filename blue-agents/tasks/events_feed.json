@@ -1,31 +1,6 @@
 [
   {
-    "id": "CARON-1785934887:3061:map_transition:1785935481135256000",
-    "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935481.135259,
-    "step": 3061,
-    "journey_step": 3061,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "BARON-1785934887:3074:map_transition:1785935483841700000",
+    "id": "BARON-1785934887:5616:map_transition:1785936029625678000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -36,9 +11,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935483.841703,
-    "step": 3074,
-    "journey_step": 3074,
+    "timestamp": 1785936029.625709,
+    "step": 5616,
+    "journey_step": 5616,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -50,7 +25,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3078:map_transition:1785935484796585000",
+    "id": "CARON-1785934887:5620:map_transition:1785936030577152000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -61,9 +36,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935484.796586,
-    "step": 3078,
-    "journey_step": 3078,
+    "timestamp": 1785936030.577153,
+    "step": 5620,
+    "journey_step": 5620,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -75,7 +50,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3088:map_transition:1785935486817772000",
+    "id": "BARON-1785934887:5630:map_transition:1785936032610349000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -86,9 +61,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935486.817774,
-    "step": 3088,
-    "journey_step": 3088,
+    "timestamp": 1785936032.610351,
+    "step": 5630,
+    "journey_step": 5630,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -100,7 +75,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3092:map_transition:1785935487768997000",
+    "id": "CARON-1785934887:5634:map_transition:1785936033562962000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -111,9 +86,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935487.7689989,
-    "step": 3092,
-    "journey_step": 3092,
+    "timestamp": 1785936033.562965,
+    "step": 5634,
+    "journey_step": 5634,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -125,7 +100,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3105:map_transition:1785935490437473000",
+    "id": "BARON-1785934887:5647:map_transition:1785936036224626000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -136,9 +111,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935490.437475,
-    "step": 3105,
-    "journey_step": 3105,
+    "timestamp": 1785936036.224627,
+    "step": 5647,
+    "journey_step": 5647,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -150,7 +125,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3109:map_transition:1785935491396946000",
+    "id": "CARON-1785934887:5651:map_transition:1785936037219816000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -161,9 +136,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935491.3969479,
-    "step": 3109,
-    "journey_step": 3109,
+    "timestamp": 1785936037.219819,
+    "step": 5651,
+    "journey_step": 5651,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -175,7 +150,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3119:map_transition:1785935493426531000",
+    "id": "BARON-1785934887:5661:map_transition:1785936039246075000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -186,9 +161,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935493.426534,
-    "step": 3119,
-    "journey_step": 3119,
+    "timestamp": 1785936039.2460768,
+    "step": 5661,
+    "journey_step": 5661,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -200,7 +175,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3123:map_transition:1785935494375385000",
+    "id": "CARON-1785934887:5665:map_transition:1785936040204075000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -211,9 +186,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935494.375388,
-    "step": 3123,
-    "journey_step": 3123,
+    "timestamp": 1785936040.2040782,
+    "step": 5665,
+    "journey_step": 5665,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -225,7 +200,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3136:map_transition:1785935497007096000",
+    "id": "BARON-1785934887:5678:map_transition:1785936042852694000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -236,9 +211,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935497.0070982,
-    "step": 3136,
-    "journey_step": 3136,
+    "timestamp": 1785936042.8526962,
+    "step": 5678,
+    "journey_step": 5678,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -250,7 +225,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3140:map_transition:1785935497955374000",
+    "id": "CARON-1785934887:5682:map_transition:1785936043816791000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -261,9 +236,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935497.9553761,
-    "step": 3140,
-    "journey_step": 3140,
+    "timestamp": 1785936043.8167949,
+    "step": 5682,
+    "journey_step": 5682,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -275,7 +250,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3150:map_transition:1785935499967339000",
+    "id": "BARON-1785934887:5692:map_transition:1785936045850512000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -286,9 +261,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935499.9673421,
-    "step": 3150,
-    "journey_step": 3150,
+    "timestamp": 1785936045.850513,
+    "step": 5692,
+    "journey_step": 5692,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -300,7 +275,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3154:map_transition:1785935500910831000",
+    "id": "CARON-1785934887:5696:map_transition:1785936046796685000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -311,9 +286,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935500.9108322,
-    "step": 3154,
-    "journey_step": 3154,
+    "timestamp": 1785936046.7966888,
+    "step": 5696,
+    "journey_step": 5696,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -325,7 +300,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3167:map_transition:1785935503558436000",
+    "id": "BARON-1785934887:5709:map_transition:1785936049462888000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -336,9 +311,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935503.5584378,
-    "step": 3167,
-    "journey_step": 3167,
+    "timestamp": 1785936049.462891,
+    "step": 5709,
+    "journey_step": 5709,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -350,7 +325,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3171:map_transition:1785935504504348000",
+    "id": "CARON-1785934887:5713:map_transition:1785936050424258000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -361,9 +336,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935504.504349,
-    "step": 3171,
-    "journey_step": 3171,
+    "timestamp": 1785936050.4242592,
+    "step": 5713,
+    "journey_step": 5713,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -375,7 +350,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3181:map_transition:1785935506504836000",
+    "id": "BARON-1785934887:5723:map_transition:1785936052463049000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -386,9 +361,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935506.504839,
-    "step": 3181,
-    "journey_step": 3181,
+    "timestamp": 1785936052.463052,
+    "step": 5723,
+    "journey_step": 5723,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -400,7 +375,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3185:map_transition:1785935507458091000",
+    "id": "CARON-1785934887:5727:map_transition:1785936053421653000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -411,9 +386,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935507.4580941,
-    "step": 3185,
-    "journey_step": 3185,
+    "timestamp": 1785936053.4216561,
+    "step": 5727,
+    "journey_step": 5727,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -425,7 +400,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3198:map_transition:1785935510122396000",
+    "id": "BARON-1785934887:5740:map_transition:1785936056088746000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -436,9 +411,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935510.122398,
-    "step": 3198,
-    "journey_step": 3198,
+    "timestamp": 1785936056.0887492,
+    "step": 5740,
+    "journey_step": 5740,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -450,7 +425,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3202:map_transition:1785935511090762000",
+    "id": "CARON-1785934887:5744:map_transition:1785936057048468000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -461,9 +436,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935511.090765,
-    "step": 3202,
-    "journey_step": 3202,
+    "timestamp": 1785936057.048471,
+    "step": 5744,
+    "journey_step": 5744,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -475,7 +450,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3212:map_transition:1785935513126887000",
+    "id": "BARON-1785934887:5754:map_transition:1785936059076863000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -486,9 +461,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935513.126889,
-    "step": 3212,
-    "journey_step": 3212,
+    "timestamp": 1785936059.076865,
+    "step": 5754,
+    "journey_step": 5754,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -500,7 +475,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3216:map_transition:1785935514084640000",
+    "id": "CARON-1785934887:5758:map_transition:1785936060044331000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -511,9 +486,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935514.0846431,
-    "step": 3216,
-    "journey_step": 3216,
+    "timestamp": 1785936060.044333,
+    "step": 5758,
+    "journey_step": 5758,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -525,7 +500,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3229:map_transition:1785935516744983000",
+    "id": "BARON-1785934887:5771:map_transition:1785936062739464000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -536,9 +511,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935516.744985,
-    "step": 3229,
-    "journey_step": 3229,
+    "timestamp": 1785936062.739466,
+    "step": 5771,
+    "journey_step": 5771,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -550,7 +525,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3233:map_transition:1785935517696387000",
+    "id": "CARON-1785934887:5775:map_transition:1785936063678885000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -561,9 +536,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935517.6963892,
-    "step": 3233,
-    "journey_step": 3233,
+    "timestamp": 1785936063.678886,
+    "step": 5775,
+    "journey_step": 5775,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -575,7 +550,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3243:map_transition:1785935519716597000",
+    "id": "BARON-1785934887:5785:map_transition:1785936065693127000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -586,9 +561,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935519.716599,
-    "step": 3243,
-    "journey_step": 3243,
+    "timestamp": 1785936065.69313,
+    "step": 5785,
+    "journey_step": 5785,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -600,7 +575,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3247:map_transition:1785935520680032000",
+    "id": "CARON-1785934887:5789:map_transition:1785936066653686000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -611,9 +586,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935520.6800342,
-    "step": 3247,
-    "journey_step": 3247,
+    "timestamp": 1785936066.6536891,
+    "step": 5789,
+    "journey_step": 5789,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -625,7 +600,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3260:map_transition:1785935523338089000",
+    "id": "BARON-1785934887:5802:map_transition:1785936069309120000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -636,9 +611,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935523.338091,
-    "step": 3260,
-    "journey_step": 3260,
+    "timestamp": 1785936069.309122,
+    "step": 5802,
+    "journey_step": 5802,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -650,7 +625,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3264:map_transition:1785935524284681000",
+    "id": "CARON-1785934887:5806:map_transition:1785936070263432000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -661,9 +636,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935524.284684,
-    "step": 3264,
-    "journey_step": 3264,
+    "timestamp": 1785936070.263434,
+    "step": 5806,
+    "journey_step": 5806,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -675,7 +650,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3274:map_transition:1785935526331654000",
+    "id": "BARON-1785934887:5816:map_transition:1785936072277071000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -686,9 +661,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935526.331655,
-    "step": 3274,
-    "journey_step": 3274,
+    "timestamp": 1785936072.277073,
+    "step": 5816,
+    "journey_step": 5816,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -700,7 +675,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3278:map_transition:1785935527294846000",
+    "id": "CARON-1785934887:5820:map_transition:1785936073235010000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -711,9 +686,9 @@
       "to_map_name": "Route 2 Gate Viridian",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935527.294849,
-    "step": 3278,
-    "journey_step": 3278,
+    "timestamp": 1785936073.235012,
+    "step": 5820,
+    "journey_step": 5820,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
@@ -725,7 +700,7 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3291:map_transition:1785935530013406000",
+    "id": "BARON-1785934887:5833:map_transition:1785936075898835000",
     "agent": "BARON",
     "run_id": "BARON-1785934887",
     "type": "map_transition",
@@ -736,9 +711,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935530.0134091,
-    "step": 3291,
-    "journey_step": 3291,
+    "timestamp": 1785936075.898837,
+    "step": 5833,
+    "journey_step": 5833,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -750,7 +725,7 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3295:map_transition:1785935530983569000",
+    "id": "CARON-1785934887:5837:map_transition:1785936076869520000",
     "agent": "CARON",
     "run_id": "CARON-1785934887",
     "type": "map_transition",
@@ -761,9 +736,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935530.983572,
-    "step": 3295,
-    "journey_step": 3295,
+    "timestamp": 1785936076.869523,
+    "step": 5837,
+    "journey_step": 5837,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -775,59 +750,71 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3305:map_transition:1785935533007546000",
+    "id": "BARON-1785936097:0:quest_advanced:1785936098005822000",
     "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
+    "run_id": "BARON-1785936097",
+    "type": "quest_advanced",
     "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "from_quest_id": null,
+      "to_quest_id": "viridian_forest_nav",
+      "title": "Atravessar a Floresta de Viridian e chegar a Pewter",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785935533.0075488,
-    "step": 3305,
-    "journey_step": 3305,
+    "timestamp": 1785936098.005823,
+    "step": 0,
+    "journey_step": 0,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
-      15,
-      47
+      4,
+      7
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
-    "live": false
+    "live": true
   },
   {
-    "id": "CARON-1785934887:3309:map_transition:1785935533972281000",
+    "id": "CARON-1785936098:0:quest_advanced:1785936098048560000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "quest_advanced",
     "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "from_quest_id": null,
+      "to_quest_id": "viridian_forest_nav",
+      "title": "Atravessar a Floresta de Viridian e chegar a Pewter",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785935533.972283,
-    "step": 3309,
-    "journey_step": 3309,
+    "timestamp": 1785936098.0485609,
+    "step": 0,
+    "journey_step": 0,
     "map_id": 50,
     "map_name": "Route 2 Gate Viridian",
     "coords": [
-      15,
-      47
+      4,
+      3
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
-    "live": false
+    "live": true
   },
   {
-    "id": "BARON-1785934887:3322:map_transition:1785935536642341000",
+    "id": "BARON-1785936097:129:map_transition:1785936152308611000",
     "agent": "BARON",
-    "run_id": "BARON-1785934887",
+    "run_id": "BARON-1785936097",
     "type": "map_transition",
     "data": {
       "from_map_id": 50,
@@ -836,9 +823,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935536.642344,
-    "step": 3322,
-    "journey_step": 3322,
+    "timestamp": 1785936152.308618,
+    "step": 129,
+    "journey_step": 129,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -850,9 +837,9 @@
     "live": false
   },
   {
-    "id": "CARON-1785934887:3326:map_transition:1785935537596938000",
+    "id": "CARON-1785936098:178:map_transition:1785936172827699000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
+    "run_id": "CARON-1785936098",
     "type": "map_transition",
     "data": {
       "from_map_id": 50,
@@ -861,9 +848,9 @@
       "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785935537.596941,
-    "step": 3326,
-    "journey_step": 3326,
+    "timestamp": 1785936172.827702,
+    "step": 178,
+    "journey_step": 178,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
@@ -875,375 +862,792 @@
     "live": false
   },
   {
-    "id": "BARON-1785934887:3336:map_transition:1785935539643239000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935539.64324,
-    "step": 3336,
-    "journey_step": 3336,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785934887:3340:map_transition:1785935540663261000",
+    "id": "CARON-1785936098:419:battle_started:1785936272720673000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "battle_started",
     "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 7,
+        "hp": 22,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 33
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
     },
-    "timestamp": 1785935540.663272,
-    "step": 3340,
-    "journey_step": 3340,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "BARON-1785934887:3353:map_transition:1785935543330435000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935543.330436,
-    "step": 3353,
-    "journey_step": 3353,
+    "timestamp": 1785936272.7206788,
+    "step": 419,
+    "journey_step": 419,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
     "live": false
   },
   {
-    "id": "CARON-1785934887:3357:map_transition:1785935544294207000",
+    "id": "CARON-1785936098:419:capture_decision:1785936272727807000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "capture_decision",
     "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 4,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 7,
+      "strongest_party_level": 7,
+      "level_advantage": -3,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "pokeballs": 8,
+      "collector": 52,
+      "meta_score": 41,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "capture",
+      "reason_code": "party_slot_new_species",
+      "motivation": "team_building",
+      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)"
     },
-    "timestamp": 1785935544.294208,
-    "step": 3357,
-    "journey_step": 3357,
+    "timestamp": 1785936272.727809,
+    "step": 419,
+    "journey_step": 419,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
-    "live": false
+    "live": true
   },
   {
-    "id": "BARON-1785934887:3367:map_transition:1785935546323103000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935546.323104,
-    "step": 3367,
-    "journey_step": 3367,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785934887:3371:map_transition:1785935547278691000",
+    "id": "CARON-1785936098:419:training_target:1785936272732433000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "training_target",
     "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 7,
+        "hp": 22,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 33
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 7,
+        "hp": 22,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 33
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ]
+      },
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
     },
-    "timestamp": 1785935547.278694,
-    "step": 3371,
-    "journey_step": 3371,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "BARON-1785934887:3384:map_transition:1785935549944212000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935549.944214,
-    "step": 3384,
-    "journey_step": 3384,
+    "timestamp": 1785936272.732435,
+    "step": 419,
+    "journey_step": 419,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
-    "live": false
+    "live": true
   },
   {
-    "id": "CARON-1785934887:3388:map_transition:1785935550901999000",
+    "id": "CARON-1785936098:419:battle_decision:1785936273131523000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "battle_decision",
     "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 7,
+        "hp": 22,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 33
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "capture",
+      "executed_choice": "defeat",
+      "execution_status": "capture_fallback_to_attack",
+      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)",
+      "reason_code": "party_slot_new_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 33,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 8,
+      "collector": 52,
+      "meta_score": 41,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
     },
-    "timestamp": 1785935550.9020002,
-    "step": 3388,
-    "journey_step": 3388,
+    "timestamp": 1785936273.131528,
+    "step": 419,
+    "journey_step": 420,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
-    "live": false
+    "live": true
   },
   {
-    "id": "BARON-1785934887:3398:map_transition:1785935552926529000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935552.926531,
-    "step": 3398,
-    "journey_step": 3398,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785934887:3402:map_transition:1785935553882651000",
+    "id": "CARON-1785936098:495:battle_end:1785936304423869000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "battle_end",
     "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "type": "wild",
+      "result": "win",
+      "enemy_id": 123,
+      "active_pokemon": 177,
+      "player_hp_at_end": 18,
+      "battle_map_id": 51,
+      "end_map_id": 51
     },
-    "timestamp": 1785935553.882654,
-    "step": 3402,
-    "journey_step": 3402,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "BARON-1785934887:3415:map_transition:1785935556550326000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935556.550329,
-    "step": 3415,
-    "journey_step": 3415,
+    "timestamp": 1785936304.423873,
+    "step": 495,
+    "journey_step": 495,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
     "live": false
   },
   {
-    "id": "CARON-1785934887:3419:map_transition:1785935557497028000",
+    "id": "CARON-1785936098:495:battle_win:1785936304430087000",
     "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
+    "run_id": "CARON-1785936098",
+    "type": "battle_win",
     "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "type": "wild",
+      "enemy_id": 123,
+      "total_trainer_wins": 0,
+      "total_wild_wins": 1
     },
-    "timestamp": 1785935557.497029,
-    "step": 3419,
-    "journey_step": 3419,
+    "timestamp": 1785936304.43009,
+    "step": 495,
+    "journey_step": 495,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",
     "live": false
   },
   {
-    "id": "BARON-1785934887:3429:map_transition:1785935559543703000",
+    "id": "BARON-1785936097:551:battle_started:1785936327442560000",
     "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
+    "run_id": "BARON-1785936097",
+    "type": "battle_started",
     "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 7,
+        "hp": 1,
+        "max_hp": 25,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 22
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
     },
-    "timestamp": 1785935559.543705,
-    "step": 3429,
-    "journey_step": 3429,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "CARON-1785934887:3433:map_transition:1785935560504552000",
-    "agent": "CARON",
-    "run_id": "CARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 50,
-      "to_map_name": "Route 2 Gate Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935560.504555,
-    "step": 3433,
-    "journey_step": 3433,
-    "map_id": 50,
-    "map_name": "Route 2 Gate Viridian",
-    "coords": [
-      15,
-      47
-    ],
-    "task": "QUEST: VIRIDIAN_FOREST_NAV",
-    "milestone": "viridian_forest_nav",
-    "live": false
-  },
-  {
-    "id": "BARON-1785934887:3446:map_transition:1785935563172356000",
-    "agent": "BARON",
-    "run_id": "BARON-1785934887",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 50,
-      "from_map_name": "Route 2 Gate Viridian",
-      "to_map_id": 51,
-      "to_map_name": "Viridian Forest",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785935563.172359,
-    "step": 3446,
-    "journey_step": 3446,
+    "timestamp": 1785936327.442561,
+    "step": 551,
+    "journey_step": 551,
     "map_id": 51,
     "map_name": "Viridian Forest",
     "coords": [
-      5,
-      0
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "BARON-1785936097:551:capture_decision:1785936327452385000",
+    "agent": "BARON",
+    "run_id": "BARON-1785936097",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 7,
+      "strongest_party_level": 7,
+      "level_advantage": -2,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "pokeballs": 8,
+      "collector": 42,
+      "meta_score": 69,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "capture",
+      "reason_code": "party_slot_new_species",
+      "motivation": "team_building",
+      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)"
+    },
+    "timestamp": 1785936327.4523861,
+    "step": 551,
+    "journey_step": 551,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785936097:551:training_target:1785936327475117000",
+    "agent": "BARON",
+    "run_id": "BARON-1785936097",
+    "type": "training_target",
+    "data": {
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 7,
+        "hp": 1,
+        "max_hp": 25,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 22
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 1,
+        "max_hp": 25,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 22
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
+    },
+    "timestamp": 1785936327.4751182,
+    "step": 551,
+    "journey_step": 551,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785936097:551:battle_decision:1785936327851836000",
+    "agent": "BARON",
+    "run_id": "BARON-1785936097",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 7,
+        "hp": 1,
+        "max_hp": 25,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 22
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "capture",
+      "executed_choice": "defeat",
+      "execution_status": "capture_fallback_to_attack",
+      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)",
+      "reason_code": "party_slot_new_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 22,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 8,
+      "collector": 42,
+      "meta_score": 69,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785936327.8518379,
+    "step": 551,
+    "journey_step": 552,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785936098:716:battle_started:1785936395706210000",
+    "agent": "CARON",
+    "run_id": "CARON-1785936098",
+    "type": "battle_started",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 7,
+        "hp": 18,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 30
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785936395.706211,
+    "step": 716,
+    "journey_step": 716,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "CARON-1785936098:716:capture_decision:1785936395710786000",
+    "agent": "CARON",
+    "run_id": "CARON-1785936098",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 7,
+      "strongest_party_level": 7,
+      "level_advantage": -2,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "pokeballs": 8,
+      "collector": 52,
+      "meta_score": 41,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "capture",
+      "reason_code": "party_slot_new_species",
+      "motivation": "team_building",
+      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)"
+    },
+    "timestamp": 1785936395.710788,
+    "step": 716,
+    "journey_step": 716,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785936098:716:battle_decision:1785936396114658000",
+    "agent": "CARON",
+    "run_id": "CARON-1785936098",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 7,
+        "hp": 18,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 30
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "capture",
+      "executed_choice": "menu_navigation",
+      "execution_status": "capture_fallback_to_attack",
+      "reason": "equipe com 1/6 e esp\u00e9cie nova (valor estrat\u00e9gico 70); 5 vaga(s) livre(s)",
+      "reason_code": "party_slot_new_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 30,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 8,
+      "collector": 52,
+      "meta_score": 41,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785936396.1146612,
+    "step": 716,
+    "journey_step": 717,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785936097:718:level_up:1785936396331266000",
+    "agent": "BARON",
+    "run_id": "BARON-1785936097",
+    "type": "level_up",
+    "data": {
+      "pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 8,
+        "hp": 3,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 13
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "old_level": 7,
+      "new_level": 8,
+      "training_target": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 8,
+        "hp": 3,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 13
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "reason": "ganhou experi\u00eancia enquanto estava ativo"
+    },
+    "timestamp": 1785936396.331269,
+    "step": 718,
+    "journey_step": 718,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785936097:726:battle_end:1785936399641042000",
+    "agent": "BARON",
+    "run_id": "BARON-1785936097",
+    "type": "battle_end",
+    "data": {
+      "type": "wild",
+      "result": "win",
+      "enemy_id": 124,
+      "active_pokemon": 153,
+      "player_hp_at_end": 3,
+      "battle_map_id": 51,
+      "end_map_id": 51
+    },
+    "timestamp": 1785936399.641045,
+    "step": 726,
+    "journey_step": 726,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "BARON-1785936097:726:battle_win:1785936399646881000",
+    "agent": "BARON",
+    "run_id": "BARON-1785936097",
+    "type": "battle_win",
+    "data": {
+      "type": "wild",
+      "enemy_id": 124,
+      "total_trainer_wins": 0,
+      "total_wild_wins": 1
+    },
+    "timestamp": 1785936399.646883,
+    "step": 726,
+    "journey_step": 726,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      8,
+      30
     ],
     "task": "QUEST: VIRIDIAN_FOREST_NAV",
     "milestone": "viridian_forest_nav",

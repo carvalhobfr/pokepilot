@@ -1646,15 +1646,53 @@ class ScriptedAgent(BaseAgent):
             # Blocked by geometry: step aside on the free axis so the next
             # waypoint attempt approaches from a different tile. The route
             # itself is unchanged; only this detour is improvised.
-            target_x, target_y = waypoints[min(self.route_index, len(waypoints) - 1)]
+            #
+            # The detour must lean toward the route, never away from it. A
+            # blind "try down first" walked bots onto the warp tile they had
+            # just entered through — at the Viridian Forest mouth that produced
+            # an endless gate/forest bounce.
+            index = min(self.route_index, len(waypoints) - 1)
+            target_x, target_y = waypoints[index]
             horizontal = current_x != target_x
-            sidesteps = (
-                (WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP)
-                if horizontal
-                else (WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT)
-            )
+
+            def preference(current, goal, positive, negative):
+                if goal > current:
+                    return positive, negative
+                if goal < current:
+                    return negative, positive
+                return None
+
+            if horizontal:
+                order = preference(
+                    current_y, target_y,
+                    WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP,
+                )
+                if order is None and index + 1 < len(waypoints):
+                    # Already aligned on the free axis: follow where the route
+                    # goes next instead of guessing.
+                    order = preference(
+                        current_y, waypoints[index + 1][1],
+                        WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_UP,
+                    )
+                order = order or (
+                    WindowEvent.PRESS_ARROW_UP, WindowEvent.PRESS_ARROW_DOWN
+                )
+            else:
+                order = preference(
+                    current_x, target_x,
+                    WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT,
+                )
+                if order is None and index + 1 < len(waypoints):
+                    order = preference(
+                        current_x, waypoints[index + 1][0],
+                        WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT,
+                    )
+                order = order or (
+                    WindowEvent.PRESS_ARROW_RIGHT, WindowEvent.PRESS_ARROW_LEFT
+                )
+
             self.last_action_was_move = True
-            return sidesteps[self.route_stuck_cycles % 2]
+            return order[self.route_stuck_cycles % 2]
 
         while (
             self.route_index < len(waypoints) - 1

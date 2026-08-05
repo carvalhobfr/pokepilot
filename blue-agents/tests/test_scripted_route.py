@@ -36,10 +36,10 @@ class FakeRouteMemory:
 
 
 class ScriptedRouteTests(unittest.TestCase):
-    def make_agent(self, position):
+    def make_agent(self, position, map_id=61):
         agent = ScriptedAgent.__new__(ScriptedAgent)
         agent.emulator = type("FakeEmulator", (), {
-            "memory": FakeRouteMemory(position),
+            "memory": FakeRouteMemory(position, map_id),
         })()
         return agent
 
@@ -72,6 +72,28 @@ class ScriptedRouteTests(unittest.TestCase):
             ),
             "rota travada precisa desviar no eixo livre, não repetir A",
         )
+
+    def test_sidestep_never_walks_back_through_the_entry_warp(self):
+        # Viridian Forest is entered at (15,47); the route starts at (17,47)
+        # and then heads north. Stepping DOWN there is the warp back to the
+        # gate, which produced an endless gate/forest bounce.
+        forest = [(17, 47), (17, 43), (26, 43), (26, 34)]
+        agent = self.make_agent((15, 47), map_id=51)
+        actions = [agent._follow_route("forest-51", forest) for _ in range(12)]
+        self.assertNotIn(
+            WindowEvent.PRESS_ARROW_DOWN,
+            actions,
+            "descer em y=47 devolve o bot ao portão",
+        )
+        self.assertIn(WindowEvent.PRESS_ARROW_UP, actions)
+
+    def test_sidestep_leans_toward_the_next_waypoint(self):
+        # Aligned on the free axis, the detour follows where the route goes.
+        route = [(10, 20), (10, 10)]
+        agent = self.make_agent((5, 20))
+        actions = [agent._follow_route("lean", route) for _ in range(12)]
+        self.assertIn(WindowEvent.PRESS_ARROW_UP, actions)
+        self.assertNotIn(WindowEvent.PRESS_ARROW_DOWN, actions)
 
     def test_movement_resets_the_stuck_recovery(self):
         agent = self.make_agent((16, 4))

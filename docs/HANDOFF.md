@@ -133,9 +133,51 @@ nó — mas só faça isso se o executor conseguir chegar lá a partir da posiç
 atual, senão o bot fica girando. Foi exatamente o que aconteceu ao reabrir
 `buy_pokeballs` de um treinador que já estava na Route 2 norte.
 
-## BUG ABERTO: livelock na entrada da Floresta de Viridian
+## BUG ABERTO: `_follow_route` não replaneja — a causa raiz
 
-Registrado em 2026-08-05. **Bloqueia BARON e CARON no momento.**
+Registrado em 2026-08-05. **Bloqueia BARON e CARON.**
+
+O livelock na boca da Floresta (descrito abaixo) foi **confirmado e corrigido**:
+o desvio de colisão escolhia `DOWN` primeiro e, em `y=47`, descer é o warp de
+volta ao portão. Agora o desvio se inclina para o próximo waypoint. Antes os
+bots quicavam em `y=47`; depois da correção atravessam até `y=30`.
+
+Só que isso expôs o problema de verdade. De `(7, 30)` a sonda responde:
+
+```
+target=(51, 17, 43)  steps=25  path=RDDRRRRRRRDRRRDDDDDDDDDDL
+```
+
+Eles estão **fora da rota**, precisando voltar para sudeste — e param ali. O
+motivo é estrutural:
+
+> `_follow_route` persegue waypoints em linha reta, um eixo de cada vez, e não
+> tem nenhuma noção de caminho. Quando um obstáculo o tira da linha, ele não
+> replaneja: continua mirando o mesmo waypoint, trava de novo, desvia de novo e
+> se afasta mais. O desvio deixa de ser correção pontual e vira o piloto.
+
+Isso explica o padrão que se repetiu a jornada inteira — Route 25, Pewter,
+laboratório do Oak, agora a Floresta. Cada caso foi resolvido acrescentando
+waypoints medidos à mão para aquele trecho específico. É paliativo: qualquer
+NPC que ande para um tile diferente recria o problema.
+
+**Correção recomendada:** trocar o passo em linha reta por uma busca em largura
+sobre os tiles caminháveis até o próximo waypoint, que é exatamente o que
+`tools/probe_route.py` já faz offline. A lógica existe e está validada; falta
+portá-la para dentro do agente e rodá-la sobre o estado real a cada replanejo.
+Waypoints continuam úteis como âncoras de rota, mas param de ser a única forma
+de navegar. Isso remove a classe inteira de travamentos e torna desnecessária a
+medição manual tile a tile de cada trecho novo.
+
+### Cura antes da Floresta (pendente)
+
+O Bulbasaur do BARON atravessa com `1/25` HP. `_run_pokemon_center` existe e o
+Centro de Viridian é o **mapa 41**, mas nenhum passo do `route_2_nav` ou do
+`viridian_forest_nav` desvia para curar. O whiteout cura de graça e devolve o
+bot ao Centro, então isso não trava a jornada — só desperdiça uma travessia
+inteira por vez. Falta a rota da cidade (mapa 1) até a porta do Centro.
+
+### Registro original do livelock (corrigido)
 
 Os dois oscilam entre o portão norte de Viridian (mapa 50) e a entrada da
 Floresta (mapa 51) num ciclo de ~35s, sem nunca atravessar:
