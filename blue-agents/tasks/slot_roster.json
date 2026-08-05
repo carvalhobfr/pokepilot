@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "slot_count": 3,
-  "next_agent_index": 7,
+  "slot_count": 6,
+  "next_agent_index": 18,
   "slots": [
     {
       "slot": 0,
@@ -23,12 +23,35 @@
     },
     {
       "slot": 2,
-      "agent_name": "GARON",
-      "identity_index": 6,
-      "profile_index": 6,
+      "agent_name": "KARON",
+      "identity_index": 10,
+      "profile_index": 2,
       "generation": 1,
-      "status": "active",
-      "archetype": "team_builder"
+      "status": "active"
+    },
+    {
+      "slot": 3,
+      "agent_name": "LARON",
+      "identity_index": 11,
+      "profile_index": 3,
+      "generation": 1,
+      "status": "active"
+    },
+    {
+      "slot": 4,
+      "agent_name": "QARON",
+      "identity_index": 16,
+      "profile_index": 0,
+      "generation": 1,
+      "status": "active"
+    },
+    {
+      "slot": 5,
+      "agent_name": "RARON",
+      "identity_index": 17,
+      "profile_index": 1,
+      "generation": 1,
+      "status": "active"
     }
   ],
   "completed_runs": [
@@ -56,6 +79,38 @@
   "retired_slots": [
     {
       "agent_name": "FARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "JARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "IARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "HARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "GARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "PARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "OARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "NARON",
+      "reason": "slot removido; treinador preservado em trainers/"
+    },
+    {
+      "agent_name": "MARON",
       "reason": "slot removido; treinador preservado em trainers/"
     }
   ]

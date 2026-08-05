@@ -35,6 +35,7 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
+from area_knowledge import area_coverage, area_target
 from archetypes import (
     DEFAULT_ARCHETYPE,
     MINIMUM_BACKUP_PARTY,
@@ -1548,6 +1549,26 @@ class HybridGymEnv(RedGymEnv):
     def _pokedex_seen_count(self):
         return self._pokedex_count(POKEDEX_SEEN_START)
 
+    def _badge_count(self):
+        try:
+            return bin(int(self.read_m(0xD356))).count("1")
+        except Exception:
+            return 0
+
+    def _owned_species(self):
+        """Every species id registered as owned in the Pokédex."""
+        return {
+            national_id for national_id in range(1, 152)
+            if self._pokedex_owns(national_id)
+        }
+
+    def _area_coverage(self):
+        """How much of the current area is registered, or None if it has none."""
+        try:
+            return area_coverage(self._map_name(), self._owned_species())
+        except Exception:
+            return None
+
     def _pokedex_owns(self, national_id):
         try:
             national_id = int(national_id)
@@ -2122,13 +2143,35 @@ class HybridGymEnv(RedGymEnv):
                     ),
                 )
         if stance == "every_new_species":
-            return decision(
-                "capture", "completionist_new_species", "collector",
-                (
-                    "completista: espécie nova entra no registro mesmo sem vaga "
-                    "no time; o excedente vai para o PC"
-                ),
-            )
+            # Not 100% from the start: Surf and the fishing rods gate whole
+            # encounter tables, so a bot that refuses to leave Route 1 until it
+            # owns every species there never reaches the rods that would let it.
+            # The target rises to literal completion after the League.
+            coverage = self._area_coverage()
+            target = area_target(self._badge_count())
+            if coverage is None or coverage["fraction"] < target:
+                progress = (
+                    f"{coverage['owned']}/{coverage['total']} desta área"
+                    if coverage else "área sem tabela de encontros"
+                )
+                return decision(
+                    "capture", "completionist_new_species", "collector",
+                    (
+                        f"completista: {progress}, alvo {int(target * 100)}%; "
+                        "espécie nova entra no registro mesmo sem vaga no time"
+                    ),
+                )
+            # Area target met: stop spending balls here and judge like anyone
+            # else, so the run keeps moving instead of farming a finished map.
+            if not quality["party_has_room"] and not quality["upgrade_candidate"]:
+                return decision(
+                    "defeat", "completionist_area_satisfied", "collector",
+                    (
+                        f"completista: {coverage['owned']}/{coverage['total']} "
+                        f"desta área já registrados, acima do alvo de "
+                        f"{int(target * 100)}%; seguir viagem"
+                    ),
+                )
 
         # Filling the team comes before personality preferences. A weak-looking
         # catch such as Metapod is still worth a free slot because its evolved

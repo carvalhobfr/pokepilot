@@ -1,7 +1,6 @@
 from pathlib import Path
 import tempfile
 import unittest
-from unittest import mock
 
 from rom_identity import identify_rom, require_blue
 
@@ -26,8 +25,7 @@ class RomIdentityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             identity = identify_rom(self.write(directory, "POKEMON BLUE"))
             self.assertEqual("pokemon_blue", identity.game)
-            self.assertFalse(identity.verified, "dump desconhecido não é reprodutível")
-            self.assertEqual(40, len(identity.sha1))
+            self.assertEqual(40, len(identity.sha1), "o digest continua registrado")
 
     def test_red_runs_too_because_it_shares_maps_and_ram(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -39,12 +37,14 @@ class RomIdentityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "ROM não suportada"):
                 identify_rom(self.write(directory, "ZELDA"))
 
-    def test_strict_mode_restores_the_exact_match_for_reproductions(self):
+    def test_the_digest_never_decides_whether_the_game_runs(self):
+        # The hash is recorded so an archived journey can say which dump made
+        # it. It is not a gate: no allowlist, no environment flag, no refusal.
         with tempfile.TemporaryDirectory() as directory:
-            path = self.write(directory, "POKEMON BLUE")
-            with mock.patch.dict("os.environ", {"POKEAI_STRICT_ROM": "1"}):
-                with self.assertRaisesRegex(ValueError, "STRICT"):
-                    identify_rom(path)
+            first = identify_rom(self.write(directory, "POKEMON BLUE", "a.gb"))
+            second = identify_rom(self.write(directory, "POKEMON BLUE", "b.gb"))
+            self.assertEqual(first.game, second.game)
+            self.assertEqual(first.sha1, second.sha1)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,34 @@ O que garante que nada é inventado: **todo progresso é confirmado lendo a
 memória do cartucho**. Um script nunca declara que terminou; a insígnia só conta
 quando o bit dela aparece na RAM.
 
+## Quick start
+
+```bash
+python start.py
+```
+
+Windows: dois cliques em `start.bat`. macOS: `start.command`. Um comando só, e
+ele faz tudo:
+
+1. acha o Python do ambiente virtual (`.venv`), criando-o se não existir, e
+   instala as dependências que faltarem;
+2. libera as portas do dashboard e do WebSocket se sobrou processo de uma
+   execução anterior;
+3. sobe o relay WebSocket e o dashboard React (Vite) em `localhost:5173`;
+4. inicia o supervisor da jornada, que roda blocos de 8192 passos por bot,
+   salvando emulador e política entre blocos;
+5. abre o navegador. `Ctrl+C` encerra tudo **salvando** o progresso.
+
+Você precisa ter colocado a sua cópia legal da ROM em `roms/PokemonBlue.gb`
+antes (Red também serve) — é a única coisa que o script não pode fazer por você.
+
+Opções que valem saber:
+
+| Comando | O que muda |
+|---|---|
+| `python start.py --slots 3` | quantos bots correm em paralelo |
+| `python start.py --no-browser` | não abre o navegador sozinho |
+
 ## Começando do zero
 
 Roda em **Windows, macOS e Linux**. Você precisa de três coisas: Python 3.11+,
@@ -49,9 +77,21 @@ trava a câmera para acompanhá-lo.
 ### Quantos bots rodar
 
 O padrão é **2**; `--slots N` muda. O limite não é o número de cores: os
-ambientes rodam **em sequência dentro de um processo só**, então cada bot a mais
-divide o mesmo laço. Num laptop sem ventoinha, muitos bots com o painel aberto
-também esquentam.
+ambientes rodam **em sequência dentro de um processo só**, então a partir de uns
+4 bots a vazão total satura e cada bot a mais só divide o mesmo laço.
+
+Medido num MacBook Air M1, mesmo trecho, sem limite de velocidade:
+
+| Bots | Passos/s no total | Por bot | Quantas vezes o ritmo do Game Boy |
+|---|---|---|---|
+| 2 | 285 | 143 | ~57× |
+| 4 | 377 | 94 | ~38× |
+| 6 | 381 | 64 | ~25× |
+| 8 | 390 | 49 | ~20× |
+
+Ou seja: 6 e 8 rodam bem, e mesmo o mais lotado joga 20 vezes mais rápido do que
+alguém conseguiria assistir. Num chassi sem ventoinha, o que decide o limite
+prático acaba sendo o calor, não a CPU.
 
 Reduzir o número **não apaga ninguém**: o treinador sai da lista ativa mas
 mantém save, diário e progresso em `trainers/`, e volta de onde parou se você
@@ -113,12 +153,18 @@ diferentes.
 
 | Arquétipo | Postura diante de uma captura possível |
 |---|---|
-| Completista | toda espécie nova, mesmo de time cheio |
+| Completista | toda espécie nova até fechar a meta da área |
 | Rushador | reserva e Pokémon forte; o resto é turno perdido |
 | Construtor de time | o que ocupa vaga ou melhora a linha de frente |
 
 Antes eles eram sorteados a cada execução, e um sorteio ruim já deixou um
 treinador abaixo de todo limiar de captura — a corrida inteira pareceu bug.
+
+A meta do completista **não é 100% desde o começo**. Surf e as varas de pesca
+trancam tabelas inteiras de encontro, então exigir tudo na Rota 1 estacionaria o
+bot justamente antes das ferramentas que o destravariam. Ele fecha **metade** de
+cada área durante a campanha e, depois da Liga, volta para completar área por
+área. Quanto falta em cada uma sai de `knowledge/maps/encounters.json`.
 
 ## Estrutura
 
@@ -143,16 +189,15 @@ parte deste repositório**. Cada pessoa traz a própria cópia legal:
 
     roms/PokemonBlue.gb
 
-`blue-agents/rom_identity.py` identifica o cartucho pelo cabeçalho: **Red ou
-Blue servem** — os dois compartilham mapas, endereços de RAM e o QuestGraph
+`blue-agents/rom_identity.py` identifica o cartucho pelo **cabeçalho**: Red ou
+Blue servem, porque os dois compartilham mapas, endereços de RAM e o QuestGraph
 inteiro. Yellow não, e é recusada de propósito.
 
-O SHA-1 continua sendo calculado e registrado em todo arquivo gerado, para uma
-jornada arquivada dizer de qual dump ela veio. Se o seu dump não for um dos
-registrados, a execução avisa e continua. Para reproduzir uma jornada antiga
-tile a tile, exija o dump exato:
-
-    POKEAI_STRICT_ROM=1 python start.py
+Não há conferência de SHA-1: cartuchos legais são dumpados por pessoas
+diferentes com ferramentas diferentes, e exigir um arquivo idêntico só forçaria
+uma equipe a passar ROM de mão em mão. O digest continua sendo calculado e
+gravado nos arquivos gerados, para uma jornada arquivada dizer de qual dump ela
+veio — mas ele nunca decide se o jogo roda.
 
 Todo o resto necessário para rodar está versionado, incluindo os save states de
 partida em `states/` e o mapa de Kanto.

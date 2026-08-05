@@ -80,7 +80,7 @@ corrida inteira pareceu bug de política.
 
 | Arquétipo | O que faz com um selvagem que poderia capturar |
 |---|---|
-| `completionist` | registra toda espécie nova, mesmo de time cheio |
+| `completionist` | espécie nova até fechar a meta da área (50%, 100% pós-Liga) |
 | `speedrunner` | só reserva e Pokémon forte; o resto é turno perdido |
 | `team_builder` | o que ocupa vaga ou melhora a linha de frente |
 
@@ -95,6 +95,12 @@ O arquétipo vive no campo `archetype` de cada slot em
   nível. É o que permite afirmar "faltam 3 nesta área" como fato;
 - `knowledge/gyms.json` — os 8 ginásios com tipo, líder e o que bate neles.
 
+`blue-agents/area_knowledge.py` traduz nome de mapa da RAM para área da PokéAPI
+e responde "quanto desta área já está registrado". É o que dá sentido à meta do
+completista, que é **50% por área durante a campanha e 100% depois da Liga**:
+Surf e as varas trancam tabelas inteiras, e exigir tudo cedo estacionaria o bot
+antes das ferramentas que o destravariam.
+
 A jornada nunca acessa a rede; rode a ferramenta quando quiser atualizar.
 
 ## Desempenho
@@ -102,6 +108,10 @@ A jornada nunca acessa a rede; rode a ferramenta quando quiser atualizar.
 O throttle de reprodução existe para a arena ser assistível e some sozinho
 quando nenhum painel está aberto: o mesmo binário foi de **4 para 446** passos
 de PPO por segundo num M1. Com plateia valem `0.5×`, `1×` e `2×`; sem plateia é
-modo treino. Os agentes rodam em `DummyVecEnv`, ou seja, **em sequência num
-processo só** — esse laço, e não o número de cores, é o teto de quantos bots
-cabem.
+modo treino.
+
+Os agentes rodam em `DummyVecEnv`, **em sequência num processo só**. Medido num
+M1 Air, sem limite: 2 bots 285 passos/s no total, 4 bots 377, 6 bots 381, 8 bots
+390. A vazão satura por volta de 4; daí em diante cada bot novo só divide o
+mesmo laço (49 passos/s por bot com 8, ainda ~20× o ritmo do Game Boy). Passar
+disso exige `SubprocVecEnv`, e aí o limite vira térmico.
