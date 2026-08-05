@@ -261,11 +261,27 @@ export default function BattleArena({ agents, open, onClose }: BattleArenaProps)
   const [focusedName, setFocusedName] = useState<string | null>(null);
   const [focusedSnapshot, setFocusedSnapshot] = useState<any | null>(null);
   const [buildName, setBuildName] = useState<string | null>(null);
+  // Sometimes you want one bot's fight, sometimes everyone's. An empty set
+  // means "whoever is fighting", which is the useful default.
+  const [watching, setWatching] = useState<Set<string>>(new Set());
 
-  const activeBattles = useMemo(() => Object.values(agents)
+  const everyone = useMemo(
+    () => Object.values(agents).sort((a: any, b: any) =>
+      String(a.user).localeCompare(String(b.user))),
+    [agents],
+  );
+
+  const activeBattles = useMemo(() => everyone
     .filter((agent: any) => agent.battle_info?.is_battle)
-    .sort((a: any, b: any) => String(a.user).localeCompare(String(b.user)))
-    .slice(0, 4), [agents]);
+    .filter((agent: any) => watching.size === 0 || watching.has(String(agent.user)))
+    .slice(0, 4), [everyone, watching]);
+
+  const toggleWatching = (name: string) => setWatching(current => {
+    const next = new Set(current);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    return next;
+  });
 
   const currentFocusedAgent = focusedName ? agents[focusedName] : null;
   const focusedAgent = focusedName && focusedSnapshot ? {
@@ -292,12 +308,43 @@ export default function BattleArena({ agents, open, onClose }: BattleArenaProps)
           <div>
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-red-200"><Swords size={15} /> Arena opcional</div>
             <div className="mt-1 text-[10px] text-slate-500">Clique numa miniatura para ampliar; a arena não abre sozinha.</div>
+            <div className="mt-2 flex flex-wrap items-center gap-1">
+              <button
+                onClick={() => setWatching(new Set())}
+                className={`rounded-full border px-2 py-0.5 text-[9px] font-bold transition ${
+                  watching.size === 0
+                    ? 'border-red-300/60 bg-red-500/20 text-red-100'
+                    : 'border-white/10 bg-white/5 text-slate-400 hover:border-white/30'
+                }`}
+              >
+                TODOS
+              </button>
+              {everyone.map((agent: any) => (
+                <button
+                  key={`watch-${agent.user}`}
+                  onClick={() => toggleWatching(String(agent.user))}
+                  title={`Ver a arena de ${agent.user}`}
+                  className={`rounded-full border px-2 py-0.5 text-[9px] font-bold transition ${
+                    watching.has(String(agent.user))
+                      ? 'border-red-300/60 bg-red-500/20 text-red-100'
+                      : 'border-white/10 bg-white/5 text-slate-400 hover:border-white/30'
+                  }`}
+                >
+                  {agent.user}
+                  {agent.battle_info?.is_battle ? ' ⚔' : ''}
+                </button>
+              ))}
+            </div>
           </div>
           <button aria-label="Fechar arena" onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white"><X size={17} /></button>
         </div>
 
         {activeBattles.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-xs italic text-slate-500">Nenhuma batalha ativa agora. O painel fica parado até um agente entrar em combate.</div>
+          <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-xs italic text-slate-500">
+            {watching.size > 0
+              ? 'Nenhum dos bots escolhidos está em batalha agora. Clique em TODOS para acompanhar quem estiver lutando.'
+              : 'Nenhuma batalha ativa agora. O painel fica parado até um agente entrar em combate.'}
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {activeBattles.map((agent: any) => (

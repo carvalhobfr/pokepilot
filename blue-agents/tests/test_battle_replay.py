@@ -10,6 +10,28 @@ class FakeEnv:
         self.playback_speed = speed
 
 
+class WatchedRunTests(unittest.TestCase):
+    """The same question answers two features: is anyone watching right now?"""
+
+    def wrapper(self, viewers, speed):
+        instance = StreamWrapper.__new__(StreamWrapper)
+        instance.env = FakeEnv(viewers, speed)
+        return instance
+
+    def test_an_open_panel_at_playable_speed_is_watched(self):
+        self.assertTrue(self.wrapper(1, 1.0)._is_being_watched())
+        self.assertTrue(self.wrapper(1, 2.0)._is_being_watched())
+        self.assertTrue(self.wrapper(3, 0.5)._is_being_watched())
+
+    def test_training_speed_is_not_watched_however_many_panels_are_open(self):
+        # Speed 0 is uncapped training: the bot crosses a route faster than the
+        # sprite could be drawn walking it.
+        self.assertFalse(self.wrapper(5, 0.0)._is_being_watched())
+
+    def test_no_panel_means_nobody_is_watching(self):
+        self.assertFalse(self.wrapper(0, 1.0)._is_being_watched())
+
+
 class ReplayRecordingTests(unittest.TestCase):
     """Nobody can follow four bots fighting live; a replay is the answer.
 

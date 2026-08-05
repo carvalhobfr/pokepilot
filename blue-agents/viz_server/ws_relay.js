@@ -64,6 +64,21 @@ function findReplay(id) {
   return null;
 }
 
+function loadControls() {
+  // The relay used to boot at 1x no matter what the file said, so a run left in
+  // TREINO came back as 1x — or worse, a viewer connecting rewrote the file and
+  // silently changed the speed of a running journey.
+  try {
+    const stored = JSON.parse(fs.readFileSync(CONTROL_FILE, 'utf8'));
+    if (stored && stored.global) {
+      controls.global = { ...controls.global, ...stored.global };
+      controls.agents = stored.agents || {};
+    }
+  } catch (_error) {
+    // No file yet, or unreadable: the defaults above are already correct.
+  }
+}
+
 function publishViewerCount() {
   const viewers = dashboardClients.length;
   if (controls.global.viewers === viewers) return;
@@ -92,6 +107,8 @@ function signalTraining(signal) {
 }
 
 writeControls();
+
+loadControls();
 
 const wss = new WebSocket.Server({ port: 3344 });
 

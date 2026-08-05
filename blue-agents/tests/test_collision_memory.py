@@ -241,12 +241,26 @@ class RouteReplanningTests(unittest.TestCase):
         agent.memory_probe.position = (5, 7)
         self.assertEqual(WindowEvent.PRESS_ARROW_LEFT, agent._leave_unknown_map())
 
-    def test_an_unseen_interior_still_tries_the_south_door(self):
-        # A resumed save or a whiteout warp never showed the transition. House
-        # doors are on the south edge, so down is the best blind guess — and
-        # anything beats pressing A forever.
-        agent = self.make_agent((3, 4), map_id=63)
-        self.assertEqual(WindowEvent.PRESS_ARROW_DOWN, agent._leave_unknown_map())
+    def test_an_unseen_interior_walks_out_learning_the_walls(self):
+        # A whiteout warp never shows the transition: three trainers woke up in
+        # their mother's living room and pressed A there forever. Heading south
+        # through the route machinery finds the door even when the first guess
+        # is a wall, because a route learns walls and a blind press does not.
+        walls = {(3, 5), (3, 6)}
+        agent = self.make_agent((3, 4), map_id=37, walls=walls)
+        deltas = {
+            WindowEvent.PRESS_ARROW_UP: (0, -1),
+            WindowEvent.PRESS_ARROW_DOWN: (0, 1),
+            WindowEvent.PRESS_ARROW_LEFT: (-1, 0),
+            WindowEvent.PRESS_ARROW_RIGHT: (1, 0),
+        }
+        for _ in range(120):
+            action = agent._leave_unknown_map()
+            if action in deltas:
+                agent.memory_probe.walk(*deltas[action])
+        self.assertGreater(
+            agent.memory_probe.position[1], 4, "precisa descer rumo à porta"
+        )
 
     def test_a_ledge_jump_is_learned_because_it_is_not_a_single_step(self):
         agent = self.make_agent((10, 8))

@@ -12,7 +12,8 @@ from PIL import Image
 # A replay is the tail of a battle: 40 frames at the battle stream interval is
 # a few seconds of Game Boy, which is where a fight is actually decided.
 REPLAY_MAX_FRAMES = 40
-# Above 2x the run produces battles faster than anyone could watch them.
+# Above this the game moves faster than a human can follow, so neither the
+# per-tile map stream nor the replay buffer earns its cost.
 REPLAY_MAX_SPEED = 2.0
 
 X_POS_ADDRESS, Y_POS_ADDRESS = 0xD362, 0xD361
@@ -66,9 +67,14 @@ class StreamWrapper(gym.Wrapper):
         self.coord_list.append([x_pos, y_pos, map_n])
 
         currently_in_battle = self.emulator.memory[0xD057] != 0
-        if self.steam_step_counter >= (
-            self.battle_interval if currently_in_battle else self.upload_interval
-        ):
+        # At watchable speed the sprite should walk, not teleport. The default
+        # interval publishes a position every 30 steps, which at 1x is twelve
+        # seconds of a bot moving with nothing on screen. One step is one tile,
+        # and one tile at 1x is 0.4s — actual walking.
+        interval = self.battle_interval if currently_in_battle else self.upload_interval
+        if self._is_being_watched():
+            interval = 1
+        if self.steam_step_counter >= interval:
             metadata = dict(self.stream_metadata)
             metadata["extra"] = f"coords: {len(getattr(self.env, 'seen_coords', {}))}"
             metadata["last_update"] = time.time()
@@ -179,18 +185,21 @@ class StreamWrapper(gym.Wrapper):
 
         return self.env.step(action)
 
-    def _replay_is_worth_recording(self):
-        """Record only while someone could plausibly watch it.
+    def _is_being_watched(self):
+        """Whether a human could actually be following this run right now.
 
-        Two guards, both real: with every dashboard closed the frames would be
-        encoded for nobody, and above 2x the run produces battles faster than
-        any replay could be watched — at training speed this would be pure
-        memory and CPU burned on frames nobody will ever open.
+        Two conditions, both real: with every dashboard closed there is nobody
+        to send to, and above 2x the game moves faster than anyone can watch —
+        streaming every tile or keeping replay frames there would be work done
+        for nobody.
         """
         if getattr(self.env, "viewer_count", 0) <= 0:
             return False
         speed = getattr(self.env, "playback_speed", 1.0)
         return 0 < speed <= REPLAY_MAX_SPEED
+
+    def _replay_is_worth_recording(self):
+        return self._is_being_watched()
 
     def _record_replay_frame(self, battle_info, frame):
         """Accumulate a battle, and publish it when the battle ends."""

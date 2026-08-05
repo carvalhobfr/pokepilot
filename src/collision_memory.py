@@ -158,7 +158,9 @@ class CollisionMemory:
             self.save()
         return removed
 
-    def find_path(self, map_id, start, goal, margin=15, node_limit=6000, avoid=()):
+    def find_path(
+        self, map_id, start, goal, margin=15, node_limit=6000, avoid=(), relax=False
+    ):
         """Shortest known-free path from ``start`` to ``goal`` as direction labels.
 
         Unknown edges count as free, so the first plan on a fresh map is the
@@ -188,7 +190,9 @@ class CollisionMemory:
                 # `avoid` holds edges that failed under ambiguous conditions —
                 # a text box eats the D-pad exactly like a wall does. Those are
                 # worth stepping around right now and never worth writing down.
-                if edge in self.blocked or edge in avoid:
+                if edge in avoid:
+                    continue
+                if edge in self.blocked and not relax:
                     continue
                 delta = DIRECTIONS[direction]
                 candidate = (current[0] + delta[0], current[1] + delta[1])

@@ -29,6 +29,7 @@ const BattleReplays: React.FC<{
   onClose: () => void;
 }> = ({ ws, connected, open, onClose }) => {
   const [summaries, setSummaries] = useState<ReplaySummary[]>([]);
+  const [recording, setRecording] = useState<{ speed: number; viewers: number } | null>(null);
   const [replay, setReplay] = useState<Replay | null>(null);
   const [frameIndex, setFrameIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
@@ -44,6 +45,12 @@ const BattleReplays: React.FC<{
       return;
     }
     if (data.type === 'battle_replay_added') setSummaries(data.replays || []);
+    if (data.type === 'runtime_control_state' && data.controls?.global) {
+      setRecording({
+        speed: Number(data.controls.global.speed),
+        viewers: Number(data.controls.global.viewers || 0),
+      });
+    }
     if (data.type === 'battle_replay_frames') {
       setReplay(data.replay);
       setFrameIndex(0);
@@ -75,6 +82,11 @@ const BattleReplays: React.FC<{
 
   if (!open) return null;
 
+  // The rule the operator asked for, made visible: an empty list because the
+  // run is at training speed is not the same thing as an empty list because
+  // nobody has fought yet.
+  const recordingOff = recording !== null && !(recording.speed > 0 && recording.speed <= 2);
+
   const request = (id: string) => {
     if (ws.current?.readyState !== WebSocket.OPEN) return;
     ws.current.send(JSON.stringify({ type: 'command', action: 'get_replay', id }));
@@ -95,6 +107,18 @@ const BattleReplays: React.FC<{
             <span className="text-xs font-bold uppercase tracking-wider text-gray-200">
               Últimas batalhas
             </span>
+            <span
+              className={`rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                recordingOff ? 'bg-gray-500/20 text-gray-400' : 'bg-red-500/20 text-red-300'
+              }`}
+              title={
+                recordingOff
+                  ? 'Em TREINO as batalhas terminam rápido demais para serem assistidas'
+                  : 'Cada batalha que terminar vira um replay'
+              }
+            >
+              {recordingOff ? 'PARADO' : 'GRAVANDO'}
+            </span>
           </div>
           <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-white/10 hover:text-white">
             <X size={16} />
@@ -105,9 +129,9 @@ const BattleReplays: React.FC<{
           <div className="w-56 shrink-0 overflow-y-auto border-r border-white/10 p-2">
             {summaries.length === 0 ? (
               <div className="p-3 text-[10px] italic leading-relaxed text-gray-500">
-                Nenhuma batalha gravada ainda. A gravação só acontece com o painel
-                aberto e em 0.5×, 1× ou 2× — acima disso as batalhas saem mais
-                rápido do que alguém conseguiria assistir.
+                {recordingOff
+                  ? 'Gravação desligada: a velocidade está em TREINO. Em 0.5×, 1× ou 2× as batalhas voltam a ser guardadas — acima disso elas terminam mais rápido do que alguém conseguiria assistir.'
+                  : 'Nenhuma batalha gravada ainda. A próxima que terminar aparece aqui.'}
               </div>
             ) : (
               summaries.map(item => (

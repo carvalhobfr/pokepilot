@@ -1,736 +1,25 @@
 [
   {
-    "id": "DARON-1785958757:303:capture_decision:1785958761880885000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "capture_decision",
-    "data": {
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "strategic_value": 60,
-      "weakest_party_level": 6,
-      "strongest_party_level": 6,
-      "level_advantage": -3,
-      "party_size": 1,
-      "party_has_room": true,
-      "party_slots_free": 5,
-      "already_in_party": false,
-      "enemy_hp_fraction": 1.0,
-      "own_hp_fraction": 0.81,
-      "active_level": 6,
-      "overkill_risk": false,
-      "pokeballs": 0,
-      "collector": 55,
-      "meta_score": 85,
-      "story_complete": false,
-      "capture_unlocked": false,
-      "shiny_candidate": false,
-      "ball_item_id": null,
-      "ball_slot": null,
-      "choice": "defeat",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls"
-    },
-    "timestamp": 1785958761.880886,
-    "step": 303,
-    "journey_step": 303,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "DARON-1785958757:303:battle_decision:1785958761890845000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
+    "id": "BARON-1785960243:140:battle_decision:1785960304908946000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
     "type": "battle_decision",
     "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
+      "battle": "trainer",
+      "enemy_id": 165,
+      "enemy_species_id": 19,
       "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
+      "encounter_type": "trainer_forest",
+      "encounter_label": "Treinador da floresta",
       "active_pokemon": {
-        "species_id": 4,
-        "internal_id": 176,
+        "species_id": 1,
+        "internal_id": 153,
         "level": 6,
         "hp": 17,
-        "max_hp": 21,
-        "moves": [
-          {
-            "id": 10,
-            "pp": 29
-          },
-          {
-            "id": 45,
-            "pp": 40
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "policy_choice": "defeat",
-      "executed_choice": "menu_navigation",
-      "execution_status": "executed",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 0,
-        "move_id": 10,
-        "pp": 29,
-        "type": "NORMAL",
-        "power": 40,
-        "effectiveness": 1.0,
-        "stab": 1.0,
-        "score": 40.0
-      },
-      "pokeballs": 0,
-      "collector": 55,
-      "meta_score": 85,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": false,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785958761.890846,
-    "step": 303,
-    "journey_step": 304,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "CARON-1785958757:309:map_transition:1785958761936742000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 12,
-      "to_map_name": "Route 1",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958761.936743,
-    "step": 309,
-    "journey_step": 309,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      10,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:327:battle_started:1785958762088056000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "battle_started",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "map_name": "Route 1",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 6,
-        "hp": 9,
-        "max_hp": 23,
+        "max_hp": 22,
         "moves": [
           {
             "id": 33,
-            "pp": 26
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "pokeballs": 0,
-      "shiny_candidate": false
-    },
-    "timestamp": 1785958762.088056,
-    "step": 327,
-    "journey_step": 327,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      12,
-      24
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:327:capture_decision:1785958762090504000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "capture_decision",
-    "data": {
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "strategic_value": 60,
-      "weakest_party_level": 6,
-      "strongest_party_level": 6,
-      "level_advantage": -3,
-      "party_size": 1,
-      "party_has_room": true,
-      "party_slots_free": 5,
-      "already_in_party": false,
-      "enemy_hp_fraction": 1.0,
-      "own_hp_fraction": 0.391,
-      "active_level": 6,
-      "overkill_risk": false,
-      "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
-      "story_complete": false,
-      "capture_unlocked": false,
-      "shiny_candidate": false,
-      "ball_item_id": null,
-      "ball_slot": null,
-      "choice": "defeat",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls"
-    },
-    "timestamp": 1785958762.090504,
-    "step": 327,
-    "journey_step": 327,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      12,
-      24
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "CARON-1785958757:327:battle_decision:1785958762099069000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "battle_decision",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 6,
-        "hp": 9,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 26
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "policy_choice": "defeat",
-      "executed_choice": "menu_navigation",
-      "execution_status": "executed",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 0,
-        "move_id": 33,
-        "pp": 26,
-        "type": "NORMAL",
-        "power": 35,
-        "effectiveness": 1.0,
-        "stab": 1.0,
-        "score": 35.0
-      },
-      "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": false,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785958762.0990698,
-    "step": 327,
-    "journey_step": 328,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      12,
-      24
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "AARON-1785958756:355:battle_end:1785958762303911000",
-    "agent": "AARON",
-    "run_id": "AARON-1785958756",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 165,
-      "active_pokemon": 153,
-      "player_hp_at_end": 14,
-      "battle_map_id": 12,
-      "end_map_id": 12
-    },
-    "timestamp": 1785958762.303912,
-    "step": 355,
-    "journey_step": 355,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      8,
-      29
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "AARON-1785958756:355:battle_win:1785958762306454000",
-    "agent": "AARON",
-    "run_id": "AARON-1785958756",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 165,
-      "total_trainer_wins": 0,
-      "total_wild_wins": 1
-    },
-    "timestamp": 1785958762.306454,
-    "step": 355,
-    "journey_step": 355,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      8,
-      29
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "AARON-1785958756:355:capture_outcome:1785958762308696000",
-    "agent": "AARON",
-    "run_id": "AARON-1785958756",
-    "type": "capture_outcome",
-    "data": {
-      "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "outcome": "defeated",
-      "enemy_species_id": 19,
-      "enemy_level": 2,
-      "balls_thrown": 0,
-      "pokeballs": 0,
-      "shiny_candidate": false,
-      "party": [
-        {
-          "species_id": 1,
-          "internal_id": 153,
-          "id": 1,
-          "level": 5,
-          "hp": 14,
-          "max_hp": 20,
-          "moves": [
-            {
-              "id": 33,
-              "pp": 32
-            },
-            {
-              "id": 45,
-              "pp": 40
-            }
-          ]
-        }
-      ],
-      "party_size": 1
-    },
-    "timestamp": 1785958762.308697,
-    "step": 355,
-    "journey_step": 355,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      8,
-      29
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "BARON-1785958757:355:battle_end:1785958762314683000",
-    "agent": "BARON",
-    "run_id": "BARON-1785958757",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 165,
-      "active_pokemon": 153,
-      "player_hp_at_end": 14,
-      "battle_map_id": 12,
-      "end_map_id": 12
-    },
-    "timestamp": 1785958762.314684,
-    "step": 355,
-    "journey_step": 355,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      8,
-      29
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "BARON-1785958757:355:battle_win:1785958762316778000",
-    "agent": "BARON",
-    "run_id": "BARON-1785958757",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 165,
-      "total_trainer_wins": 0,
-      "total_wild_wins": 1
-    },
-    "timestamp": 1785958762.316778,
-    "step": 355,
-    "journey_step": 355,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      8,
-      29
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "BARON-1785958757:355:capture_outcome:1785958762318712000",
-    "agent": "BARON",
-    "run_id": "BARON-1785958757",
-    "type": "capture_outcome",
-    "data": {
-      "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "outcome": "defeated",
-      "enemy_species_id": 19,
-      "enemy_level": 2,
-      "balls_thrown": 0,
-      "pokeballs": 0,
-      "shiny_candidate": false,
-      "party": [
-        {
-          "species_id": 1,
-          "internal_id": 153,
-          "id": 1,
-          "level": 5,
-          "hp": 14,
-          "max_hp": 20,
-          "moves": [
-            {
-              "id": 33,
-              "pp": 32
-            },
-            {
-              "id": 45,
-              "pp": 40
-            }
-          ]
-        }
-      ],
-      "party_size": 1
-    },
-    "timestamp": 1785958762.3187132,
-    "step": 355,
-    "journey_step": 355,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      8,
-      29
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:386:battle_end:1785958762600725000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 36,
-      "active_pokemon": 176,
-      "player_hp_at_end": 15,
-      "battle_map_id": 12,
-      "end_map_id": 12
-    },
-    "timestamp": 1785958762.6007261,
-    "step": 386,
-    "journey_step": 386,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:386:battle_win:1785958762602858000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 36,
-      "total_trainer_wins": 1,
-      "total_wild_wins": 1
-    },
-    "timestamp": 1785958762.602858,
-    "step": 386,
-    "journey_step": 386,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:386:capture_outcome:1785958762605228000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "capture_outcome",
-    "data": {
-      "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "outcome": "defeated",
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "balls_thrown": 0,
-      "pokeballs": 0,
-      "shiny_candidate": false,
-      "party": [
-        {
-          "species_id": 4,
-          "internal_id": 176,
-          "id": 4,
-          "level": 6,
-          "hp": 15,
-          "max_hp": 21,
-          "moves": [
-            {
-              "id": 10,
-              "pp": 32
-            },
-            {
-              "id": 45,
-              "pp": 40
-            }
-          ]
-        }
-      ],
-      "party_size": 1
-    },
-    "timestamp": 1785958762.605228,
-    "step": 386,
-    "journey_step": 386,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:396:battle_started:1785958762704621000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "battle_started",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "map_name": "Route 1",
-      "active_pokemon": {
-        "species_id": 4,
-        "internal_id": 176,
-        "level": 6,
-        "hp": 15,
-        "max_hp": 21,
-        "moves": [
-          {
-            "id": 10,
-            "pp": 32
-          },
-          {
-            "id": 45,
-            "pp": 40
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "pokeballs": 0,
-      "shiny_candidate": false
-    },
-    "timestamp": 1785958762.704621,
-    "step": 396,
-    "journey_step": 396,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      6
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:396:capture_decision:1785958762706877000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "capture_decision",
-    "data": {
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "strategic_value": 60,
-      "weakest_party_level": 6,
-      "strongest_party_level": 6,
-      "level_advantage": -3,
-      "party_size": 1,
-      "party_has_room": true,
-      "party_slots_free": 5,
-      "already_in_party": false,
-      "enemy_hp_fraction": 1.0,
-      "own_hp_fraction": 0.714,
-      "active_level": 6,
-      "overkill_risk": false,
-      "pokeballs": 0,
-      "collector": 55,
-      "meta_score": 85,
-      "story_complete": false,
-      "capture_unlocked": false,
-      "shiny_candidate": false,
-      "ball_item_id": null,
-      "ball_slot": null,
-      "choice": "defeat",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls"
-    },
-    "timestamp": 1785958762.706877,
-    "step": 396,
-    "journey_step": 396,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      6
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:396:battle_decision:1785958762716578000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "battle_decision",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "active_pokemon": {
-        "species_id": 4,
-        "internal_id": 176,
-        "level": 6,
-        "hp": 15,
-        "max_hp": 21,
-        "moves": [
-          {
-            "id": 10,
             "pp": 32
           },
           {
@@ -743,223 +32,559 @@
       "policy_choice": "defeat",
       "executed_choice": "defeat",
       "execution_status": "executed",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
       "battle_action_reason": "highest power \u00d7 type effectiveness",
       "action": "A",
       "move": {
         "slot": 0,
-        "move_id": 10,
+        "move_id": 33,
         "pp": 32,
         "type": "NORMAL",
-        "power": 40,
+        "power": 35,
         "effectiveness": 1.0,
         "stab": 1.0,
-        "score": 40.0
+        "score": 35.0
       },
-      "pokeballs": 0,
+      "pokeballs": 7,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960304.908947,
+    "step": 140,
+    "journey_step": 141,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785960242:151:battle_decision:1785960309561411000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
+    "type": "battle_decision",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 112,
+      "enemy_species_id": 13,
+      "enemy_level": 9,
+      "encounter_type": "trainer_forest",
+      "encounter_label": "Treinador da floresta",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 6,
+        "hp": 17,
+        "max_hp": 22,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 32
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 32,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 7,
+      "collector": 95,
+      "meta_score": 60,
+      "new_species": true,
+      "upgrade_candidate": true,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960309.561414,
+    "step": 151,
+    "journey_step": 152,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785960243:151:battle_decision:1785960309669323000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "battle_decision",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 112,
+      "enemy_species_id": 13,
+      "enemy_level": 9,
+      "encounter_type": "trainer_forest",
+      "encounter_label": "Treinador da floresta",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 6,
+        "hp": 17,
+        "max_hp": 22,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 32
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 32,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 7,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": true,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960309.669325,
+    "step": 151,
+    "journey_step": 152,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785960243:178:level_up:1785960321059008000",
+    "agent": "CARON",
+    "run_id": "CARON-1785960243",
+    "type": "level_up",
+    "data": {
+      "pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 8,
+        "hp": 24,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 25
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ]
+      },
+      "old_level": 7,
+      "new_level": 8,
+      "training_target": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 8,
+        "hp": 24,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 25
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ]
+      },
+      "reason": "ganhou experi\u00eancia enquanto estava ativo"
+    },
+    "timestamp": 1785960321.059011,
+    "step": 178,
+    "journey_step": 178,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      25,
+      29
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "DARON-1785960243:182:battle_started:1785960322914918000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_started",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 23
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785960322.9149199,
+    "step": 182,
+    "journey_step": 182,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      11
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:182:capture_decision:1785960322921882000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 11,
+      "strongest_party_level": 11,
+      "level_advantage": -8,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "enemy_hp_fraction": 1.0,
+      "own_hp_fraction": 1.0,
+      "active_level": 11,
+      "overkill_risk": true,
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "defeat",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra"
+    },
+    "timestamp": 1785960322.921887,
+    "step": 182,
+    "journey_step": 182,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      11
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "DARON-1785960243:182:battle_decision:1785960323353295000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 23
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 2,
+        "move_id": 52,
+        "pp": 23,
+        "type": "FIRE",
+        "power": 40,
+        "effectiveness": 2.0,
+        "stab": 1.5,
+        "score": 120.0
+      },
+      "pokeballs": 8,
       "collector": 55,
       "meta_score": 85,
       "new_species": true,
       "upgrade_candidate": false,
       "shiny_candidate": false,
-      "capture_unlocked": false,
+      "capture_unlocked": true,
       "controller": "SimpleBattleAgent",
       "capture_controller": false
     },
-    "timestamp": 1785958762.716578,
-    "step": 396,
-    "journey_step": 397,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960323.353297,
+    "step": 182,
+    "journey_step": 183,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      6
+      16,
+      11
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "AARON-1785958756:409:map_transition:1785958762845969000",
-    "agent": "AARON",
-    "run_id": "AARON-1785958756",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 12,
-      "from_map_name": "Route 1",
-      "to_map_id": 1,
-      "to_map_name": "Viridian City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958762.8459709,
-    "step": 409,
-    "journey_step": 409,
-    "map_id": 1,
-    "map_name": "Viridian City",
-    "coords": [
-      20,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "AARON-1785958756:409:location_discovered:1785958762849133000",
-    "agent": "AARON",
-    "run_id": "AARON-1785958756",
-    "type": "location_discovered",
-    "data": {
-      "location_id": 1,
-      "location_name": "Viridian City",
-      "first_visit": true,
-      "reason": "primeira chegada desta jornada confirmada pelo mapa real"
-    },
-    "timestamp": 1785958762.849133,
-    "step": 409,
-    "journey_step": 409,
-    "map_id": 1,
-    "map_name": "Viridian City",
-    "coords": [
-      20,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "BARON-1785958757:409:map_transition:1785958762853952000",
-    "agent": "BARON",
-    "run_id": "BARON-1785958757",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 12,
-      "from_map_name": "Route 1",
-      "to_map_id": 1,
-      "to_map_name": "Viridian City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958762.853952,
-    "step": 409,
-    "journey_step": 409,
-    "map_id": 1,
-    "map_name": "Viridian City",
-    "coords": [
-      20,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "BARON-1785958757:409:location_discovered:1785958762856902000",
-    "agent": "BARON",
-    "run_id": "BARON-1785958757",
-    "type": "location_discovered",
-    "data": {
-      "location_id": 1,
-      "location_name": "Viridian City",
-      "first_visit": true,
-      "reason": "primeira chegada desta jornada confirmada pelo mapa real"
-    },
-    "timestamp": 1785958762.856902,
-    "step": 409,
-    "journey_step": 409,
-    "map_id": 1,
-    "map_name": "Viridian City",
-    "coords": [
-      20,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "CARON-1785958757:430:battle_end:1785958763065352000",
+    "id": "CARON-1785960243:186:move_learned:1785960324543875000",
     "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "run_id": "CARON-1785960243",
+    "type": "move_learned",
+    "data": {
+      "pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 8,
+        "hp": 24,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 25
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 30
+          }
+        ]
+      },
+      "learned_move_id": 145,
+      "replaced_move_id": null,
+      "moves_before": [
+        33,
+        39
+      ],
+      "moves_after": [
+        33,
+        39,
+        145
+      ],
+      "reason": "build alterada e confirmada diretamente na RAM da party"
+    },
+    "timestamp": 1785960324.5438762,
+    "step": 186,
+    "journey_step": 186,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      25,
+      29
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785960243:194:battle_end:1785960328034551000",
+    "agent": "CARON",
+    "run_id": "CARON-1785960243",
     "type": "battle_end",
     "data": {
       "type": "wild",
       "result": "win",
-      "enemy_id": 36,
+      "enemy_id": 124,
       "active_pokemon": 177,
-      "player_hp_at_end": 14,
-      "battle_map_id": 12,
-      "end_map_id": 12
+      "player_hp_at_end": 24,
+      "battle_map_id": 51,
+      "end_map_id": 51
     },
-    "timestamp": 1785958763.065352,
-    "step": 430,
-    "journey_step": 430,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960328.034554,
+    "step": 194,
+    "journey_step": 194,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      12,
-      24
+      25,
+      29
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
     "live": false
   },
   {
-    "id": "CARON-1785958757:430:battle_win:1785958763067796000",
+    "id": "CARON-1785960243:194:battle_win:1785960328041182000",
     "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "run_id": "CARON-1785960243",
     "type": "battle_win",
     "data": {
       "type": "wild",
-      "enemy_id": 36,
-      "total_trainer_wins": 1,
+      "enemy_id": 124,
+      "total_trainer_wins": 0,
       "total_wild_wins": 1
     },
-    "timestamp": 1785958763.067797,
-    "step": 430,
-    "journey_step": 430,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960328.041184,
+    "step": 194,
+    "journey_step": 194,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      12,
-      24
+      25,
+      29
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
     "live": false
   },
   {
-    "id": "CARON-1785958757:430:capture_outcome:1785958763069901000",
+    "id": "CARON-1785960243:194:capture_outcome:1785960328047506000",
     "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "run_id": "CARON-1785960243",
     "type": "capture_outcome",
     "data": {
       "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
+      "reason_code": "soften_before_capture",
+      "reason": "alvo com 100% de HP; reduzir a vida antes de gastar Pok\u00e9 Bola",
       "outcome": "defeated",
-      "enemy_species_id": 16,
-      "enemy_level": 3,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
       "balls_thrown": 0,
-      "pokeballs": 0,
+      "pokeballs": 7,
       "shiny_candidate": false,
       "party": [
         {
           "species_id": 7,
           "internal_id": 177,
           "id": 7,
-          "level": 6,
-          "hp": 14,
-          "max_hp": 23,
+          "level": 8,
+          "hp": 24,
+          "max_hp": 27,
           "moves": [
             {
               "id": 33,
-              "pp": 31
+              "pp": 25
             },
             {
               "id": 39,
+              "pp": 30
+            },
+            {
+              "id": 145,
               "pp": 30
             }
           ]
@@ -967,751 +592,454 @@
       ],
       "party_size": 1
     },
-    "timestamp": 1785958763.0699022,
-    "step": 430,
-    "journey_step": 430,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960328.047508,
+    "step": 194,
+    "journey_step": 194,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      12,
-      24
+      25,
+      29
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
     "live": false
   },
   {
-    "id": "AARON-1785958756:436:map_transition:1785958763129711000",
-    "agent": "AARON",
-    "run_id": "AARON-1785958756",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 1,
-      "from_map_name": "Viridian City",
-      "to_map_id": 42,
-      "to_map_name": "Pokemart Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958763.129712,
-    "step": 436,
-    "journey_step": 436,
-    "map_id": 42,
-    "map_name": "Pokemart Viridian",
-    "coords": [
-      29,
-      19
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "BARON-1785958757:436:map_transition:1785958763134234000",
-    "agent": "BARON",
-    "run_id": "BARON-1785958757",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 1,
-      "from_map_name": "Viridian City",
-      "to_map_id": 42,
-      "to_map_name": "Pokemart Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958763.134235,
-    "step": 436,
-    "journey_step": 436,
-    "map_id": 42,
-    "map_name": "Pokemart Viridian",
-    "coords": [
-      29,
-      19
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:449:battle_started:1785958763271355000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "battle_started",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "map_name": "Route 1",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 6,
-        "hp": 14,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 31
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "pokeballs": 0,
-      "shiny_candidate": false
-    },
-    "timestamp": 1785958763.2713559,
-    "step": 449,
-    "journey_step": 449,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      14,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:449:capture_decision:1785958763273723000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "capture_decision",
-    "data": {
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "strategic_value": 60,
-      "weakest_party_level": 6,
-      "strongest_party_level": 6,
-      "level_advantage": -3,
-      "party_size": 1,
-      "party_has_room": true,
-      "party_slots_free": 5,
-      "already_in_party": false,
-      "enemy_hp_fraction": 1.0,
-      "own_hp_fraction": 0.609,
-      "active_level": 6,
-      "overkill_risk": false,
-      "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
-      "story_complete": false,
-      "capture_unlocked": false,
-      "shiny_candidate": false,
-      "ball_item_id": null,
-      "ball_slot": null,
-      "choice": "defeat",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls"
-    },
-    "timestamp": 1785958763.273723,
-    "step": 449,
-    "journey_step": 449,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      14,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:449:battle_decision:1785958763290123000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "battle_decision",
-    "data": {
-      "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "encounter_type": "wild_grass",
-      "encounter_label": "Encontro no mato",
-      "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 6,
-        "hp": 14,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 31
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "policy_choice": "defeat",
-      "executed_choice": "defeat",
-      "execution_status": "executed",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "A",
-      "move": {
-        "slot": 0,
-        "move_id": 33,
-        "pp": 31,
-        "type": "NORMAL",
-        "power": 35,
-        "effectiveness": 1.0,
-        "stab": 1.0,
-        "score": 35.0
-      },
-      "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": false,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785958763.290124,
-    "step": 449,
-    "journey_step": 450,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      14,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "DARON-1785958757:461:level_up:1785958763394408000",
+    "id": "DARON-1785960243:229:battle_end:1785960343321359000",
     "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "level_up",
-    "data": {
-      "pokemon": {
-        "species_id": 4,
-        "internal_id": 176,
-        "id": 4,
-        "level": 7,
-        "hp": 14,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 10,
-            "pp": 30
-          },
-          {
-            "id": 45,
-            "pp": 40
-          }
-        ]
-      },
-      "old_level": 6,
-      "new_level": 7,
-      "training_target": {
-        "species_id": 4,
-        "internal_id": 176,
-        "id": 4,
-        "level": 7,
-        "hp": 14,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 10,
-            "pp": 30
-          },
-          {
-            "id": 45,
-            "pp": 40
-          }
-        ]
-      },
-      "reason": "ganhou experi\u00eancia enquanto estava ativo"
-    },
-    "timestamp": 1785958763.394409,
-    "step": 461,
-    "journey_step": 461,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      6
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "DARON-1785958757:469:battle_end:1785958763473308000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
+    "run_id": "DARON-1785960243",
     "type": "battle_end",
     "data": {
       "type": "wild",
       "result": "win",
-      "enemy_id": 36,
+      "enemy_id": 123,
       "active_pokemon": 176,
-      "player_hp_at_end": 14,
-      "battle_map_id": 12,
-      "end_map_id": 12
+      "player_hp_at_end": 32,
+      "battle_map_id": 51,
+      "end_map_id": 51
     },
-    "timestamp": 1785958763.473309,
-    "step": 469,
-    "journey_step": 469,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960343.3213599,
+    "step": 229,
+    "journey_step": 229,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      6
+      16,
+      11
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "DARON-1785958757:469:battle_win:1785958763475737000",
+    "id": "DARON-1785960243:229:battle_win:1785960343327208000",
     "agent": "DARON",
-    "run_id": "DARON-1785958757",
+    "run_id": "DARON-1785960243",
     "type": "battle_win",
     "data": {
       "type": "wild",
-      "enemy_id": 36,
-      "total_trainer_wins": 1,
+      "enemy_id": 123,
+      "total_trainer_wins": 0,
       "total_wild_wins": 2
     },
-    "timestamp": 1785958763.475738,
-    "step": 469,
-    "journey_step": 469,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960343.32721,
+    "step": 229,
+    "journey_step": 229,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      6
+      16,
+      11
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "DARON-1785958757:469:capture_outcome:1785958763478316000",
+    "id": "DARON-1785960243:229:capture_outcome:1785960343348272000",
     "agent": "DARON",
-    "run_id": "DARON-1785958757",
+    "run_id": "DARON-1785960243",
     "type": "capture_outcome",
     "data": {
       "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
+      "reason_code": "off_theme_species",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
       "outcome": "defeated",
-      "enemy_species_id": 16,
+      "enemy_species_id": 10,
       "enemy_level": 3,
       "balls_thrown": 0,
-      "pokeballs": 0,
+      "pokeballs": 8,
       "shiny_candidate": false,
       "party": [
         {
           "species_id": 4,
           "internal_id": 176,
           "id": 4,
-          "level": 7,
-          "hp": 14,
-          "max_hp": 23,
+          "level": 11,
+          "hp": 32,
+          "max_hp": 32,
           "moves": [
             {
               "id": 10,
-              "pp": 30
+              "pp": 35
             },
             {
               "id": 45,
               "pp": 40
-            }
-          ]
-        }
-      ],
-      "party_size": 1
-    },
-    "timestamp": 1785958763.478324,
-    "step": 469,
-    "journey_step": 469,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      15,
-      6
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:482:map_transition:1785958763634517000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 12,
-      "from_map_name": "Route 1",
-      "to_map_id": 1,
-      "to_map_name": "Viridian City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958763.634518,
-    "step": 482,
-    "journey_step": 482,
-    "map_id": 1,
-    "map_name": "Viridian City",
-    "coords": [
-      20,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "DARON-1785958757:482:location_discovered:1785958763637093000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "location_discovered",
-    "data": {
-      "location_id": 1,
-      "location_name": "Viridian City",
-      "first_visit": true,
-      "reason": "primeira chegada desta jornada confirmada pelo mapa real"
-    },
-    "timestamp": 1785958763.6370938,
-    "step": 482,
-    "journey_step": 482,
-    "map_id": 1,
-    "map_name": "Viridian City",
-    "coords": [
-      20,
-      35
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "DARON-1785958757:509:map_transition:1785958763921357000",
-    "agent": "DARON",
-    "run_id": "DARON-1785958757",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 1,
-      "from_map_name": "Viridian City",
-      "to_map_id": 42,
-      "to_map_name": "Pokemart Viridian",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785958763.9213572,
-    "step": 509,
-    "journey_step": 509,
-    "map_id": 42,
-    "map_name": "Pokemart Viridian",
-    "coords": [
-      29,
-      19
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:549:level_up:1785958764304479000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "level_up",
-    "data": {
-      "pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
-        "level": 7,
-        "hp": 7,
-        "max_hp": 25,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 27
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ]
-      },
-      "old_level": 6,
-      "new_level": 7,
-      "training_target": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
-        "level": 7,
-        "hp": 7,
-        "max_hp": 25,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 27
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ]
-      },
-      "reason": "ganhou experi\u00eancia enquanto estava ativo"
-    },
-    "timestamp": 1785958764.304479,
-    "step": 549,
-    "journey_step": 549,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      14,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "CARON-1785958757:557:battle_end:1785958764399859000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 36,
-      "active_pokemon": 177,
-      "player_hp_at_end": 7,
-      "battle_map_id": 12,
-      "end_map_id": 12
-    },
-    "timestamp": 1785958764.39986,
-    "step": 557,
-    "journey_step": 557,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      14,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:557:battle_win:1785958764402071000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 36,
-      "total_trainer_wins": 1,
-      "total_wild_wins": 2
-    },
-    "timestamp": 1785958764.402072,
-    "step": 557,
-    "journey_step": 557,
-    "map_id": 12,
-    "map_name": "Route 1",
-    "coords": [
-      14,
-      14
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": false
-  },
-  {
-    "id": "CARON-1785958757:557:capture_outcome:1785958764404431000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "capture_outcome",
-    "data": {
-      "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "outcome": "defeated",
-      "enemy_species_id": 16,
-      "enemy_level": 3,
-      "balls_thrown": 0,
-      "pokeballs": 0,
-      "shiny_candidate": false,
-      "party": [
-        {
-          "species_id": 7,
-          "internal_id": 177,
-          "id": 7,
-          "level": 7,
-          "hp": 7,
-          "max_hp": 25,
-          "moves": [
-            {
-              "id": 33,
-              "pp": 27
             },
             {
-              "id": 39,
-              "pp": 30
+              "id": 52,
+              "pp": 22
             }
           ]
         }
       ],
       "party_size": 1
     },
-    "timestamp": 1785958764.4044318,
-    "step": 557,
-    "journey_step": 557,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960343.348274,
+    "step": 229,
+    "journey_step": 229,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      14,
-      14
+      16,
+      11
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:565:battle_started:1785958764491617000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "DARON-1785960243:282:battle_started:1785960366251194000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
     "type": "battle_started",
     "data": {
       "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
+      "enemy_id": 123,
+      "enemy_species_id": 10,
       "enemy_level": 3,
       "encounter_type": "wild_grass",
       "encounter_label": "Encontro no mato",
-      "map_name": "Route 1",
+      "map_name": "Viridian Forest",
       "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "level": 7,
-        "hp": 7,
-        "max_hp": 25,
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
         "moves": [
           {
-            "id": 33,
-            "pp": 27
+            "id": 10,
+            "pp": 35
           },
           {
-            "id": 39,
-            "pp": 30
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 22
           }
         ],
-        "selected_move_slot": 0
+        "selected_move_slot": 2
       },
-      "pokeballs": 0,
+      "pokeballs": 8,
       "shiny_candidate": false
     },
-    "timestamp": 1785958764.4916182,
-    "step": 565,
-    "journey_step": 565,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960366.251195,
+    "step": 282,
+    "journey_step": 282,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      8
+      1,
+      22
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:565:capture_decision:1785958764494163000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "DARON-1785960243:282:capture_decision:1785960366255617000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
     "type": "capture_decision",
     "data": {
-      "enemy_id": 36,
-      "enemy_species_id": 16,
+      "enemy_id": 123,
+      "enemy_species_id": 10,
       "enemy_level": 3,
       "new_species": true,
       "upgrade_candidate": false,
-      "strategic_value": 60,
-      "weakest_party_level": 7,
-      "strongest_party_level": 7,
-      "level_advantage": -4,
+      "strategic_value": 70,
+      "weakest_party_level": 11,
+      "strongest_party_level": 11,
+      "level_advantage": -8,
       "party_size": 1,
       "party_has_room": true,
       "party_slots_free": 5,
       "already_in_party": false,
       "enemy_hp_fraction": 1.0,
-      "own_hp_fraction": 0.28,
-      "active_level": 7,
-      "overkill_risk": false,
-      "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
-      "story_complete": false,
-      "capture_unlocked": false,
+      "own_hp_fraction": 1.0,
+      "active_level": 11,
+      "overkill_risk": true,
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "story_complete": true,
+      "capture_unlocked": true,
       "shiny_candidate": false,
-      "ball_item_id": null,
-      "ball_slot": null,
+      "ball_item_id": 4,
+      "ball_slot": 0,
       "choice": "defeat",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls"
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra"
     },
-    "timestamp": 1785958764.494164,
-    "step": 565,
-    "journey_step": 565,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960366.255618,
+    "step": 282,
+    "journey_step": 282,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      8
+      1,
+      22
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:565:battle_decision:1785958764504866000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "DARON-1785960243:282:battle_decision:1785960366681593000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
     "type": "battle_decision",
     "data": {
       "battle": "wild",
-      "enemy_id": 36,
-      "enemy_species_id": 16,
+      "enemy_id": 123,
+      "enemy_species_id": 10,
       "enemy_level": 3,
       "encounter_type": "wild_grass",
       "encounter_label": "Encontro no mato",
       "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 22
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {
+        "slot": 2,
+        "move_id": 52,
+        "pp": 22,
+        "type": "FIRE",
+        "power": 40,
+        "effectiveness": 2.0,
+        "stab": 1.5,
+        "score": 120.0
+      },
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960366.6815948,
+    "step": 282,
+    "journey_step": 283,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      22
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "CARON-1785960243:304:battle_started:1785960375866011000",
+    "agent": "CARON",
+    "run_id": "CARON-1785960243",
+    "type": "battle_started",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "trainer_forest",
+      "encounter_label": "Treinador da floresta",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
         "species_id": 7,
         "internal_id": 177,
-        "level": 7,
-        "hp": 7,
-        "max_hp": 25,
+        "level": 8,
+        "hp": 24,
+        "max_hp": 27,
         "moves": [
           {
             "id": 33,
-            "pp": 27
+            "pp": 25
           },
           {
             "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 7,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785960375.866014,
+    "step": 304,
+    "journey_step": 304,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785960243:304:battle_decision:1785960376296803000",
+    "agent": "CARON",
+    "run_id": "CARON-1785960243",
+    "type": "battle_decision",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "trainer_forest",
+      "encounter_label": "Treinador da floresta",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 8,
+        "hp": 24,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 25
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 30
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 25,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 7,
+      "collector": 65,
+      "meta_score": 95,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960376.2968051,
+    "step": 304,
+    "journey_step": 305,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "CARON-1785960243:315:battle_decision:1785960381101801000",
+    "agent": "CARON",
+    "run_id": "CARON-1785960243",
+    "type": "battle_decision",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 112,
+      "enemy_species_id": 13,
+      "enemy_level": 9,
+      "encounter_type": "trainer_forest",
+      "encounter_label": "Treinador da floresta",
+      "active_pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "level": 8,
+        "hp": 24,
+        "max_hp": 27,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 25
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
             "pp": 30
           }
         ],
@@ -1720,217 +1048,1252 @@
       "policy_choice": "defeat",
       "executed_choice": "defeat",
       "execution_status": "executed",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
-      "reason_code": "story_locked",
-      "motivation": "story_progression",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
       "battle_action_reason": "highest power \u00d7 type effectiveness",
       "action": "A",
       "move": {
         "slot": 0,
         "move_id": 33,
-        "pp": 27,
+        "pp": 25,
         "type": "NORMAL",
         "power": 35,
         "effectiveness": 1.0,
         "stab": 1.0,
         "score": 35.0
       },
-      "pokeballs": 0,
+      "pokeballs": 7,
       "collector": 65,
       "meta_score": 95,
       "new_species": true,
-      "upgrade_candidate": false,
+      "upgrade_candidate": true,
       "shiny_candidate": false,
-      "capture_unlocked": false,
+      "capture_unlocked": true,
       "controller": "SimpleBattleAgent",
       "capture_controller": false
     },
-    "timestamp": 1785958764.504867,
-    "step": 565,
-    "journey_step": 566,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960381.101804,
+    "step": 315,
+    "journey_step": 316,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      8
+      1,
+      18
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
     "live": true
   },
   {
-    "id": "CARON-1785958757:644:battle_end:1785958765289635000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "DARON-1785960243:331:battle_end:1785960387807685000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
     "type": "battle_end",
     "data": {
       "type": "wild",
       "result": "win",
-      "enemy_id": 36,
-      "active_pokemon": 177,
-      "player_hp_at_end": 1,
-      "battle_map_id": 12,
-      "end_map_id": 12
+      "enemy_id": 123,
+      "active_pokemon": 176,
+      "player_hp_at_end": 32,
+      "battle_map_id": 51,
+      "end_map_id": 51
     },
-    "timestamp": 1785958765.2896361,
-    "step": 644,
-    "journey_step": 644,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960387.8076868,
+    "step": 331,
+    "journey_step": 331,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      8
+      1,
+      22
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:644:battle_win:1785958765292718000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "DARON-1785960243:331:battle_win:1785960387812011000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
     "type": "battle_win",
     "data": {
       "type": "wild",
-      "enemy_id": 36,
-      "total_trainer_wins": 1,
+      "enemy_id": 123,
+      "total_trainer_wins": 0,
       "total_wild_wins": 3
     },
-    "timestamp": 1785958765.2927191,
-    "step": 644,
-    "journey_step": 644,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960387.8120131,
+    "step": 331,
+    "journey_step": 331,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      8
+      1,
+      22
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:644:capture_outcome:1785958765295940000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "DARON-1785960243:331:capture_outcome:1785960387816917000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
     "type": "capture_outcome",
     "data": {
       "intent": "defeat",
-      "reason_code": "story_locked",
-      "reason": "captura ainda bloqueada: primeiro precisa entregar a encomenda ao Professor Oak e liberar as Pok\u00e9 Balls",
+      "reason_code": "off_theme_species",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
       "outcome": "defeated",
-      "enemy_species_id": 16,
+      "enemy_species_id": 10,
       "enemy_level": 3,
       "balls_thrown": 0,
-      "pokeballs": 0,
+      "pokeballs": 8,
       "shiny_candidate": false,
       "party": [
         {
-          "species_id": 7,
-          "internal_id": 177,
-          "id": 7,
-          "level": 7,
-          "hp": 1,
-          "max_hp": 25,
+          "species_id": 4,
+          "internal_id": 176,
+          "id": 4,
+          "level": 11,
+          "hp": 32,
+          "max_hp": 32,
           "moves": [
             {
-              "id": 33,
-              "pp": 24
+              "id": 10,
+              "pp": 35
             },
             {
-              "id": 39,
-              "pp": 30
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 52,
+              "pp": 21
             }
           ]
         }
       ],
       "party_size": 1
     },
-    "timestamp": 1785958765.2959418,
-    "step": 644,
-    "journey_step": 644,
-    "map_id": 12,
-    "map_name": "Route 1",
+    "timestamp": 1785960387.816919,
+    "step": 331,
+    "journey_step": 331,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      15,
-      8
+      1,
+      22
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:659:map_transition:1785958765523506000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "map_transition",
+    "id": "DARON-1785960243:336:battle_started:1785960389976167000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_started",
     "data": {
-      "from_map_id": 12,
-      "from_map_name": "Route 1",
-      "to_map_id": 1,
-      "to_map_name": "Viridian City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 21
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
     },
-    "timestamp": 1785958765.5235069,
-    "step": 659,
-    "journey_step": 659,
-    "map_id": 1,
-    "map_name": "Viridian City",
+    "timestamp": 1785960389.9761689,
+    "step": 336,
+    "journey_step": 336,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      20,
-      35
+      1,
+      18
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "CARON-1785958757:659:location_discovered:1785958765528871000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
-    "type": "location_discovered",
+    "id": "DARON-1785960243:336:capture_decision:1785960389982277000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "capture_decision",
     "data": {
-      "location_id": 1,
-      "location_name": "Viridian City",
-      "first_visit": true,
-      "reason": "primeira chegada desta jornada confirmada pelo mapa real"
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 5,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 11,
+      "strongest_party_level": 11,
+      "level_advantage": -6,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "enemy_hp_fraction": 1.0,
+      "own_hp_fraction": 1.0,
+      "active_level": 11,
+      "overkill_risk": true,
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "defeat",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra"
     },
-    "timestamp": 1785958765.528875,
-    "step": 659,
-    "journey_step": 659,
-    "map_id": 1,
-    "map_name": "Viridian City",
+    "timestamp": 1785960389.9822779,
+    "step": 336,
+    "journey_step": 336,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      20,
-      35
+      1,
+      18
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:336:battle_decision:1785960390409354000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 21
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 2,
+        "move_id": 52,
+        "pp": 21,
+        "type": "FIRE",
+        "power": 40,
+        "effectiveness": 2.0,
+        "stab": 1.5,
+        "score": 120.0
+      },
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960390.409356,
+    "step": 336,
+    "journey_step": 337,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "CARON-1785958757:686:map_transition:1785958765956543000",
-    "agent": "CARON",
-    "run_id": "CARON-1785958757",
+    "id": "AARON-1785960242:354:level_up:1785960397508279000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
+    "type": "level_up",
+    "data": {
+      "pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 10,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 23
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "old_level": 6,
+      "new_level": 7,
+      "training_target": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 10,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 23
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "reason": "ganhou experi\u00eancia enquanto estava ativo"
+    },
+    "timestamp": 1785960397.50828,
+    "step": 354,
+    "journey_step": 354,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785960243:354:level_up:1785960397615185000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "level_up",
+    "data": {
+      "pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 10,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 23
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "old_level": 6,
+      "new_level": 7,
+      "training_target": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 10,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 23
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "reason": "ganhou experi\u00eancia enquanto estava ativo"
+    },
+    "timestamp": 1785960397.615186,
+    "step": 354,
+    "journey_step": 354,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785960242:362:move_learned:1785960401076091000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
+    "type": "move_learned",
+    "data": {
+      "pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 10,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 23
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "learned_move_id": 73,
+      "replaced_move_id": null,
+      "moves_before": [
+        33,
+        45
+      ],
+      "moves_after": [
+        33,
+        45,
+        73
+      ],
+      "reason": "build alterada e confirmada diretamente na RAM da party"
+    },
+    "timestamp": 1785960401.076094,
+    "step": 362,
+    "journey_step": 362,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785960243:362:move_learned:1785960401182224000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "move_learned",
+    "data": {
+      "pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 7,
+        "hp": 10,
+        "max_hp": 24,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 23
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "learned_move_id": 73,
+      "replaced_move_id": null,
+      "moves_before": [
+        33,
+        45
+      ],
+      "moves_after": [
+        33,
+        45,
+        73
+      ],
+      "reason": "build alterada e confirmada diretamente na RAM da party"
+    },
+    "timestamp": 1785960401.182226,
+    "step": 362,
+    "journey_step": 362,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "DARON-1785960243:383:battle_end:1785960410616248000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_end",
+    "data": {
+      "type": "wild",
+      "result": "win",
+      "enemy_id": 123,
+      "active_pokemon": 176,
+      "player_hp_at_end": 32,
+      "battle_map_id": 51,
+      "end_map_id": 51
+    },
+    "timestamp": 1785960410.61625,
+    "step": 383,
+    "journey_step": 383,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:383:battle_win:1785960410622921000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_win",
+    "data": {
+      "type": "wild",
+      "enemy_id": 123,
+      "total_trainer_wins": 0,
+      "total_wild_wins": 4
+    },
+    "timestamp": 1785960410.622923,
+    "step": 383,
+    "journey_step": 383,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:383:capture_outcome:1785960410627998000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "capture_outcome",
+    "data": {
+      "intent": "defeat",
+      "reason_code": "off_theme_species",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
+      "outcome": "defeated",
+      "enemy_species_id": 10,
+      "enemy_level": 5,
+      "balls_thrown": 0,
+      "pokeballs": 8,
+      "shiny_candidate": false,
+      "party": [
+        {
+          "species_id": 4,
+          "internal_id": 176,
+          "id": 4,
+          "level": 11,
+          "hp": 32,
+          "max_hp": 32,
+          "moves": [
+            {
+              "id": 10,
+              "pp": 35
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 52,
+              "pp": 20
+            }
+          ]
+        }
+      ],
+      "party_size": 1
+    },
+    "timestamp": 1785960410.627999,
+    "step": 383,
+    "journey_step": 383,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "AARON-1785960242:385:battle_end:1785960411172462000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
+    "type": "battle_end",
+    "data": {
+      "type": "trainer",
+      "result": "win",
+      "enemy_id": 112,
+      "active_pokemon": 153,
+      "player_hp_at_end": 10,
+      "battle_map_id": 51,
+      "end_map_id": 51
+    },
+    "timestamp": 1785960411.1724641,
+    "step": 385,
+    "journey_step": 385,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785960242:385:battle_win:1785960411179591000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
+    "type": "battle_win",
+    "data": {
+      "type": "trainer",
+      "enemy_id": 112,
+      "total_trainer_wins": 1,
+      "total_wild_wins": 0
+    },
+    "timestamp": 1785960411.179594,
+    "step": 385,
+    "journey_step": 385,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785960243:385:battle_end:1785960411283917000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "battle_end",
+    "data": {
+      "type": "trainer",
+      "result": "win",
+      "enemy_id": 112,
+      "active_pokemon": 153,
+      "player_hp_at_end": 10,
+      "battle_map_id": 51,
+      "end_map_id": 51
+    },
+    "timestamp": 1785960411.283919,
+    "step": 385,
+    "journey_step": 385,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "BARON-1785960243:385:battle_win:1785960411288544000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "battle_win",
+    "data": {
+      "type": "trainer",
+      "enemy_id": 112,
+      "total_trainer_wins": 1,
+      "total_wild_wins": 0
+    },
+    "timestamp": 1785960411.2885451,
+    "step": 385,
+    "journey_step": 385,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "DARON-1785960243:393:battle_started:1785960414937859000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_started",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 20
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "pokeballs": 8,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785960414.9378612,
+    "step": 393,
+    "journey_step": 393,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      9
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:393:capture_decision:1785960414945200000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 11,
+      "strongest_party_level": 11,
+      "level_advantage": -8,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "enemy_hp_fraction": 1.0,
+      "own_hp_fraction": 1.0,
+      "active_level": 11,
+      "overkill_risk": true,
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "defeat",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra"
+    },
+    "timestamp": 1785960414.9452019,
+    "step": 393,
+    "journey_step": 393,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      9
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:393:battle_decision:1785960415362909000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 123,
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "level": 11,
+        "hp": 32,
+        "max_hp": 32,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 52,
+            "pp": 20
+          }
+        ],
+        "selected_move_slot": 2
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
+      "reason_code": "off_theme_species",
+      "motivation": "team_building",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {
+        "slot": 2,
+        "move_id": 52,
+        "pp": 20,
+        "type": "FIRE",
+        "power": 40,
+        "effectiveness": 2.0,
+        "stab": 1.5,
+        "score": 120.0
+      },
+      "pokeballs": 8,
+      "collector": 55,
+      "meta_score": 85,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785960415.362911,
+    "step": 393,
+    "journey_step": 394,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      9
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "AARON-1785960242:405:map_transition:1785960419829799000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
     "type": "map_transition",
     "data": {
-      "from_map_id": 1,
-      "from_map_name": "Viridian City",
-      "to_map_id": 42,
-      "to_map_name": "Pokemart Viridian",
+      "from_map_id": 51,
+      "from_map_name": "Viridian Forest",
+      "to_map_id": 47,
+      "to_map_name": "Route 2 Gate Pewter",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785958765.956544,
-    "step": 686,
-    "journey_step": 686,
-    "map_id": 42,
-    "map_name": "Pokemart Viridian",
+    "timestamp": 1785960419.829802,
+    "step": 405,
+    "journey_step": 405,
+    "map_id": 47,
+    "map_name": "Route 2 Gate Pewter",
     "coords": [
-      29,
-      19
+      1,
+      0
     ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "BARON-1785960243:405:map_transition:1785960419938446000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 51,
+      "from_map_name": "Viridian Forest",
+      "to_map_id": 47,
+      "to_map_name": "Route 2 Gate Pewter",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785960419.938447,
+    "step": 405,
+    "journey_step": 405,
+    "map_id": 47,
+    "map_name": "Route 2 Gate Pewter",
+    "coords": [
+      1,
+      0
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785960242:415:map_transition:1785960424143595000",
+    "agent": "AARON",
+    "run_id": "AARON-1785960242",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 47,
+      "from_map_name": "Route 2 Gate Pewter",
+      "to_map_id": 13,
+      "to_map_name": "Route 2",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785960424.143596,
+    "step": 415,
+    "journey_step": 415,
+    "map_id": 13,
+    "map_name": "Route 2",
+    "coords": [
+      5,
+      0
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "BARON-1785960243:415:map_transition:1785960424246663000",
+    "agent": "BARON",
+    "run_id": "BARON-1785960243",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 47,
+      "from_map_name": "Route 2 Gate Pewter",
+      "to_map_id": 13,
+      "to_map_name": "Route 2",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785960424.246664,
+    "step": 415,
+    "journey_step": 415,
+    "map_id": 13,
+    "map_name": "Route 2",
+    "coords": [
+      5,
+      0
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:440:battle_end:1785960435299608000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_end",
+    "data": {
+      "type": "wild",
+      "result": "win",
+      "enemy_id": 123,
+      "active_pokemon": 176,
+      "player_hp_at_end": 32,
+      "battle_map_id": 51,
+      "end_map_id": 51
+    },
+    "timestamp": 1785960435.2996101,
+    "step": 440,
+    "journey_step": 440,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      9
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:440:battle_win:1785960435306260000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "battle_win",
+    "data": {
+      "type": "wild",
+      "enemy_id": 123,
+      "total_trainer_wins": 0,
+      "total_wild_wins": 5
+    },
+    "timestamp": 1785960435.306262,
+    "step": 440,
+    "journey_step": 440,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      9
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:440:capture_outcome:1785960435312399000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "capture_outcome",
+    "data": {
+      "intent": "defeat",
+      "reason_code": "off_theme_species",
+      "reason": "time tem\u00e1tico de dragon/fire: bug n\u00e3o entra",
+      "outcome": "defeated",
+      "enemy_species_id": 10,
+      "enemy_level": 3,
+      "balls_thrown": 0,
+      "pokeballs": 8,
+      "shiny_candidate": false,
+      "party": [
+        {
+          "species_id": 4,
+          "internal_id": 176,
+          "id": 4,
+          "level": 11,
+          "hp": 32,
+          "max_hp": 32,
+          "moves": [
+            {
+              "id": 10,
+              "pp": 35
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 52,
+              "pp": 19
+            }
+          ]
+        }
+      ],
+      "party_size": 1
+    },
+    "timestamp": 1785960435.3124008,
+    "step": 440,
+    "journey_step": 440,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      9
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "CARON-1785960243:449:level_up:1785960439058654000",
+    "agent": "CARON",
+    "run_id": "CARON-1785960243",
+    "type": "level_up",
+    "data": {
+      "pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 9,
+        "hp": 23,
+        "max_hp": 29,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 30
+          }
+        ]
+      },
+      "old_level": 8,
+      "new_level": 9,
+      "training_target": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 9,
+        "hp": 23,
+        "max_hp": 29,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 39,
+            "pp": 30
+          },
+          {
+            "id": 145,
+            "pp": 30
+          }
+        ]
+      },
+      "reason": "ganhou experi\u00eancia enquanto estava ativo"
+    },
+    "timestamp": 1785960439.058657,
+    "step": 449,
+    "journey_step": 449,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      1,
+      18
+    ],
+    "task": "QUEST: VIRIDIAN_FOREST_NAV",
+    "milestone": "viridian_forest_nav",
+    "live": true
+  },
+  {
+    "id": "DARON-1785960243:451:map_transition:1785960440003343000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 51,
+      "from_map_name": "Viridian Forest",
+      "to_map_id": 47,
+      "to_map_name": "Route 2 Gate Pewter",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785960440.0033438,
+    "step": 451,
+    "journey_step": 451,
+    "map_id": 47,
+    "map_name": "Route 2 Gate Pewter",
+    "coords": [
+      1,
+      0
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "DARON-1785960243:461:map_transition:1785960444274655000",
+    "agent": "DARON",
+    "run_id": "DARON-1785960243",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 47,
+      "from_map_name": "Route 2 Gate Pewter",
+      "to_map_id": 13,
+      "to_map_name": "Route 2",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785960444.274656,
+    "step": 461,
+    "journey_step": 461,
+    "map_id": 13,
+    "map_name": "Route 2",
+    "coords": [
+      5,
+      0
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   }
 ]

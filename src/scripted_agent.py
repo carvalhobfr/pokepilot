@@ -15,6 +15,10 @@ from src.collision_memory import DIRECTIONS, CollisionMemory
 # menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
 MENU_PRESS_LIMIT = 12
 
+# How far south to aim when leaving a map whose door was never observed. Kanto
+# interiors are small; this clears any of them.
+BLIND_EXIT_REACH = 10
+
 # Learned walls live with the rest of the map knowledge, not inside a trainer:
 # geometry is the same for everyone who walks it.
 SHARED_COLLISION_PATH = (
@@ -910,6 +914,11 @@ class ScriptedAgent(BaseAgent):
 
         if not has_parcel:
             routes = {
+                # Antes do primeiro Centro Pokémon, o whiteout devolve o bot
+                # para a casa da mãe. Nenhum executor conhecia esses dois
+                # mapas, e três treinadores ficaram parados na sala apertando A.
+                38: [(7, 1), (7, 7), (2, 7), (2, 8)],
+                37: [(2, 7), (2, 8)],
                 0: [(9, 12), (9, 2), (10, 2), (10, -1)],
                 12: [
                     (10, 30), (8, 30), (8, 24), (12, 24), (12, 20),
@@ -923,6 +932,8 @@ class ScriptedAgent(BaseAgent):
                 return self._follow_route(f"parcel-outbound-{map_id}", route)
         else:
             routes = {
+                38: [(7, 1), (7, 7), (2, 7), (2, 8)],
+                37: [(2, 7), (2, 8)],
                 42: [(3, 5), (3, 8)],
                 1: [(29, 21), (26, 21), (26, 30), (20, 30), (20, 36)],
                 12: [
@@ -935,9 +946,10 @@ class ScriptedAgent(BaseAgent):
             if route:
                 return self._follow_route(f"parcel-return-{map_id}", route)
 
-        # A transition or story textbox can temporarily expose a map before
-        # its coordinates settle. A advances text; the next frame re-routes.
-        return WindowEvent.PRESS_BUTTON_A
+        # A transition or story textbox can temporarily expose a map before its
+        # coordinates settle, and a whiteout can drop the run into a map this
+        # quest never planned for. Walking out beats pressing A forever.
+        return self._leave_unknown_map()
 
     # One ball is enough to satisfy the story predicate but not enough to build
     # a team: the first failed throw leaves the bot unable to catch anything for
@@ -965,6 +977,8 @@ class ScriptedAgent(BaseAgent):
             return None
 
         routes = {
+            38: [(7, 1), (7, 7), (2, 7), (2, 8)],
+            37: [(2, 7), (2, 8)],
             # After delivering the parcel the player is above Oak at (5, 1).
             # Walk around him; moving straight down only reopens his dialogue.
             40: [(4, 1), (4, 3), (5, 3), (5, 12)],
@@ -979,7 +993,11 @@ class ScriptedAgent(BaseAgent):
             return self._follow_route(f"buy-balls-{map_id}", routes[map_id])
 
         if map_id != 42:
-            return WindowEvent.PRESS_BUTTON_A
+            # A whiteout before the first Pokémon Center sends the run back to
+            # its mother's house, a map this quest never planned for. Three
+            # trainers stood in that living room pressing A while the fourth
+            # walked to Pewter.
+            return self._leave_unknown_map()
 
         position = self.emulator.memory.get_player_pos()
         if position != (2, 5):
@@ -1834,10 +1852,13 @@ class ScriptedAgent(BaseAgent):
         map_id = int(self.emulator.memory.get_map_id())
         entry = getattr(self, "map_entry_tiles", {}).get(map_id)
         if entry is None:
-            # Never saw the transition (a resumed save, a whiteout warp). House
-            # doors are on the south edge, so down is the best blind guess.
-            self.last_action_was_move = True
-            return WindowEvent.PRESS_ARROW_DOWN
+            # Never saw the transition — a resumed save, or the whiteout warp
+            # that drops a run at its mother's house. Head for the south edge,
+            # where interior doors are, but through the route machinery: a
+            # blind DOWN press against a wall repeats forever and teaches
+            # nothing, while a route learns the wall and plans around it.
+            x, y = self.emulator.memory.get_player_pos()
+            return self._follow_route(f"exit-{map_id}", [(x, y + BLIND_EXIT_REACH)])
 
         entry_x, entry_y, entry_direction = entry
         if (self.emulator.memory.get_player_pos()) != (entry_x, entry_y):
@@ -1866,9 +1887,17 @@ class ScriptedAgent(BaseAgent):
 
     def _plan_route(self, map_id, start, goal):
         """Breadth-first plan plus the tile → step index it passes through."""
-        directions = self._collision_memory().find_path(
-            map_id, start, goal, avoid=getattr(self, "route_suspect", set())
-        )
+        memory = self._collision_memory()
+        suspect = getattr(self, "route_suspect", set())
+        directions = memory.find_path(map_id, start, goal, avoid=suspect)
+        if directions is None:
+            # Unreachable according to what we believe — so stop believing it.
+            # A wrong wall is invisible: the search never goes there again, and
+            # an edge is only forgiven by being crossed. A bot walked every
+            # corner of Pewter Gym and skipped the one that was the door,
+            # because that door had once been learned as a wall. Going to look
+            # costs a few steps; trusting a bad map costs the run.
+            directions = memory.find_path(map_id, start, goal, avoid=suspect, relax=True)
         if not directions:
             return None
         index = {start: 0}
