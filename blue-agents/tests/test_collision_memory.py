@@ -12,6 +12,7 @@ if PROJECT_ROOT not in sys.path:
 
 from src.collision_memory import CollisionMemory
 from src.scripted_agent import ScriptedAgent
+from src.warp_memory import WarpMemory
 
 
 class FakeWorldMemory:
@@ -114,6 +115,49 @@ class CollisionMemoryTests(unittest.TestCase):
             path = Path(directory) / "collision.json"
             path.write_text("{not json")
             self.assertEqual(set(), CollisionMemory(path).blocked)
+
+
+class WarpMemoryTests(unittest.TestCase):
+    """A door is the cheapest fact in this project: the tile the bot stood on
+    when the map id changed. Executors were carrying those by hand, and a bot
+    that lost its route circled a building whose entrance it had used an hour
+    before.
+    """
+
+    def test_a_door_is_remembered_and_found_again(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "warps.json"
+            memory = WarpMemory(path)
+            memory.record(2, 16, 17, 54)   # porta do ginásio de Pewter
+            memory.record(2, 33, 15, 14)   # saída leste para a Rota 3
+            self.assertEqual((16, 17), memory.door_to(2, 54))
+            self.assertEqual((33, 15), memory.door_to(2, 14))
+            self.assertIsNone(memory.door_to(2, 99))
+
+    def test_doors_are_shared_between_trainers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "warps.json"
+            WarpMemory(path).record(2, 16, 17, 54)
+            other = WarpMemory(path)
+            self.assertEqual((16, 17), other.door_to(2, 54))
+            other.record(2, 5, 5, 41)
+            self.assertEqual(
+                (16, 17), WarpMemory(path).door_to(2, 54),
+                "gravar uma porta não pode apagar a do outro treinador",
+            )
+
+    def test_the_nearest_door_is_the_one_offered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            memory = WarpMemory(Path(directory) / "warps.json")
+            memory.record(2, 4, 4, 41)
+            memory.record(2, 30, 30, 41)
+            self.assertEqual((30, 30), memory.door_to(2, 41, near=(28, 28)))
+
+    def test_an_unreadable_file_is_not_a_crash(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "warps.json"
+            path.write_text("{quebrado")
+            self.assertEqual({}, WarpMemory(path).doors)
 
 
 class LedgeWorldMemory(FakeWorldMemory):

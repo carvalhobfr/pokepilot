@@ -10,6 +10,7 @@ from src.llm_agent import LLMAgent
 from src.navigation import Navigation
 from src.exploration_tracker import ExplorationTracker
 from src.collision_memory import DIRECTIONS, CollisionMemory
+from src.warp_memory import WarpMemory
 
 # How many A presses a route spends on a dialogue before it walks anyway. The
 # menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
@@ -28,6 +29,13 @@ STUCK_TILE_AMNESTY_CYCLES = 6
 SHARED_COLLISION_PATH = (
     Path(__file__).resolve().parents[1]
     / "blue-agents" / "knowledge" / "maps" / "collision.json"
+)
+
+# Doors already had a home in the knowledge directory; only free exploration
+# ever wrote to it, and the scripted journey never read it.
+SHARED_WARP_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "blue-agents" / "knowledge" / "maps" / "warps.json"
 )
 
 OPPOSITE_DIRECTIONS = {"U": "D", "D": "U", "L": "R", "R": "L"}
@@ -1684,6 +1692,12 @@ class ScriptedAgent(BaseAgent):
             if not hasattr(self, "map_entry_tiles"):
                 self.map_entry_tiles = {}
             self.map_entry_tiles[map_id] = (current_x, current_y, entry_direction)
+            # And the tile we left is the door itself, seen from the other side.
+            # Doors are the cheapest fact here to collect and the one every
+            # executor was carrying by hand.
+            self._warp_memory().record(
+                entry_position[0], entry_position[1], entry_position[2], map_id
+            )
         if changed_map and not getattr(self, "route_target_was_final", True):
             self._collision_memory().mark_blocked(
                 entry_position[0], entry_position[1], entry_position[2],
@@ -1877,6 +1891,18 @@ class ScriptedAgent(BaseAgent):
         opposite of the direction that walked in.
         """
         map_id = int(self.emulator.memory.get_map_id())
+        position = self.emulator.memory.get_player_pos()
+
+        # A door already walked through, by anyone, beats every guess below.
+        known = self._warp_memory().doors_from(map_id)
+        if known:
+            door = min(
+                known,
+                key=lambda tile: abs(tile[0] - position[0]) + abs(tile[1] - position[1]),
+            )
+            if tuple(position) != door:
+                return self._follow_route(f"door-{map_id}", [door])
+
         entry = getattr(self, "map_entry_tiles", {}).get(map_id)
         if entry is None:
             # Never saw the transition — a resumed save, or the whiteout warp
@@ -1892,6 +1918,14 @@ class ScriptedAgent(BaseAgent):
             return self._follow_route(f"leave-{map_id}", [(entry_x, entry_y)])
         self.last_action_was_move = True
         return ROUTE_EVENTS[OPPOSITE_DIRECTIONS[entry_direction]]
+
+    def _warp_memory(self):
+        """Doors shared by every trainer, beside the learned collision map."""
+        memory = getattr(self, "warp_memory", None)
+        if memory is None:
+            memory = WarpMemory(SHARED_WARP_PATH)
+            self.warp_memory = memory
+        return memory
 
     def _collision_memory(self):
         """Collision memory shared by every trainer.
