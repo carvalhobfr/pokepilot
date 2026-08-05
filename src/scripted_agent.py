@@ -22,6 +22,8 @@ SHARED_COLLISION_PATH = (
     / "blue-agents" / "knowledge" / "maps" / "collision.json"
 )
 
+OPPOSITE_DIRECTIONS = {"U": "D", "D": "U", "L": "R", "R": "L"}
+
 ROUTE_EVENTS = {
     "U": WindowEvent.PRESS_ARROW_UP,
     "D": WindowEvent.PRESS_ARROW_DOWN,
@@ -1090,7 +1092,7 @@ class ScriptedAgent(BaseAgent):
         route = routes.get(map_id)
         if route:
             return self._follow_route(f"route2-{map_id}", route)
-        return WindowEvent.PRESS_BUTTON_A
+        return self._leave_unknown_map()
 
     def _run_viridian_forest_nav(self):
         """Cross Viridian Forest and reach Pewter using collision-safe paths."""
@@ -1117,7 +1119,7 @@ class ScriptedAgent(BaseAgent):
         route = routes.get(map_id)
         if route:
             return self._follow_route(f"forest-{map_id}", route)
-        return WindowEvent.PRESS_BUTTON_A
+        return self._leave_unknown_map()
 
     def _run_pewter_city_nav(self):
         """Walk to Pewter's Gym, rebuilding the route after a whiteout."""
@@ -1170,7 +1172,7 @@ class ScriptedAgent(BaseAgent):
         route = recovery_routes.get(map_id)
         if route:
             return self._follow_route(f"pewter-recovery-{map_id}", route)
-        return WindowEvent.PRESS_BUTTON_A
+        return self._leave_unknown_map()
 
     def _run_brock_quest(self):
         """Approach Brock; battle inputs are owned by the battle controller."""
@@ -1365,7 +1367,7 @@ class ScriptedAgent(BaseAgent):
                 ],
             )
 
-        return WindowEvent.PRESS_BUTTON_A
+        return self._leave_unknown_map()
 
     def _run_pokemon_center(self, route_prefix, healed_attribute):
         """Register a city Center through its real nurse dialogue."""
@@ -1525,9 +1527,10 @@ class ScriptedAgent(BaseAgent):
                 [(1, 5), (4, 5), (4, 4)],
             )
 
-        # A whiteout can return to Cerulean Center; unknown transient maps are
-        # usually dialogue/cutscene states, where A is the safe progression.
-        return WindowEvent.PRESS_BUTTON_A
+        # A whiteout can return to Cerulean Center, and a bot can wander into
+        # any house on the way. An unknown map is not a cutscene to press
+        # through: walk back out of it and let the route resume outside.
+        return self._leave_unknown_map()
 
     def _run_cerulean_gym_quest(self):
         """Enter Cerulean Gym and defeat Misty after Bill is complete."""
@@ -1648,12 +1651,18 @@ class ScriptedAgent(BaseAgent):
         # resets the bookkeeping it depends on.
         entry_position = getattr(self, "route_last_position", None)
         entry_direction = getattr(self, "route_last_direction", None)
-        if (
+        changed_map = (
             entry_position is not None
             and entry_direction is not None
             and entry_position[0] != map_id
-            and not getattr(self, "route_target_was_final", True)
-        ):
+        )
+        if changed_map:
+            # The tile we land on is the door back out. Without it, a map with
+            # no route is a room with no handle on the inside.
+            if not hasattr(self, "map_entry_tiles"):
+                self.map_entry_tiles = {}
+            self.map_entry_tiles[map_id] = (current_x, current_y, entry_direction)
+        if changed_map and not getattr(self, "route_target_was_final", True):
             self._collision_memory().mark_blocked(
                 entry_position[0], entry_position[1], entry_position[2],
                 entry_direction,
@@ -1795,6 +1804,29 @@ class ScriptedAgent(BaseAgent):
             if target_y < previous_y:
                 return self._route_move("U")
         return None
+
+    def _leave_unknown_map(self):
+        """Walk back out of a map no executor has a route for.
+
+        Wandering into an interior used to be terminal: with no route for that
+        map the executor pressed A forever, and both bots sat inside the Mt.
+        Moon trader's house until someone noticed. The door is known, though —
+        the tile the bot appeared on when the map changed, exited by the
+        opposite of the direction that walked in.
+        """
+        map_id = int(self.emulator.memory.get_map_id())
+        entry = getattr(self, "map_entry_tiles", {}).get(map_id)
+        if entry is None:
+            # Never saw the transition (a resumed save, a whiteout warp). House
+            # doors are on the south edge, so down is the best blind guess.
+            self.last_action_was_move = True
+            return WindowEvent.PRESS_ARROW_DOWN
+
+        entry_x, entry_y, entry_direction = entry
+        if (self.emulator.memory.get_player_pos()) != (entry_x, entry_y):
+            return self._follow_route(f"leave-{map_id}", [(entry_x, entry_y)])
+        self.last_action_was_move = True
+        return ROUTE_EVENTS[OPPOSITE_DIRECTIONS[entry_direction]]
 
     def _collision_memory(self):
         """Collision memory shared by every trainer.

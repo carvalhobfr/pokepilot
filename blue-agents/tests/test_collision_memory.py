@@ -190,6 +190,38 @@ class RouteReplanningTests(unittest.TestCase):
             (10, 33), visited, "o plano não deve oscilar para trás do objetivo"
         )
 
+    def test_a_map_with_no_route_is_left_through_the_door_it_was_entered_by(self):
+        # Wandering into an interior used to be terminal: with no route for
+        # that map the executor pressed A forever, and both bots sat inside the
+        # Mt. Moon trader's house until someone noticed.
+        agent = self.make_agent((4, 4), map_id=59)
+        agent.route_id = "mt-moon-59"
+        agent.route_index = 0
+        agent.route_stuck_steps = 0
+        agent.route_last_position = (59, 4, 4)
+        agent.route_last_direction = "U"
+        agent.route_target_was_final = False
+        agent.memory_probe.map_id = 63
+        agent.memory_probe.position = (2, 7)
+        agent._follow_route("mt-moon-59", [(4, 2), (9, 2)])
+
+        # Standing on the door tile, the way out is the opposite of the step
+        # that walked in.
+        self.assertEqual(WindowEvent.PRESS_ARROW_DOWN, agent._leave_unknown_map())
+
+        # One tile away from it, walk back to the door first.
+        agent.memory_probe.position = (2, 5)
+        self.assertEqual(WindowEvent.PRESS_ARROW_DOWN, agent._leave_unknown_map())
+        agent.memory_probe.position = (5, 7)
+        self.assertEqual(WindowEvent.PRESS_ARROW_LEFT, agent._leave_unknown_map())
+
+    def test_an_unseen_interior_still_tries_the_south_door(self):
+        # A resumed save or a whiteout warp never showed the transition. House
+        # doors are on the south edge, so down is the best blind guess — and
+        # anything beats pressing A forever.
+        agent = self.make_agent((3, 4), map_id=63)
+        self.assertEqual(WindowEvent.PRESS_ARROW_DOWN, agent._leave_unknown_map())
+
     def test_a_ledge_jump_is_learned_because_it_is_not_a_single_step(self):
         agent = self.make_agent((10, 8))
         agent.memory_probe = LedgeWorldMemory((10, 8), ledges={(10, 8)})
