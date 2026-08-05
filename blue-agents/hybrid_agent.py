@@ -65,6 +65,12 @@ PARTY_TARGET = 6
 CAPTURE_HP_THRESHOLD = 0.5
 SELF_PRESERVATION_HP = 0.35
 
+# Above this gap the softening hit is a knockout, so softening never produces a
+# capture — it produces a corpse. Both are required: +6 levels matters at level
+# 10, the ratio is what still matters at level 30.
+OVERKILL_LEVEL_GAP = 6
+OVERKILL_LEVEL_RATIO = 1.6
+
 # Value reflects what the line *becomes*, not the form met in the grass:
 # Metapod is a bad Pokémon and a good catch because Butterfree carries Kanto's
 # opening hours. Anything absent defaults to 50.
@@ -1609,6 +1615,17 @@ class HybridGymEnv(RedGymEnv):
         own_hp = int(active.get("hp") or 0)
         own_hp_fraction = (own_hp / own_max_hp) if own_max_hp else 1.0
 
+        # "Soften first" assumes a hit leaves the target alive. Against a wild
+        # Pokémon far below the active's level it is a knockout, so the ball is
+        # never thrown at all: two trainers walked from Pewter to Mt. Moon with
+        # a single Pokémon and `soften_before_capture` on every encounter. When
+        # the hit would end the battle, a throw at full health — poor odds and
+        # all — is the only throw that will ever happen.
+        active_level = int(active.get("level") or 0)
+        overkill_risk = bool(enemy_level) and active_level >= max(
+            enemy_level + OVERKILL_LEVEL_GAP, int(enemy_level * OVERKILL_LEVEL_RATIO)
+        )
+
         # An empty bench is itself a weakness. Judging every wild encounter only
         # by level made a single strong starter reject everything in the early
         # routes, so the team never grew past one Pokémon.
@@ -1630,6 +1647,8 @@ class HybridGymEnv(RedGymEnv):
             "already_in_party": species_id in party_species,
             "enemy_hp_fraction": round(enemy_hp_fraction, 3),
             "own_hp_fraction": round(own_hp_fraction, 3),
+            "active_level": active_level,
+            "overkill_risk": overkill_risk,
         }
 
     def get_journey_snapshot(self):
@@ -2000,7 +2019,9 @@ class HybridGymEnv(RedGymEnv):
 
         # Gen I catch rates scale with missing HP. Throwing at full health is
         # close to a wasted ball and gives the wild Pokémon a free turn.
-        if quality["enemy_hp_fraction"] > CAPTURE_HP_THRESHOLD:
+        if quality["enemy_hp_fraction"] > CAPTURE_HP_THRESHOLD and not quality[
+            "overkill_risk"
+        ]:
             return decision(
                 "defeat", "soften_before_capture", "capture_setup",
                 (

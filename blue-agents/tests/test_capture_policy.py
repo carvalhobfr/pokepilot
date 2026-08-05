@@ -26,14 +26,16 @@ class CapturePolicyTests(unittest.TestCase):
 
     @staticmethod
     def encounter(species=25, level=5, shiny=False, enemy_hp=1, enemy_max_hp=10,
-                  own_hp=10, own_max_hp=10):
+                  own_hp=10, own_max_hp=10, own_level=0):
         return {
             "enemy_species_id": species,
             "enemy_level": level,
             "shiny_candidate": shiny,
             "enemy_hp": enemy_hp,
             "enemy_max_hp": enemy_max_hp,
-            "active_pokemon": {"hp": own_hp, "max_hp": own_max_hp},
+            "active_pokemon": {
+                "hp": own_hp, "max_hp": own_max_hp, "level": own_level,
+            },
         }
 
     def test_full_health_target_is_softened_before_spending_a_ball(self):
@@ -46,6 +48,35 @@ class CapturePolicyTests(unittest.TestCase):
             self.encounter(species=14, enemy_hp=17, enemy_max_hp=17)
         )
         self.assertEqual("defeat", decision["choice"])
+        self.assertEqual("soften_before_capture", decision["reason_code"])
+
+    def test_overkill_throws_at_full_health_because_softening_would_kill(self):
+        # BARON and CARON walked from Pewter to Mt. Moon with a single Pokémon,
+        # every encounter logged as soften_before_capture: at level 18 against a
+        # level 8 wild, the softening hit is a knockout and the ball is never
+        # thrown. Bad odds beat no throw at all.
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 18}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(
+                species=41, level=8, enemy_hp=25, enemy_max_hp=25, own_level=18,
+            )
+        )
+        self.assertEqual("capture", decision["choice"])
+        self.assertNotEqual("soften_before_capture", decision["reason_code"])
+
+    def test_an_even_match_is_still_softened_first(self):
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 9}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(
+                species=41, level=8, enemy_hp=25, enemy_max_hp=25, own_level=9,
+            )
+        )
         self.assertEqual("soften_before_capture", decision["reason_code"])
 
     def test_weakened_target_is_captured(self):
