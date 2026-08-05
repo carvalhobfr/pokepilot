@@ -35,7 +35,13 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
-from area_knowledge import area_coverage, area_target, encounter_chance, is_rare_here
+from area_knowledge import (
+    area_coverage,
+    area_target,
+    encounter_chance,
+    is_rare_here,
+    species_types,
+)
 from archetypes import (
     DEFAULT_ARCHETYPE,
     MINIMUM_BACKUP_PARTY,
@@ -2145,7 +2151,7 @@ class HybridGymEnv(RedGymEnv):
                         "Pokémon comum não paga os turnos da captura"
                     ),
                 )
-        if stance in ("every_new_species", "first_of_each_area"):
+        if stance in ("every_new_species", "preferred_types"):
             # A 5% Pikachu is not the same encounter as a 45% Caterpie, and no
             # quota should be allowed to skip it. This is the rule that decides
             # whether a run ends with the Pokémon its areas are remembered for.
@@ -2161,22 +2167,31 @@ class HybridGymEnv(RedGymEnv):
                     ),
                 )
 
-        if stance == "first_of_each_area":
-            # Nuzlocke: one Pokémon per area, whichever shows up first. Owning
-            # anything from this area already answers the question.
-            coverage = self._area_coverage()
-            if coverage is None or coverage["owned"] == 0:
+        if stance == "preferred_types":
+            # A themed team is a constraint, not a preference: anything off
+            # theme is experience, never a party slot. Kanto punishes fire and
+            # dragon early on purpose — Brock and Misty come first, and Dratini
+            # is a long way off — which is exactly what makes it worth watching.
+            wanted = set(get_archetype(getattr(self, "archetype", None)).get(
+                "preferred_types", ()
+            ))
+            types = species_types(quality_species_id)
+            if wanted and types and not (types & wanted):
                 return decision(
-                    "capture", "first_of_this_area", "collector",
-                    "regra da área: o primeiro encontro novo daqui é o escolhido",
+                    "defeat", "off_theme_species", "team_building",
+                    (
+                        f"time temático de {'/'.join(sorted(wanted))}: "
+                        f"{'/'.join(sorted(types))} não entra"
+                    ),
                 )
-            return decision(
-                "defeat", "area_already_claimed", "collector",
-                (
-                    "regra da área: esta já tem o Pokémon dela "
-                    f"({coverage['owned']}/{coverage['total']} registrados)"
-                ),
-            )
+            if wanted and types:
+                return decision(
+                    "capture", "on_theme_species", "team_building",
+                    (
+                        f"{'/'.join(sorted(types))} serve ao time temático de "
+                        f"{'/'.join(sorted(wanted))}"
+                    ),
+                )
 
         if stance == "every_new_species":
             # Everything the run can currently meet — the coverage above only

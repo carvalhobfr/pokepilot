@@ -1,8 +1,8 @@
 [
   {
-    "id": "EARON-1785953262:140:map_transition:1785953265063064000",
-    "agent": "EARON",
-    "run_id": "EARON-1785953262",
+    "id": "AARON-1785954227:534:map_transition:1785954454427566000",
+    "agent": "AARON",
+    "run_id": "AARON-1785954227",
     "type": "map_transition",
     "data": {
       "from_map_id": 0,
@@ -11,9 +11,9 @@
       "to_map_name": "Oaks Lab",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785953265.063065,
-    "step": 140,
-    "journey_step": 140,
+    "timestamp": 1785954454.4275682,
+    "step": 534,
+    "journey_step": 534,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
@@ -25,9 +25,9 @@
     "live": false
   },
   {
-    "id": "KARON-1785953262:140:map_transition:1785953265075032000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953262",
+    "id": "BARON-1785954227:570:map_transition:1785954469739038000",
+    "agent": "BARON",
+    "run_id": "BARON-1785954227",
     "type": "map_transition",
     "data": {
       "from_map_id": 0,
@@ -36,9 +36,9 @@
       "to_map_name": "Oaks Lab",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785953265.0750332,
-    "step": 140,
-    "journey_step": 140,
+    "timestamp": 1785954469.739048,
+    "step": 570,
+    "journey_step": 570,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
@@ -50,84 +50,9 @@
     "live": false
   },
   {
-    "id": "LARON-1785953262:140:map_transition:1785953265079424000",
-    "agent": "LARON",
-    "run_id": "LARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 40,
-      "to_map_name": "Oaks Lab",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953265.079425,
-    "step": 140,
-    "journey_step": 140,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      12,
-      11
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "QARON-1785953262:140:map_transition:1785953265083469000",
-    "agent": "QARON",
-    "run_id": "QARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 40,
-      "to_map_name": "Oaks Lab",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953265.08347,
-    "step": 140,
-    "journey_step": 140,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      12,
-      11
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "RARON-1785953262:140:map_transition:1785953265088150000",
-    "agent": "RARON",
-    "run_id": "RARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 40,
-      "to_map_name": "Oaks Lab",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953265.088151,
-    "step": 140,
-    "journey_step": 140,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      12,
-      11
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "DARON-1785953261:208:quest_advanced:1785953266585300000",
-    "agent": "DARON",
-    "run_id": "DARON-1785953261",
+    "id": "AARON-1785954227:602:quest_advanced:1785954483523504000",
+    "agent": "AARON",
+    "run_id": "AARON-1785954227",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": "start",
@@ -138,9 +63,9 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785953266.585301,
-    "step": 208,
-    "journey_step": 209,
+    "timestamp": 1785954483.5235069,
+    "step": 602,
+    "journey_step": 603,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
@@ -152,18 +77,18 @@
     "live": true
   },
   {
-    "id": "DARON-1785953261:209:objective_changed:1785953266589292000",
-    "agent": "DARON",
-    "run_id": "DARON-1785953261",
+    "id": "AARON-1785954227:603:objective_changed:1785954483533894000",
+    "agent": "AARON",
+    "run_id": "AARON-1785954227",
     "type": "objective_changed",
     "data": {
       "from": "QUEST: START",
       "to": "QUEST: OAK_EVENT",
       "reason": "controlador mudou o objetivo da jornada"
     },
-    "timestamp": 1785953266.589293,
-    "step": 209,
-    "journey_step": 209,
+    "timestamp": 1785954483.533896,
+    "step": 603,
+    "journey_step": 603,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
@@ -175,419 +100,9 @@
     "live": true
   },
   {
-    "id": "EARON-1785953262:208:quest_advanced:1785953266591646000",
-    "agent": "EARON",
-    "run_id": "EARON-1785953262",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "start",
-      "to_quest_id": "oak_event",
-      "title": "Escolher o starter e concluir a primeira batalha com o rival",
-      "completed_nodes": [
-        "start"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785953266.591646,
-    "step": 208,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      3
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "EARON-1785953262:209:objective_changed:1785953266595087000",
-    "agent": "EARON",
-    "run_id": "EARON-1785953262",
-    "type": "objective_changed",
-    "data": {
-      "from": "QUEST: START",
-      "to": "QUEST: OAK_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785953266.595087,
-    "step": 209,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953262:208:quest_advanced:1785953266599237000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953262",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "start",
-      "to_quest_id": "oak_event",
-      "title": "Escolher o starter e concluir a primeira batalha com o rival",
-      "completed_nodes": [
-        "start"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785953266.5992372,
-    "step": 208,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      3
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953262:209:objective_changed:1785953266602660000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953262",
-    "type": "objective_changed",
-    "data": {
-      "from": "QUEST: START",
-      "to": "QUEST: OAK_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785953266.6026611,
-    "step": 209,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "LARON-1785953262:208:quest_advanced:1785953266605059000",
-    "agent": "LARON",
-    "run_id": "LARON-1785953262",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "start",
-      "to_quest_id": "oak_event",
-      "title": "Escolher o starter e concluir a primeira batalha com o rival",
-      "completed_nodes": [
-        "start"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785953266.60506,
-    "step": 208,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      3
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "LARON-1785953262:209:objective_changed:1785953266608417000",
-    "agent": "LARON",
-    "run_id": "LARON-1785953262",
-    "type": "objective_changed",
-    "data": {
-      "from": "QUEST: START",
-      "to": "QUEST: OAK_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785953266.608418,
-    "step": 209,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "QARON-1785953262:208:quest_advanced:1785953266610747000",
-    "agent": "QARON",
-    "run_id": "QARON-1785953262",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "start",
-      "to_quest_id": "oak_event",
-      "title": "Escolher o starter e concluir a primeira batalha com o rival",
-      "completed_nodes": [
-        "start"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785953266.6107478,
-    "step": 208,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      3
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "QARON-1785953262:209:objective_changed:1785953266615532000",
-    "agent": "QARON",
-    "run_id": "QARON-1785953262",
-    "type": "objective_changed",
-    "data": {
-      "from": "QUEST: START",
-      "to": "QUEST: OAK_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785953266.615533,
-    "step": 209,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "RARON-1785953262:208:quest_advanced:1785953266619778000",
-    "agent": "RARON",
-    "run_id": "RARON-1785953262",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "start",
-      "to_quest_id": "oak_event",
-      "title": "Escolher o starter e concluir a primeira batalha com o rival",
-      "completed_nodes": [
-        "start"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785953266.619779,
-    "step": 208,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      3
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "RARON-1785953262:209:objective_changed:1785953266624455000",
-    "agent": "RARON",
-    "run_id": "RARON-1785953262",
-    "type": "objective_changed",
-    "data": {
-      "from": "QUEST: START",
-      "to": "QUEST: OAK_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785953266.624456,
-    "step": 209,
-    "journey_step": 209,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "EARON-1785953262:241:starter_selected:1785953267121807000",
-    "agent": "EARON",
-    "run_id": "EARON-1785953262",
-    "type": "starter_selected",
-    "data": {
-      "pokemon": {
-        "species_id": 4,
-        "internal_id": 176,
-        "id": 4,
-        "level": 5,
-        "hp": 19,
-        "max_hp": 19,
-        "moves": [
-          {
-            "id": 10,
-            "pp": 35
-          },
-          {
-            "id": 45,
-            "pp": 40
-          }
-        ]
-      },
-      "decision": "starter_confirmed",
-      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
-    },
-    "timestamp": 1785953267.121809,
-    "step": 241,
-    "journey_step": 241,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      6,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "QARON-1785953262:241:starter_selected:1785953267163857000",
-    "agent": "QARON",
-    "run_id": "QARON-1785953262",
-    "type": "starter_selected",
-    "data": {
-      "pokemon": {
-        "species_id": 4,
-        "internal_id": 176,
-        "id": 4,
-        "level": 5,
-        "hp": 19,
-        "max_hp": 19,
-        "moves": [
-          {
-            "id": 10,
-            "pp": 35
-          },
-          {
-            "id": 45,
-            "pp": 40
-          }
-        ]
-      },
-      "decision": "starter_confirmed",
-      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
-    },
-    "timestamp": 1785953267.163859,
-    "step": 241,
-    "journey_step": 241,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      6,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953262:242:starter_selected:1785953267228405000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953262",
-    "type": "starter_selected",
-    "data": {
-      "pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
-        "level": 5,
-        "hp": 20,
-        "max_hp": 20,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 35
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ]
-      },
-      "decision": "starter_confirmed",
-      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
-    },
-    "timestamp": 1785953267.2284071,
-    "step": 242,
-    "journey_step": 242,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      7,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "RARON-1785953262:242:starter_selected:1785953267257602000",
-    "agent": "RARON",
-    "run_id": "RARON-1785953262",
-    "type": "starter_selected",
-    "data": {
-      "pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
-        "level": 5,
-        "hp": 20,
-        "max_hp": 20,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 35
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ]
-      },
-      "decision": "starter_confirmed",
-      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
-    },
-    "timestamp": 1785953267.2576032,
-    "step": 242,
-    "journey_step": 242,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      7,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "DARON-1785953261:243:starter_selected:1785953267265272000",
-    "agent": "DARON",
-    "run_id": "DARON-1785953261",
+    "id": "AARON-1785954227:637:starter_selected:1785954497867409000",
+    "agent": "AARON",
+    "run_id": "AARON-1785954227",
     "type": "starter_selected",
     "data": {
       "pokemon": {
@@ -611,9 +126,9 @@
       "decision": "starter_confirmed",
       "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
     },
-    "timestamp": 1785953267.265273,
-    "step": 243,
-    "journey_step": 243,
+    "timestamp": 1785954497.8674119,
+    "step": 637,
+    "journey_step": 637,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
@@ -625,9 +140,729 @@
     "live": true
   },
   {
-    "id": "LARON-1785953262:243:starter_selected:1785953267295111000",
-    "agent": "LARON",
-    "run_id": "LARON-1785953262",
+    "id": "BARON-1785954227:638:quest_advanced:1785954498802996000",
+    "agent": "BARON",
+    "run_id": "BARON-1785954227",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": "start",
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785954498.802998,
+    "step": 638,
+    "journey_step": 639,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      3
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785954227:639:objective_changed:1785954498813191000",
+    "agent": "BARON",
+    "run_id": "BARON-1785954227",
+    "type": "objective_changed",
+    "data": {
+      "from": "QUEST: START",
+      "to": "QUEST: OAK_EVENT",
+      "reason": "controlador mudou o objetivo da jornada"
+    },
+    "timestamp": 1785954498.813194,
+    "step": 639,
+    "journey_step": 639,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785954227:671:starter_selected:1785954512296794000",
+    "agent": "BARON",
+    "run_id": "BARON-1785954227",
+    "type": "starter_selected",
+    "data": {
+      "pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "id": 4,
+        "level": 5,
+        "hp": 18,
+        "max_hp": 18,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "decision": "starter_confirmed",
+      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
+    },
+    "timestamp": 1785954512.2967958,
+    "step": 671,
+    "journey_step": 671,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      6,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "AARON-1785957608:0:quest_advanced:1785957608417332000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "start",
+      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
+      "completed_nodes": [],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957608.417334,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 38,
+    "map_name": "Players House Second Floor",
+    "coords": [
+      3,
+      6
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": true
+  },
+  {
+    "id": "BARON-1785957608:0:quest_advanced:1785957608441707000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "start",
+      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
+      "completed_nodes": [],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957608.441708,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 38,
+    "map_name": "Players House Second Floor",
+    "coords": [
+      3,
+      6
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": true
+  },
+  {
+    "id": "CARON-1785957608:0:quest_advanced:1785957608466384000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "start",
+      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
+      "completed_nodes": [],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957608.466385,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 38,
+    "map_name": "Players House Second Floor",
+    "coords": [
+      3,
+      6
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": true
+  },
+  {
+    "id": "DARON-1785957608:0:quest_advanced:1785957608492900000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "start",
+      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
+      "completed_nodes": [],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957608.492901,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 38,
+    "map_name": "Players House Second Floor",
+    "coords": [
+      3,
+      6
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": true
+  },
+  {
+    "id": "CARON-1785957608:110:map_transition:1785957610517366000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 38,
+      "from_map_name": "Players House Second Floor",
+      "to_map_id": 37,
+      "to_map_name": "Players House First Floor",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957610.5173671,
+    "step": 110,
+    "journey_step": 110,
+    "map_id": 37,
+    "map_name": "Players House First Floor",
+    "coords": [
+      7,
+      1
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "CARON-1785957608:124:map_transition:1785957610626686000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 37,
+      "from_map_name": "Players House First Floor",
+      "to_map_id": 0,
+      "to_map_name": "Pallet Town",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957610.626687,
+    "step": 124,
+    "journey_step": 124,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      3,
+      7
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "CARON-1785957608:181:map_transition:1785957611002210000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 0,
+      "from_map_name": "Pallet Town",
+      "to_map_id": 40,
+      "to_map_name": "Oaks Lab",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957611.002211,
+    "step": 181,
+    "journey_step": 181,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      12,
+      11
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "CARON-1785957608:249:quest_advanced:1785957611407769000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": "start",
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957611.4077702,
+    "step": 249,
+    "journey_step": 250,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      3
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "CARON-1785957608:250:objective_changed:1785957611411414000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "objective_changed",
+    "data": {
+      "from": "QUEST: START",
+      "to": "QUEST: OAK_EVENT",
+      "reason": "controlador mudou o objetivo da jornada"
+    },
+    "timestamp": 1785957611.411414,
+    "step": 250,
+    "journey_step": 250,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "CARON-1785957608:283:starter_selected:1785957611608600000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957608",
+    "type": "starter_selected",
+    "data": {
+      "pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 5,
+        "hp": 20,
+        "max_hp": 20,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 35
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ]
+      },
+      "decision": "starter_confirmed",
+      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
+    },
+    "timestamp": 1785957611.608601,
+    "step": 283,
+    "journey_step": 283,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      7,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "DARON-1785957608:334:map_transition:1785957611988484000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 38,
+      "from_map_name": "Players House Second Floor",
+      "to_map_id": 37,
+      "to_map_name": "Players House First Floor",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957611.988485,
+    "step": 334,
+    "journey_step": 334,
+    "map_id": 37,
+    "map_name": "Players House First Floor",
+    "coords": [
+      7,
+      1
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "DARON-1785957608:348:map_transition:1785957612097757000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 37,
+      "from_map_name": "Players House First Floor",
+      "to_map_id": 0,
+      "to_map_name": "Pallet Town",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957612.097758,
+    "step": 348,
+    "journey_step": 348,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      3,
+      7
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "DARON-1785957608:405:map_transition:1785957612527979000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 0,
+      "from_map_name": "Pallet Town",
+      "to_map_id": 40,
+      "to_map_name": "Oaks Lab",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957612.52798,
+    "step": 405,
+    "journey_step": 405,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      12,
+      11
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "AARON-1785957608:463:map_transition:1785957612972296000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 38,
+      "from_map_name": "Players House Second Floor",
+      "to_map_id": 37,
+      "to_map_name": "Players House First Floor",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957612.972297,
+    "step": 463,
+    "journey_step": 463,
+    "map_id": 37,
+    "map_name": "Players House First Floor",
+    "coords": [
+      7,
+      1
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "DARON-1785957608:473:quest_advanced:1785957613069334000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": "start",
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957613.069335,
+    "step": 473,
+    "journey_step": 474,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      3
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "DARON-1785957608:474:objective_changed:1785957613072941000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "objective_changed",
+    "data": {
+      "from": "QUEST: START",
+      "to": "QUEST: OAK_EVENT",
+      "reason": "controlador mudou o objetivo da jornada"
+    },
+    "timestamp": 1785957613.072941,
+    "step": 474,
+    "journey_step": 474,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "AARON-1785957608:477:map_transition:1785957613096727000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 37,
+      "from_map_name": "Players House First Floor",
+      "to_map_id": 0,
+      "to_map_name": "Pallet Town",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957613.096728,
+    "step": 477,
+    "journey_step": 477,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      3,
+      7
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "BARON-1785957608:499:map_transition:1785957613296106000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 38,
+      "from_map_name": "Players House Second Floor",
+      "to_map_id": 37,
+      "to_map_name": "Players House First Floor",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957613.296106,
+    "step": 499,
+    "journey_step": 499,
+    "map_id": 37,
+    "map_name": "Players House First Floor",
+    "coords": [
+      7,
+      1
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "DARON-1785957608:506:starter_selected:1785957613381040000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957608",
+    "type": "starter_selected",
+    "data": {
+      "pokemon": {
+        "species_id": 4,
+        "internal_id": 176,
+        "id": 4,
+        "level": 5,
+        "hp": 19,
+        "max_hp": 19,
+        "moves": [
+          {
+            "id": 10,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "decision": "starter_confirmed",
+      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
+    },
+    "timestamp": 1785957613.38104,
+    "step": 506,
+    "journey_step": 506,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      6,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785957608:513:map_transition:1785957613474684000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 37,
+      "from_map_name": "Players House First Floor",
+      "to_map_id": 0,
+      "to_map_name": "Pallet Town",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957613.474685,
+    "step": 513,
+    "journey_step": 513,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      3,
+      7
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "AARON-1785957608:534:map_transition:1785957613679872000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 0,
+      "from_map_name": "Pallet Town",
+      "to_map_id": 40,
+      "to_map_name": "Oaks Lab",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957613.679873,
+    "step": 534,
+    "journey_step": 534,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      12,
+      11
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "BARON-1785957608:570:map_transition:1785957614071086000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 0,
+      "from_map_name": "Pallet Town",
+      "to_map_id": 40,
+      "to_map_name": "Oaks Lab",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785957614.071088,
+    "step": 570,
+    "journey_step": 570,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      12,
+      11
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "AARON-1785957608:602:quest_advanced:1785957614388219000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": "start",
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957614.3882198,
+    "step": 602,
+    "journey_step": 603,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      3
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "AARON-1785957608:603:objective_changed:1785957614391820000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
+    "type": "objective_changed",
+    "data": {
+      "from": "QUEST: START",
+      "to": "QUEST: OAK_EVENT",
+      "reason": "controlador mudou o objetivo da jornada"
+    },
+    "timestamp": 1785957614.3918211,
+    "step": 603,
+    "journey_step": 603,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "AARON-1785957608:637:starter_selected:1785957614701536000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957608",
     "type": "starter_selected",
     "data": {
       "pokemon": {
@@ -651,9 +886,9 @@
       "decision": "starter_confirmed",
       "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
     },
-    "timestamp": 1785953267.295112,
-    "step": 243,
-    "journey_step": 243,
+    "timestamp": 1785957614.7015371,
+    "step": 637,
+    "journey_step": 637,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
@@ -665,9 +900,99 @@
     "live": true
   },
   {
-    "id": "DARON-1785953585:0:quest_advanced:1785953585279353000",
-    "agent": "DARON",
-    "run_id": "DARON-1785953585",
+    "id": "BARON-1785957608:638:quest_advanced:1785957614743502000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": "start",
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957614.7435021,
+    "step": 638,
+    "journey_step": 639,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      3
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785957608:639:objective_changed:1785957614747350000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "objective_changed",
+    "data": {
+      "from": "QUEST: START",
+      "to": "QUEST: OAK_EVENT",
+      "reason": "controlador mudou o objetivo da jornada"
+    },
+    "timestamp": 1785957614.74735,
+    "step": 639,
+    "journey_step": 639,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785957608:673:starter_selected:1785957615099210000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957608",
+    "type": "starter_selected",
+    "data": {
+      "pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 5,
+        "hp": 20,
+        "max_hp": 20,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ]
+      },
+      "decision": "starter_confirmed",
+      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
+    },
+    "timestamp": 1785957615.09921,
+    "step": 673,
+    "journey_step": 673,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      8,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "AARON-1785957702:0:quest_advanced:1785957703003314000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957702",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -678,7 +1003,7 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785953585.279354,
+    "timestamp": 1785957703.003316,
     "step": 0,
     "journey_step": 0,
     "map_id": 40,
@@ -692,9 +1017,9 @@
     "live": true
   },
   {
-    "id": "EARON-1785953585:0:quest_advanced:1785953585323199000",
-    "agent": "EARON",
-    "run_id": "EARON-1785953585",
+    "id": "BARON-1785957703:0:quest_advanced:1785957703049998000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957703",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -705,13 +1030,13 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785953585.3232,
+    "timestamp": 1785957703.049999,
     "step": 0,
     "journey_step": 0,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      6,
+      8,
       4
     ],
     "task": "QUEST: OAK_EVENT",
@@ -719,9 +1044,9 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:0:quest_advanced:1785953585367316000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
+    "id": "CARON-1785957703:0:quest_advanced:1785957703112927000",
+    "agent": "CARON",
+    "run_id": "CARON-1785957703",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -732,7 +1057,7 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785953585.367316,
+    "timestamp": 1785957703.112928,
     "step": 0,
     "journey_step": 0,
     "map_id": 40,
@@ -746,9 +1071,36 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:75:battle_started:1785953605778483000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
+    "id": "DARON-1785957703:0:quest_advanced:1785957703157111000",
+    "agent": "DARON",
+    "run_id": "DARON-1785957703",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785957703.1571121,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      6,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "AARON-1785957702:423:battle_started:1785957708956656000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957702",
     "type": "battle_started",
     "data": {
       "battle": "trainer",
@@ -759,8 +1111,8 @@
       "encounter_label": "Duelo de treinador",
       "map_name": "Oaks Lab",
       "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
+        "species_id": 1,
+        "internal_id": 153,
         "level": 0,
         "hp": 0,
         "max_hp": 0,
@@ -770,13 +1122,13 @@
       "pokeballs": 0,
       "shiny_candidate": false
     },
-    "timestamp": 1785953605.778486,
-    "step": 75,
-    "journey_step": 75,
+    "timestamp": 1785957708.956657,
+    "step": 423,
+    "journey_step": 423,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      4,
+      5,
       6
     ],
     "task": "QUEST: OAK_EVENT",
@@ -784,14 +1136,14 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:75:training_target:1785953605784199000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
+    "id": "AARON-1785957702:423:training_target:1785957708959814000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957702",
     "type": "training_target",
     "data": {
       "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
+        "species_id": 1,
+        "internal_id": 153,
         "level": 0,
         "hp": 0,
         "max_hp": 0,
@@ -800,9 +1152,9 @@
       },
       "active_receives_xp": true,
       "recommended_lowest_level": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
         "level": 5,
         "hp": 20,
         "max_hp": 20,
@@ -812,21 +1164,21 @@
             "pp": 35
           },
           {
-            "id": 39,
-            "pp": 30
+            "id": 45,
+            "pp": 40
           }
         ]
       },
       "choice": "keep_active",
       "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
     },
-    "timestamp": 1785953605.784201,
-    "step": 75,
-    "journey_step": 75,
+    "timestamp": 1785957708.9598138,
+    "step": 423,
+    "journey_step": 423,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      4,
+      5,
       6
     ],
     "task": "QUEST: OAK_EVENT",
@@ -834,9 +1186,9 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:75:battle_decision:1785953606192589000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
+    "id": "AARON-1785957702:423:battle_decision:1785957708969748000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957702",
     "type": "battle_decision",
     "data": {
       "battle": "trainer",
@@ -846,8 +1198,8 @@
       "encounter_type": "trainer",
       "encounter_label": "Duelo de treinador",
       "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
+        "species_id": 1,
+        "internal_id": 153,
         "level": 0,
         "hp": 0,
         "max_hp": 0,
@@ -864,8 +1216,8 @@
       "action": "A",
       "move": {},
       "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
+      "collector": 95,
+      "meta_score": 60,
       "new_species": true,
       "upgrade_candidate": false,
       "shiny_candidate": false,
@@ -873,13 +1225,13 @@
       "controller": "SimpleBattleAgent",
       "capture_controller": false
     },
-    "timestamp": 1785953606.192592,
-    "step": 75,
-    "journey_step": 76,
+    "timestamp": 1785957708.969749,
+    "step": 423,
+    "journey_step": 424,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      4,
+      5,
       6
     ],
     "task": "QUEST: OAK_EVENT",
@@ -887,20 +1239,20 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:85:battle_decision:1785953610409729000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
+    "id": "AARON-1785957702:433:battle_decision:1785957709142805000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957702",
     "type": "battle_decision",
     "data": {
       "battle": "trainer",
-      "enemy_id": 153,
-      "enemy_species_id": 1,
+      "enemy_id": 176,
+      "enemy_species_id": 4,
       "enemy_level": 5,
       "encounter_type": "trainer",
       "encounter_label": "Duelo de treinador",
       "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
+        "species_id": 1,
+        "internal_id": 153,
         "level": 0,
         "hp": 0,
         "max_hp": 0,
@@ -917,8 +1269,8 @@
       "action": "A",
       "move": {},
       "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
+      "collector": 95,
+      "meta_score": 60,
       "new_species": true,
       "upgrade_candidate": false,
       "shiny_candidate": false,
@@ -926,13 +1278,13 @@
       "controller": "SimpleBattleAgent",
       "capture_controller": false
     },
-    "timestamp": 1785953610.4097338,
-    "step": 85,
-    "journey_step": 86,
+    "timestamp": 1785957709.142806,
+    "step": 433,
+    "journey_step": 434,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      4,
+      5,
       6
     ],
     "task": "QUEST: OAK_EVENT",
@@ -940,20 +1292,20 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:93:battle_decision:1785953613766045000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
+    "id": "AARON-1785957702:441:battle_decision:1785957709288234000",
+    "agent": "AARON",
+    "run_id": "AARON-1785957702",
     "type": "battle_decision",
     "data": {
       "battle": "trainer",
-      "enemy_id": 153,
-      "enemy_species_id": 1,
+      "enemy_id": 176,
+      "enemy_species_id": 4,
       "enemy_level": 5,
       "encounter_type": "trainer",
       "encounter_label": "Duelo de treinador",
       "active_pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
+        "species_id": 1,
+        "internal_id": 153,
         "level": 5,
         "hp": 20,
         "max_hp": 20,
@@ -963,8 +1315,8 @@
             "pp": 35
           },
           {
-            "id": 39,
-            "pp": 30
+            "id": 45,
+            "pp": 40
           }
         ],
         "selected_move_slot": 0
@@ -988,8 +1340,8 @@
         "score": 35.0
       },
       "pokeballs": 0,
-      "collector": 65,
-      "meta_score": 95,
+      "collector": 95,
+      "meta_score": 60,
       "new_species": true,
       "upgrade_candidate": false,
       "shiny_candidate": false,
@@ -997,13 +1349,13 @@
       "controller": "SimpleBattleAgent",
       "capture_controller": false
     },
-    "timestamp": 1785953613.766047,
-    "step": 93,
-    "journey_step": 94,
+    "timestamp": 1785957709.288235,
+    "step": 441,
+    "journey_step": 442,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      4,
+      5,
       6
     ],
     "task": "QUEST: OAK_EVENT",
@@ -1011,448 +1363,63 @@
     "live": true
   },
   {
-    "id": "KARON-1785953585:258:level_up:1785953682979988000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
-    "type": "level_up",
-    "data": {
-      "pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
-        "level": 6,
-        "hp": 8,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 26
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ]
-      },
-      "old_level": 5,
-      "new_level": 6,
-      "training_target": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
-        "level": 6,
-        "hp": 8,
-        "max_hp": 23,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 26
-          },
-          {
-            "id": 39,
-            "pp": 30
-          }
-        ]
-      },
-      "reason": "ganhou experi\u00eancia enquanto estava ativo"
-    },
-    "timestamp": 1785953682.979993,
-    "step": 258,
-    "journey_step": 258,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      4,
-      6
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953585:282:battle_end:1785953693122865000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
-    "type": "battle_end",
-    "data": {
-      "type": "trainer",
-      "result": "win",
-      "enemy_id": 153,
-      "active_pokemon": 177,
-      "player_hp_at_end": 8,
-      "battle_map_id": 40,
-      "end_map_id": 40
-    },
-    "timestamp": 1785953693.12287,
-    "step": 282,
-    "journey_step": 282,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      4,
-      6
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": false
-  },
-  {
-    "id": "KARON-1785953585:282:battle_win:1785953693129488000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
-    "type": "battle_win",
-    "data": {
-      "type": "trainer",
-      "enemy_id": 153,
-      "total_trainer_wins": 1,
-      "total_wild_wins": 0
-    },
-    "timestamp": 1785953693.12949,
-    "step": 282,
-    "journey_step": 282,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      4,
-      6
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953585:284:healed:1785953693961748000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
-    "type": "healed",
-    "data": {
-      "hp_restored": 15,
-      "party": [
-        {
-          "species_id": 7,
-          "internal_id": 177,
-          "id": 7,
-          "level": 6,
-          "hp": 23,
-          "max_hp": 23,
-          "moves": [
-            {
-              "id": 33,
-              "pp": 35
-            },
-            {
-              "id": 39,
-              "pp": 30
-            }
-          ]
-        }
-      ],
-      "party_size": 1,
-      "map_id": 40,
-      "map_name": "Oaks Lab",
-      "source": "item_or_event",
-      "total_heals": 1,
-      "reason": "HP da equipe voltou ao m\u00e1ximo (15 pontos) fora de batalha em Oaks Lab"
-    },
-    "timestamp": 1785953693.9617522,
-    "step": 284,
-    "journey_step": 284,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      4,
-      6
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953585:284:quest_advanced:1785953694375023000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "oak_event",
-      "to_quest_id": "parcel_event",
-      "title": "Buscar e entregar a encomenda do Professor Oak",
-      "completed_nodes": [
-        "start",
-        "oak_event"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785953694.3750248,
-    "step": 284,
-    "journey_step": 285,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      4,
-      6
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "KARON-1785953585:285:objective_changed:1785953694382499000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953585",
-    "type": "objective_changed",
-    "data": {
-      "from": "QUEST: OAK_EVENT",
-      "to": "QUEST: PARCEL_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785953694.3825011,
-    "step": 285,
-    "journey_step": 285,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      4,
-      6
-    ],
-    "task": "QUEST: PARCEL_EVENT",
-    "milestone": "parcel_event",
-    "live": true
-  },
-  {
-    "id": "AARON-1785954227:0:quest_advanced:1785954227695827000",
-    "agent": "AARON",
-    "run_id": "AARON-1785954227",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "start",
-      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
-      "completed_nodes": [],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785954227.695828,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 38,
-    "map_name": "Players House Second Floor",
-    "coords": [
-      3,
-      6
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": true
-  },
-  {
-    "id": "BARON-1785954227:0:quest_advanced:1785954227725759000",
+    "id": "BARON-1785957703:459:battle_started:1785957709627743000",
     "agent": "BARON",
-    "run_id": "BARON-1785954227",
-    "type": "quest_advanced",
+    "run_id": "BARON-1785957703",
+    "type": "battle_started",
     "data": {
-      "from_quest_id": null,
-      "to_quest_id": "start",
-      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
-      "completed_nodes": [],
-      "reason": "objetivo ativo calculado a partir do save real"
+      "battle": "trainer",
+      "enemy_id": 0,
+      "enemy_species_id": 0,
+      "enemy_level": 0,
+      "encounter_type": "trainer",
+      "encounter_label": "Duelo de treinador",
+      "map_name": "Oaks Lab",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 0,
+        "hp": 0,
+        "max_hp": 0,
+        "moves": [],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 0,
+      "shiny_candidate": false
     },
-    "timestamp": 1785954227.72576,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 38,
-    "map_name": "Players House Second Floor",
-    "coords": [
-      3,
-      6
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": true
-  },
-  {
-    "id": "CARON-1785954227:0:quest_advanced:1785954227755730000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "start",
-      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
-      "completed_nodes": [],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785954227.7557309,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 38,
-    "map_name": "Players House Second Floor",
-    "coords": [
-      3,
-      6
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": true
-  },
-  {
-    "id": "DARON-1785954227:0:quest_advanced:1785954227786166000",
-    "agent": "DARON",
-    "run_id": "DARON-1785954227",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "start",
-      "title": "Chegar ao laborat\u00f3rio e receber a escolha de starter",
-      "completed_nodes": [],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785954227.7861671,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 38,
-    "map_name": "Players House Second Floor",
-    "coords": [
-      3,
-      6
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": true
-  },
-  {
-    "id": "CARON-1785954227:110:map_transition:1785954275343496000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 38,
-      "from_map_name": "Players House Second Floor",
-      "to_map_id": 37,
-      "to_map_name": "Players House First Floor",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785954275.343498,
-    "step": 110,
-    "journey_step": 110,
-    "map_id": 37,
-    "map_name": "Players House First Floor",
-    "coords": [
-      7,
-      1
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "CARON-1785954227:124:map_transition:1785954281263236000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785954281.263238,
-    "step": 124,
-    "journey_step": 124,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "CARON-1785954227:181:map_transition:1785954305302107000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 40,
-      "to_map_name": "Oaks Lab",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785954305.30211,
-    "step": 181,
-    "journey_step": 181,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      12,
-      11
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "CARON-1785954227:249:quest_advanced:1785954334286009000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "start",
-      "to_quest_id": "oak_event",
-      "title": "Escolher o starter e concluir a primeira batalha com o rival",
-      "completed_nodes": [
-        "start"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785954334.2860212,
-    "step": 249,
-    "journey_step": 250,
+    "timestamp": 1785957709.627744,
+    "step": 459,
+    "journey_step": 459,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
       5,
-      3
+      6
     ],
     "task": "QUEST: OAK_EVENT",
     "milestone": "oak_event",
     "live": true
   },
   {
-    "id": "CARON-1785954227:250:objective_changed:1785954334297912000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "objective_changed",
+    "id": "BARON-1785957703:459:training_target:1785957709630248000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957703",
+    "type": "training_target",
     "data": {
-      "from": "QUEST: START",
-      "to": "QUEST: OAK_EVENT",
-      "reason": "controlador mudou o objetivo da jornada"
-    },
-    "timestamp": 1785954334.297915,
-    "step": 250,
-    "journey_step": 250,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      5,
-      4
-    ],
-    "task": "QUEST: OAK_EVENT",
-    "milestone": "oak_event",
-    "live": true
-  },
-  {
-    "id": "CARON-1785954227:283:starter_selected:1785954348379411000",
-    "agent": "CARON",
-    "run_id": "CARON-1785954227",
-    "type": "starter_selected",
-    "data": {
-      "pokemon": {
-        "species_id": 7,
-        "internal_id": 177,
-        "id": 7,
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 0,
+        "hp": 0,
+        "max_hp": 0,
+        "moves": [],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
         "level": 5,
         "hp": 20,
         "max_hp": 20,
@@ -1462,100 +1429,202 @@
             "pp": 35
           },
           {
-            "id": 39,
-            "pp": 30
+            "id": 45,
+            "pp": 40
           }
         ]
       },
-      "decision": "starter_confirmed",
-      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
     },
-    "timestamp": 1785954348.379414,
-    "step": 283,
-    "journey_step": 283,
+    "timestamp": 1785957709.630249,
+    "step": 459,
+    "journey_step": 459,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      7,
-      4
+      5,
+      6
     ],
     "task": "QUEST: OAK_EVENT",
     "milestone": "oak_event",
     "live": true
   },
   {
-    "id": "DARON-1785954227:334:map_transition:1785954370035303000",
-    "agent": "DARON",
-    "run_id": "DARON-1785954227",
-    "type": "map_transition",
+    "id": "BARON-1785957703:459:battle_decision:1785957709641656000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957703",
+    "type": "battle_decision",
     "data": {
-      "from_map_id": 38,
-      "from_map_name": "Players House Second Floor",
-      "to_map_id": 37,
-      "to_map_name": "Players House First Floor",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "battle": "trainer",
+      "enemy_id": 0,
+      "enemy_species_id": 0,
+      "enemy_level": 0,
+      "encounter_type": "trainer",
+      "encounter_label": "Duelo de treinador",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 0,
+        "hp": 0,
+        "max_hp": 0,
+        "moves": [],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {},
+      "pokeballs": 0,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": false,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
     },
-    "timestamp": 1785954370.035305,
-    "step": 334,
-    "journey_step": 334,
-    "map_id": 37,
-    "map_name": "Players House First Floor",
-    "coords": [
-      7,
-      1
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "DARON-1785954227:348:map_transition:1785954375971293000",
-    "agent": "DARON",
-    "run_id": "DARON-1785954227",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785954375.971296,
-    "step": 348,
-    "journey_step": 348,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "DARON-1785954227:405:map_transition:1785954400144380000",
-    "agent": "DARON",
-    "run_id": "DARON-1785954227",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 40,
-      "to_map_name": "Oaks Lab",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785954400.144382,
-    "step": 405,
-    "journey_step": 405,
+    "timestamp": 1785957709.641657,
+    "step": 459,
+    "journey_step": 460,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [
-      12,
-      11
+      5,
+      6
     ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785957703:469:battle_decision:1785957709759141000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957703",
+    "type": "battle_decision",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 176,
+      "enemy_species_id": 4,
+      "enemy_level": 5,
+      "encounter_type": "trainer",
+      "encounter_label": "Duelo de treinador",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 0,
+        "hp": 0,
+        "max_hp": 0,
+        "moves": [],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {},
+      "pokeballs": 0,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": false,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785957709.759142,
+    "step": 469,
+    "journey_step": 470,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      6
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "BARON-1785957703:477:battle_decision:1785957709851997000",
+    "agent": "BARON",
+    "run_id": "BARON-1785957703",
+    "type": "battle_decision",
+    "data": {
+      "battle": "trainer",
+      "enemy_id": 176,
+      "enemy_species_id": 4,
+      "enemy_level": 5,
+      "encounter_type": "trainer",
+      "encounter_label": "Duelo de treinador",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 5,
+        "hp": 20,
+        "max_hp": 20,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 35,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 0,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": false,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785957709.8519979,
+    "step": 477,
+    "journey_step": 478,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      6
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
   }
 ]

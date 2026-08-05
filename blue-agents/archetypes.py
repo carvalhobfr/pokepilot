@@ -24,6 +24,8 @@ ARCHETYPES = {
             "collector": 95,
             "mission_focus": 40,
         },
+        # Bulbasaur: Sleep Powder e Leech Seed deixam encontro longo barato,
+        # que é exatamente o que um completista faz o tempo todo.
         "starter_preference": 0,
         "capture_stance": "every_new_species",
         "summary": (
@@ -39,7 +41,9 @@ ARCHETYPES = {
             "collector": 15,
             "mission_focus": 95,
         },
-        "starter_preference": 1,
+        # Bulbasaur de novo, e por outro motivo: Brock e Misty, os dois
+        # primeiros freios da corrida, são fracos contra grama.
+        "starter_preference": 0,
         "capture_stance": "only_when_needed",
         "summary": (
             "História acima de tudo, mas não com um time de iniciais: captura "
@@ -55,6 +59,7 @@ ARCHETYPES = {
             "collector": 65,
             "mission_focus": 70,
         },
+        # Squirtle: a base defensiva mais sólida para montar time em volta.
         "starter_preference": 2,
         "capture_stance": "team_value_only",
         "summary": (
@@ -63,19 +68,22 @@ ARCHETYPES = {
         ),
     },
 
-    "nuzlocke": {
-        "label": "Nuzlocke",
+    "fire_dragon": {
+        "label": "Fogo e dragão",
         "traits": {
-            "meta_score": 80,
-            "exploration": 70,
-            "collector": 45,
-            "mission_focus": 60,
+            "meta_score": 85,
+            "exploration": 60,
+            "collector": 55,
+            "mission_focus": 65,
         },
-        "starter_preference": 0,
-        "capture_stance": "first_of_each_area",
+        # Charmander: o time inteiro é construído em volta do Charizard.
+        "starter_preference": 1,
+        "capture_stance": "preferred_types",
+        "preferred_types": ("fire", "dragon"),
         "summary": (
-            "Um Pokémon por área, o primeiro que aparecer. O time é o que a "
-            "sorte deu, e cada área só responde uma vez."
+            "Só quer fogo e dragão no time. É a corrida mais difícil de Kanto: "
+            "Brock e Misty são justamente os dois primeiros ginásios, e Dratini "
+            "só aparece muito depois."
         ),
     },
 }

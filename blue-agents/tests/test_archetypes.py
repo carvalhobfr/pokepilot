@@ -38,6 +38,10 @@ class ArchetypeCaptureStanceTests(unittest.TestCase):
         env.read_m = lambda address: ram.get(address, 0)
         env._poke_ball_count = lambda: 5
         env._select_capture_ball = lambda shiny_candidate=False: {"item_id": 4, "slot": 0}
+        env._map_name = lambda map_id=None: "Pewter Gym"
+        env._badge_count = lambda: 1
+        env._area_coverage = lambda: None
+        env.archetype = "team_builder"
         return env
 
     @staticmethod
@@ -104,6 +108,32 @@ class ArchetypeCaptureStanceTests(unittest.TestCase):
         decision = env._capture_policy(encounter)
         self.assertEqual("capture", decision["choice"])
         self.assertEqual("rush_power_pick", decision["reason_code"])
+
+    def test_the_themed_team_refuses_anything_off_type(self):
+        env = self.make_env("preferred_types", party=[{"species_id": 4, "level": 20}])
+        env.archetype = "fire_dragon"
+        encounter = self.weakened_new_species()
+        encounter["enemy_species_id"] = 10  # Caterpie, bug
+        decision = env._capture_policy(encounter)
+        self.assertEqual("defeat", decision["choice"])
+        self.assertEqual("off_theme_species", decision["reason_code"])
+
+    def test_the_themed_team_takes_its_own_type_even_when_common(self):
+        env = self.make_env("preferred_types", party=[{"species_id": 4, "level": 20}])
+        env.archetype = "fire_dragon"
+        encounter = self.weakened_new_species()
+        encounter["enemy_species_id"] = 58  # Growlithe, fire
+        decision = env._capture_policy(encounter)
+        self.assertEqual("capture", decision["choice"])
+        self.assertEqual("on_theme_species", decision["reason_code"])
+
+    def test_a_dragon_is_on_theme_too(self):
+        env = self.make_env("preferred_types", party=[{"species_id": 4, "level": 20}])
+        env.archetype = "fire_dragon"
+        encounter = self.weakened_new_species()
+        encounter["enemy_species_id"] = 147  # Dratini
+        decision = env._capture_policy(encounter)
+        self.assertEqual("capture", decision["choice"])
 
     def test_the_team_builder_keeps_the_old_team_value_rules(self):
         env = self.make_env(

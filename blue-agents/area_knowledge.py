@@ -167,6 +167,28 @@ def is_rare_here(map_name, species_id, threshold=RARE_ENCOUNTER_CHANCE, badges=N
     return 0 < chance <= threshold
 
 
+SPECIES_PATH = Path(__file__).parent / "knowledge" / "species.json"
+
+_species_cache = None
+
+
+def _species():
+    global _species_cache
+    if _species_cache is None:
+        try:
+            with SPECIES_PATH.open("r", encoding="utf-8") as handle:
+                _species_cache = json.load(handle).get("species") or {}
+        except (OSError, ValueError):
+            _species_cache = {}
+    return _species_cache
+
+
+def species_types(species_id):
+    """Types of a species, as a set. Empty when the table is missing."""
+    entry = _species().get(str(int(species_id))) or {}
+    return {str(name) for name in entry.get("types") or []}
+
+
 def area_target(badges=None):
     """Completion target: everything reachable, at every stage of the run.
 

@@ -116,6 +116,20 @@ def type_answers(type_name):
     }
 
 
+def kanto_species_types():
+    """Type of each of the 151 species, so an archetype can want a type."""
+    species = {}
+    for national_id in range(1, 152):
+        payload = fetch(f"{API}/pokemon/{national_id}/")
+        species[str(national_id)] = {
+            "name": payload["name"],
+            "types": [entry["type"]["name"] for entry in sorted(
+                payload["types"], key=lambda entry: entry["slot"]
+            )],
+        }
+    return species
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -124,6 +138,7 @@ def parse_args():
     )
     parser.add_argument("--skip-gyms", action="store_true")
     parser.add_argument("--skip-encounters", action="store_true")
+    parser.add_argument("--skip-species", action="store_true")
     return parser.parse_args()
 
 
@@ -137,6 +152,13 @@ def main():
             gyms.append({**gym, "counters": type_answers(gym["type"])})
             print(f"ginásio {gym['order']} {gym['leader']}: {gym['type']}")
         write_json(KNOWLEDGE_DIR / "gyms.json", {"version": VERSION, "gyms": gyms})
+
+    if not args.skip_species:
+        species = kanto_species_types()
+        write_json(
+            KNOWLEDGE_DIR / "species.json",
+            {"version": VERSION, "source": "pokeapi.co", "species": species},
+        )
 
     if not args.skip_encounters:
         area_names = args.areas or kanto_area_names()

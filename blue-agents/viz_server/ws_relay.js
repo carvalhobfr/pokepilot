@@ -25,6 +25,45 @@ function writeControls() {
   fs.renameSync(temporary, CONTROL_FILE);
 }
 
+// Replays live in the relay, not in the agents: a bot that finishes its block
+// and restarts should not take the last fights with it.
+const REPLAYS_PER_AGENT = 5;
+const replays = new Map();
+
+function storeReplay(replay) {
+  if (!replay || !replay.agent) return;
+  const list = replays.get(replay.agent) || [];
+  list.unshift(replay);
+  replays.set(replay.agent, list.slice(0, REPLAYS_PER_AGENT));
+}
+
+function replayIndex() {
+  // The list without the frames: a dashboard asks for the heavy part only when
+  // someone actually clicks play.
+  const entries = [];
+  for (const [agent, list] of replays) {
+    for (const replay of list) {
+      entries.push({
+        id: replay.id,
+        agent,
+        enemy_species_id: replay.enemy_species_id,
+        started_at: replay.started_at,
+        ended_at: replay.ended_at,
+        frame_count: (replay.frames || []).length,
+      });
+    }
+  }
+  return entries.sort((a, b) => (b.ended_at || 0) - (a.ended_at || 0));
+}
+
+function findReplay(id) {
+  for (const list of replays.values()) {
+    const found = list.find(replay => replay.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
 function publishViewerCount() {
   const viewers = dashboardClients.length;
   if (controls.global.viewers === viewers) return;
@@ -90,6 +129,21 @@ function handleDashboardCommand(ws, rawMessage) {
     return;
   }
 
+  if (command.type === 'command' && command.action === 'get_replay') {
+    const replay = findReplay(command.id);
+    if (!replay) {
+      sendJson(ws, { type: 'command_result', ok: false, error: 'replay not found' });
+      return;
+    }
+    sendJson(ws, { type: 'battle_replay_frames', replay });
+    return;
+  }
+
+  if (command.type === 'command' && command.action === 'list_replays') {
+    sendJson(ws, { type: 'battle_replay_added', replays: replayIndex() });
+    return;
+  }
+
   if (command.type === 'command' && command.action === 'save_all') {
     fs.writeFileSync(SAVE_SIGNAL_FILE, String(Date.now()));
     sendJson(ws, { type: 'command_result', ok: true, action: 'save_all' });
@@ -149,6 +203,7 @@ wss.on('connection', function connection(ws, req) {
     dashboardClients.push(ws);
     publishViewerCount();
     sendJson(ws, { type: 'runtime_control_state', controls });
+    sendJson(ws, { type: 'battle_replay_added', replays: replayIndex() });
     broadcastStats();
 
     ws.on('message', message => handleDashboardCommand(ws, message));
@@ -164,6 +219,20 @@ wss.on('connection', function connection(ws, req) {
     broadcastStats();
 
     ws.on('message', function incoming(message) {
+      let payload = null;
+      try {
+        payload = JSON.parse(message.toString());
+      } catch (_error) {
+        payload = null;
+      }
+      if (payload && payload.battle_replay) {
+        storeReplay(payload.battle_replay);
+        const announcement = JSON.stringify({ type: 'battle_replay_added', replays: replayIndex() });
+        dashboardClients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) client.send(announcement);
+        });
+        return;
+      }
       dashboardClients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) client.send(message);
       });

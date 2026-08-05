@@ -4,15 +4,17 @@ import AgentSidebar from './components/AgentSidebar';
 import BattleArena from './components/BattleArena';
 import EventFeed from './components/EventFeed';
 import ControlPanel from './components/ControlPanel';
+import BattleReplays from './components/BattleReplays';
 import JourneyControls, { type RuntimeControls } from './components/JourneyControls';
 import { useAgentStream } from './hooks/useAgentStream';
-import { LayoutGrid, Swords } from 'lucide-react';
+import { LayoutGrid, Swords, Film } from 'lucide-react';
 import AIStrategyModal from './components/AIStrategyModal';
 
 function App() {
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null);
   const [showBattleArena, setShowBattleArena] = useState(false);
   const [showControlPanel, setShowControlPanel] = useState(false);
+  const [showReplays, setShowReplays] = useState(false);
   const [allAgents, setAllAgents] = useState<Record<string, any>>({});
   const [runtimeControls, setRuntimeControls] = useState<RuntimeControls>({
     global: { paused: false, speed: 1 },
@@ -211,6 +213,14 @@ function App() {
           <span className="hidden text-[10px] font-bold uppercase tracking-wider sm:inline">Arena</span>
         </button>
         <button
+          onClick={() => setShowReplays(true)}
+          title="Rever as últimas batalhas"
+          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-fuchsia-500/20 active:scale-95"
+        >
+          <Film size={20} className={showReplays ? 'text-fuchsia-300' : 'text-slate-200'} />
+          <span className="hidden text-[10px] font-bold uppercase tracking-wider sm:inline">Replays</span>
+        </button>
+        <button
           onClick={() => setShowControlPanel(true)}
           title="Abrir painel de agentes"
           className="rounded-xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20 active:scale-95 group"
@@ -229,6 +239,13 @@ function App() {
 
       {/* Event Feed */}
       <EventFeed ws={ws} connected={connected} />
+
+      <BattleReplays
+        ws={ws}
+        connected={connected}
+        open={showReplays}
+        onClose={() => setShowReplays(false)}
+      />
 
       {/* LLM Log Panel - Disabled temporarily (wrong ws://localhost:8765 port) */}
       {/*

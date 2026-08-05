@@ -9,6 +9,12 @@ import json
 import gymnasium as gym
 from PIL import Image
 
+# A replay is the tail of a battle: 40 frames at the battle stream interval is
+# a few seconds of Game Boy, which is where a fight is actually decided.
+REPLAY_MAX_FRAMES = 40
+# Above 2x the run produces battles faster than anyone could watch them.
+REPLAY_MAX_SPEED = 2.0
+
 X_POS_ADDRESS, Y_POS_ADDRESS = 0xD362, 0xD361
 MAP_N_ADDRESS = 0xD35E
 
@@ -38,6 +44,13 @@ class StreamWrapper(gym.Wrapper):
         self.steam_step_counter = self.upload_interval
         self.env = env
         self.coord_list = []
+        # Battle replay: the frames the arena already encodes are kept, so a
+        # battle can be watched after it happened instead of only while it is
+        # happening. Nobody can follow four bots live anyway.
+        self.replay_frames = []
+        self.replay_started_at = None
+        self.replay_enemy = None
+        self.replay_sequence = 0
         if hasattr(env, "pyboy"):
             self.emulator = env.pyboy
         elif hasattr(env, "game"):
@@ -113,9 +126,9 @@ class StreamWrapper(gym.Wrapper):
                     battle_info = None
             metadata["battle_info"] = battle_info or {"is_battle": False}
             metadata["status"] = "battle" if battle_info else "running"
-            metadata["battle_frame"] = (
-                self._encode_battle_frame() if battle_info else None
-            )
+            frame = self._encode_battle_frame() if battle_info else None
+            metadata["battle_frame"] = frame
+            self._record_replay_frame(battle_info, frame)
             metadata["build"] = {
                 "personality": metadata.get("personality", "Unknown"),
                 "starter": metadata.get("starter", "Unknown"),
@@ -165,6 +178,55 @@ class StreamWrapper(gym.Wrapper):
         self.steam_step_counter += 1
 
         return self.env.step(action)
+
+    def _replay_is_worth_recording(self):
+        """Record only while someone could plausibly watch it.
+
+        Two guards, both real: with every dashboard closed the frames would be
+        encoded for nobody, and above 2x the run produces battles faster than
+        any replay could be watched — at training speed this would be pure
+        memory and CPU burned on frames nobody will ever open.
+        """
+        if getattr(self.env, "viewer_count", 0) <= 0:
+            return False
+        speed = getattr(self.env, "playback_speed", 1.0)
+        return 0 < speed <= REPLAY_MAX_SPEED
+
+    def _record_replay_frame(self, battle_info, frame):
+        """Accumulate a battle, and publish it when the battle ends."""
+        if battle_info and frame:
+            if not self._replay_is_worth_recording():
+                return
+            if not self.replay_frames:
+                self.replay_started_at = time.time()
+                self.replay_enemy = battle_info.get("enemy_species_id")
+            self.replay_frames.append(frame)
+            # Keep the tail: the end of a battle is the part worth rewatching.
+            if len(self.replay_frames) > REPLAY_MAX_FRAMES:
+                del self.replay_frames[0]
+            return
+
+        if not self.replay_frames:
+            return
+        self.replay_sequence += 1
+        replay = {
+            "id": f"{self.stream_metadata.get('user', 'agent')}-{self.replay_sequence}",
+            "agent": self.stream_metadata.get("user"),
+            "enemy_species_id": self.replay_enemy,
+            "started_at": self.replay_started_at,
+            "ended_at": time.time(),
+            "frames": self.replay_frames,
+        }
+        self.replay_frames = []
+        self.replay_started_at = None
+        self.replay_enemy = None
+        try:
+            self.loop.run_until_complete(
+                self.broadcast_ws_message(json.dumps({"battle_replay": replay}))
+            )
+        except Exception:
+            # A replay is a nicety; never let it interrupt a journey.
+            pass
 
     def _encode_battle_frame(self):
         """Encode the current PyBoy screen only while the agent is battling."""
