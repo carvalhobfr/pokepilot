@@ -1,0 +1,185 @@
+{
+  "game_flow": {
+    "start": {
+      "location": "Pallet Town",
+      "objectives": [
+        "Create character",
+        "Go north and trigger Professor Oak event",
+        "Choose Starter Pokemon"
+      ],
+      "actions": [
+        "Start -> New Game",
+        "Complete Oak introduction",
+        "Set player name and rival name",
+        "Leave house and try to go to Route 1"
+      ]
+    },
+    "oak_event": {
+      "trigger": "Try to enter Route 1",
+      "result": "Oak takes player to lab",
+      "actions": [
+        "Choose starter: Bulbasaur, Charmander or Squirtle",
+        "Accept or reject optional rival fight"
+      ]
+    },
+    "route_1_to_viridian": {
+      "location": "Route 1",
+      "objectives": [
+        "Go to Viridian City",
+        "Heal at Pokemon Center"
+      ],
+      "wild_pokemon": [
+        "Pidgey",
+        "Rattata"
+      ],
+      "actions": [
+        "Go up the route",
+        "Light training (optional)",
+        "Enter Viridian City and heal"
+      ]
+    },
+    "oak_parcel": {
+      "trigger": "Enter Viridian PokeMart",
+      "reward": "Oak's Parcel",
+      "actions": [
+        "Return to Pallet Town",
+        "Deliver parcel to Professor Oak",
+        "Receive Pokedex"
+      ]
+    },
+    "return_to_viridian": {
+      "objectives": [
+        "Buy Poke Balls",
+        "Prepare initial team"
+      ],
+      "actions": [
+        "Return to Viridian City",
+        "Buy basic items",
+        "Optional: capture Pidgey/Rattata"
+      ],
+      "note": "Viridian Gym is closed at this time"
+    },
+    "route_2_and_forest": {
+      "location": [
+        "Route 2",
+        "Viridian Forest"
+      ],
+      "objectives": [
+        "Cross the forest",
+        "Reach Pewter City"
+      ],
+      "wild_pokemon": [
+        "Caterpie",
+        "Metapod",
+        "Weedle",
+        "Kakuna"
+      ],
+      "actions": [
+        "Follow Route 2 to forest entrance",
+        "Defeat trainers for XP",
+        "Avoid poison (Poison Sting)",
+        "Train starter to ~10-12",
+        "Exit forest via north exit"
+      ]
+    },
+    "pewter_city": {
+      "objectives": [
+        "Heal team",
+        "Buy Potions",
+        "Prepare Pokemon for 1st gym"
+      ],
+      "actions": [
+        "Go to Pokemon Center",
+        "Visit PokeMart",
+        "Optional: train in Route 2/Forest if needed"
+      ]
+    }
+  },
+  "brock_gym": {
+    "location": "Pewter City Gym",
+    "leader": "Brock",
+    "team": [
+      {
+        "pokemon": "Geodude",
+        "level": 12
+      },
+      {
+        "pokemon": "Onix",
+        "level": 14
+      }
+    ],
+    "recommended_levels": {
+      "main_pokemon_level": 12,
+      "support_level": 10
+    },
+    "strategies": {
+      "bulbasaur": {
+        "moves": [
+          "Vine Whip"
+        ],
+        "effectiveness": "Very High",
+        "notes": [
+          "Vine Whip defeats Geodude and Onix easily",
+          "Best general option for AI"
+        ]
+      },
+      "squirtle": {
+        "moves": [
+          "Bubble"
+        ],
+        "effectiveness": "High",
+        "notes": [
+          "Bubble deals consistent damage",
+          "Avoid attacking when Onix is using Bide"
+        ]
+      },
+      "charmander": {
+        "solo_charmander": {
+          "recommended": false,
+          "reason": "Ember and Scratch are not effective enough"
+        },
+        "support_options": [
+          {
+            "pokemon": "Mankey",
+            "move": "Low Kick",
+            "catch_location": "Route 22",
+            "effectiveness": "Very High"
+          },
+          {
+            "pokemon": "NidoranM",
+            "move": "Double Kick",
+            "catch_location": "Route 22",
+            "effectiveness": "High"
+          },
+          {
+            "pokemon": "Butterfree",
+            "move": "Confusion",
+            "catch_location": "Viridian Forest (evolution Caterpie->Metapod->Butterfree)",
+            "recommended_level": 12,
+            "effectiveness": "High",
+            "notes": [
+              "Confusion is special attack, Brock has very low Sp.Def",
+              "Works with any starter"
+            ]
+          }
+        ]
+      },
+      "universal_strategy": {
+        "pokemon": "Butterfree",
+        "level": 12,
+        "move": "Confusion",
+        "effectiveness": "Consistently High",
+        "notes": [
+          "One of the most stable routes for AI",
+          "Easy to train in Viridian Forest",
+          "Confusion has great damage against Geodude and Onix"
+        ]
+      }
+    },
+    "rewards": {
+      "badge": "Boulder Badge",
+      "tm": "TM34 - Bide",
+      "unlocks": "Use of Flash outside battle"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# Minimal local runtime for the consolidated PPO experiment.
+# Kept separate from the historical, CUDA-heavy requirements.txt.
+numpy>=2.2
+gymnasium>=1.0
+pyboy>=2.4
+stable-baselines3>=2.6
+torch>=2.6
+tensorboard>=2.18
+scikit-image>=0.24
+matplotlib>=3.9
+mediapy>=1.2
+Pillow>=10.0
+einops>=0.8
+websockets>=13
+python-dotenv>=1.0
+
+# Optional: enables the dashboard's Ask AI endpoint.
+flask>=3.0
+flask-cors>=4.0
+openai>=1.0

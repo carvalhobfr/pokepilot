@@ -1,0 +1,36 @@
+{
+  "current_objective": "Reach Pewter City and challenge Brock",
+  "target_map_id": 3,
+  "waypoints": [
+    {
+      "action": "exit_building",
+      "description": "Walk DOWN to exit the starting building"
+    },
+    {
+      "action": "navigate",
+      "target_map": 1,
+      "description": "Go to Route 1"
+    },
+    {
+      "action": "navigate",
+      "target_map": 2,
+      "description": "Continue to Viridian City"
+    },
+    {
+      "action": "navigate",
+      "target_map": 3,
+      "description": "Head to Pewter City"
+    },
+    {
+      "action": "level_up",
+      "target_level": 10,
+      "description": "Train Squirtle to Level 10 by battling wild Pok\u00e9mon in Route 1 and Viridian City"
+    },
+    {
+      "action": "gym_battle",
+      "gym": "pewter",
+      "description": "Challenge Brock for the Boulder Badge"
+    }
+  ],
+  "priority": "immediate"
+}

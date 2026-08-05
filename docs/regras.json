@@ -1,0 +1,83 @@
+{
+  "game_rules": {
+    "encounters": {
+      "trigger": "Cada passo em grama/caverna pode gerar um encontro randômico.",
+      "rng_description": "O jogo roda um número pseudoaleatório. Se for menor que o threshold da área, ocorre encontro.",
+      "area_tables": "Cada rota/caverna possui probabilidades próprias para espécies específicas.",
+      "on_encounter": [
+        "Avaliar tipo e nível do Pokémon selvagem.",
+        "Decidir capturar, lutar ou fugir.",
+        "Se HP do time estiver baixo, priorizar fuga."
+      ],
+      "shiny_system": {
+        "exists_in_gen1": false,
+        "custom_rule_for_ai": true,
+        "shiny_probability": 0.005,
+        "ai_behavior": "Priorizar captura de Pokémon marcados como shiny."
+      }
+    },
+    "battle_rules": {
+      "turn_system": "Turnos alternados baseados na velocidade dos Pokémon.",
+      "actions": [
+        "Atacar",
+        "Trocar Pokémon",
+        "Usar item",
+        "Fugir"
+      ],
+      "ai_decision_criteria": [
+        "Vantagem de tipo",
+        "Nível relativo ao inimigo",
+        "HP atual",
+        "Status",
+        "Evitar golpes 'not very effective'"
+      ],
+      "fleeing": {
+        "conditions": [
+          "Inimigo mais forte",
+          "HP crítico",
+          "Evitar status como poison",
+          "Economizar tempo"
+        ],
+        "notes": "A chance de fuga depende da velocidade relativa."
+      }
+    },
+    "capturing": {
+      "when_to_capture": [
+        "Espécies novas",
+        "Pokémon raros",
+        "Pokémon com bom matchup para futuros ginásios",
+        "Shinies"
+      ],
+      "tips": [
+        "Reduzir HP do inimigo",
+        "Aplicar status para aumentar chance",
+        "Usar Poké Ball adequada"
+      ]
+    },
+    "team_management": {
+      "encouragement": "A IA deve trocar membros do time frequentemente.",
+      "reasons_to_change_team": [
+        "Preparar time especializado para ginásios",
+        "Testar novas estratégias",
+        "Substituir Pokémon fracos",
+        "Aproveitar capturas fortes feitas no caminho"
+      ],
+      "philosophy": "Um bom time evolui com o jogo."
+    },
+    "exploration": {
+      "benefits": [
+        "Encontrar itens",
+        "Encontrar Pokémon raros",
+        "Desbloquear diálogos",
+        "Obter TMs e HMs",
+        "Acessar áreas antes inacessíveis"
+      ],
+      "recommended_ai_behavior": [
+        "Explorar rotas múltiplas",
+        "Conversar com NPCs",
+        "Revisitar locais com novos HMs",
+        "Testar caminhos alternativos"
+      ]
+    }
+  }
+}

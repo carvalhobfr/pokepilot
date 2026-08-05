@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "game": "pokemon_blue",
+  "nodes": [
+    {
+      "id": "start",
+      "title": "Chegar ao laboratório e receber a escolha de starter",
+      "executor": "start",
+      "success": [
+        {
+          "type": "event_flag",
+          "address": "0xD74B",
+          "bit": 1
+        }
+      ]
+    },
+    {
+      "id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "executor": "oak_event",
+      "success": [
+        {
+          "type": "event_flag",
+          "address": "0xD74B",
+          "bit": 3
+        }
+      ]
+    },
+    {
+      "id": "parcel_event",
+      "title": "Buscar e entregar a encomenda do Professor Oak",
+      "executor": "parcel_event",
+      "success": [
+        {
+          "type": "event_flag",
+          "address": "0xD74B",
+          "bit": 5
+        }
+      ]
+    },
+    {
+      "id": "buy_pokeballs",
+      "title": "Estocar Poké Bolas depois de receber a Pokédex",
+      "executor": "buy_pokeballs",
+      "success": [
+        {
+          "type": "pokeballs_stocked",
+          "minimum": 8
+        }
+      ]
+    },
+    {
+      "id": "route_2_nav",
+      "title": "Chegar à Floresta de Viridian",
+      "executor": "route_2_nav",
+      "success": [
+        {
+          "type": "map_in",
+          "values": [
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "id": "viridian_forest_nav",
+      "title": "Atravessar a Floresta de Viridian e chegar a Pewter",
+      "executor": "viridian_forest_nav",
+      "success": [
+        {
+          "type": "map_in",
+          "values": [
+            2,
+            54
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pewter_city_nav",
+      "title": "Entrar no Ginásio de Pewter",
+      "executor": "pewter_city_nav",
+      "success": [
+        {
+          "type": "map_in",
+          "values": [
+            54
+          ]
+        }
+      ]
+    },
+    {
+      "id": "brock_quest",
+      "title": "Derrotar Brock",
+      "executor": "brock_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 0
+        }
+      ]
+    },
+    {
+      "id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "executor": "mt_moon_nav",
+      "success": [
+        {
+          "type": "map_in",
+          "values": [
+            3,
+            65
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bill_quest",
+      "title": "Vencer o rival, atravessar a Nugget Bridge e ajudar Bill",
+      "executor": "bill_quest",
+      "success": [
+        {
+          "type": "bag_item",
+          "item_id": 63,
+          "minimum": 1
+        }
+      ]
+    },
+    {
+      "id": "cerulean_gym_quest",
+      "title": "Derrotar Misty",
+      "executor": "cerulean_gym_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 1
+        }
+      ]
+    },
+    {
+      "id": "vermilion_gym_quest",
+      "title": "Conseguir Cut e derrotar Lt. Surge",
+      "executor": "vermilion_gym_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 2
+        }
+      ]
+    },
+    {
+      "id": "celadon_story_quest",
+      "title": "Concluir Celadon, Rocket Hideout e derrotar Erika",
+      "executor": "celadon_story_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 3
+        }
+      ]
+    },
+    {
+      "id": "fuchsia_story_quest",
+      "title": "Conseguir Surf e derrotar Koga",
+      "executor": "fuchsia_story_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 4
+        }
+      ]
+    },
+    {
+      "id": "saffron_story_quest",
+      "title": "Concluir Silph Co. e derrotar Sabrina",
+      "executor": "saffron_story_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 5
+        }
+      ]
+    },
+    {
+      "id": "cinnabar_story_quest",
+      "title": "Explorar Cinnabar e derrotar Blaine",
+      "executor": "cinnabar_story_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 6
+        }
+      ]
+    },
+    {
+      "id": "viridian_gym_quest",
+      "title": "Derrotar Giovanni no Ginásio de Viridian",
+      "executor": "viridian_gym_quest",
+      "success": [
+        {
+          "type": "badge",
+          "index": 7
+        }
+      ]
+    },
+    {
+      "id": "pokemon_league_quest",
+      "title": "Vencer a Elite Four e o Campeão",
+      "executor": "pokemon_league_quest",
+      "success": [
+        {
+          "type": "event_flag",
+          "address": "0xD867",
+          "bit": 1
+        }
+      ]
+    },
+    {
+      "id": "mewtwo_postgame",
+      "title": "Capturar ou derrotar Mewtwo no pós-jogo",
+      "executor": "mewtwo_postgame",
+      "success": [
+        {
+          "type": "event_flag",
+          "address": "0xD85F",
+          "bit": 1
+        }
+      ]
+    }
+  ]
+}

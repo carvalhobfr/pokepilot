@@ -1,0 +1,32 @@
+# Navigation Guide
+- Pallet Town: Go NORTH (UP) through the grass to reach Route 1.
+- Route 1: Go NORTH (UP) to reach Viridian City.
+- Viridian City: Go NORTH (UP) to reach Route 2 and Viridian Forest.
+- Terrain: You can walk on GRASS. It may trigger battles, which are good for leveling up.
+- Terrain: You cannot walk on TREES, WATER (without Surf), or LEDGES (from the wrong side).
+- Ledges: You can jump over ledges by walking DOWN, but you cannot walk UP them.
+
+# Key Items Locations
+- HM01 (Cut): SS Anne Captain's room in Vermilion City.
+- HM02 (Fly): Route 16, cut the tree and go through the gate, speak to the girl in the house.
+- HM03 (Surf): Safari Zone, Area 4, inside the Secret House.
+- HM04 (Strength): Fuchsia City, give the Gold Teeth to the Warden.
+- HM05 (Flash): Route 2, through Diglett's Cave, speak to Oak's Aide (requires 10 Pokemon).
+- Bicycle: Cerulean City Bike Shop (requires Bike Voucher).
+- Bike Voucher: Vermilion City Fan Club, listen to the Chairman.
+- Gold Teeth: Safari Zone, Area 4.
+- Silph Scope: Celadon City, Rocket Hideout (Game Corner basement), defeat Giovanni.
+- Poke Flute: Lavender Town, Pokemon Tower, defeat Team Rocket at the top (requires Silph Scope).
+- Old Rod: Vermilion City, Fishing Guru.
+- Good Rod: Fuchsia City, Fishing Guru's brother.
+- Super Rod: Route 12, Fishing Guru's brother.
+
+# Gym Leaders
+- Brock (Pewter): Rock type. Weak directly to Water, Grass.
+- Misty (Cerulean): Water type. Weak to Electric, Grass.
+- Lt. Surge (Vermilion): Electric type. Weak to Ground.
+- Erika (Celadon): Grass type. Weak to Fire, Ice, Flying.
+- Koga (Fuchsia): Poison type. Weak to Psychic, Ground.
+- Sabrina (Saffron): Psychic type. Weak to Bug.
+- Blaine (Cinnabar): Fire type. Weak to Water, Ground.
+- Giovanni (Viridian): Ground type. Weak to Water, Grass, Ice.

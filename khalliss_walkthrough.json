@@ -1,0 +1,792 @@
+{
+  "meta": {
+    "description": "Walkthrough detalhado para Khalliss - Do início até Brock",
+    "version": "1.0",
+    "language": "pt-BR",
+    "action_types": {
+      "system": "Ações fora do controle direto (cutscenes, diálogos automáticos)",
+      "menu": "Navegação em menus (New Game, itens, etc.)",
+      "move": "Movimento no mapa usando D-Pad",
+      "interact": "Falar com NPC, examinar objeto, abrir porta (botão A)",
+      "battle": "Ações durante batalha",
+      "condition": "Verificação de estado do jogo"
+    },
+    "movement_primitives": {
+      "MOVE_STEP": "Mover exatamente 1 tile na direção indicada",
+      "MOVE_UNTIL_BLOCK": "Repetir passos até colidir com parede/limite",
+      "MOVE_UNTIL_EVENT": "Mover até trigger de evento"
+    },
+    "battle_strategy": {
+      "general": "Priorizar ataques super-efetivos",
+      "type_chart": {
+        "water_beats": [
+          "fire",
+          "ground",
+          "rock"
+        ],
+        "fire_beats": [
+          "grass",
+          "ice",
+          "bug"
+        ],
+        "grass_beats": [
+          "water",
+          "ground",
+          "rock"
+        ],
+        "electric_beats": [
+          "water",
+          "flying"
+        ],
+        "normal_neutral": [
+          "all"
+        ]
+      },
+      "healing": "Usar Potion quando HP < 30%",
+      "pp_management": "Conservar PP de movimentos fortes para batalhas importantes"
+    }
+  },
+  "game_flow": [
+    "start",
+    "oak_event",
+    "pallet_after_starter",
+    "route1_to_viridian",
+    "viridian_first_visit",
+    "return_to_pallet",
+    "deliver_parcel",
+    "pallet_to_viridian_second",
+    "viridian_to_route2",
+    "viridian_forest",
+    "route2_to_pewter",
+    "pewter_arrival",
+    "pre_brock_prep",
+    "brock_battle"
+  ],
+  "start": {
+    "objective": "Iniciar novo jogo e completar introdução do Prof. Oak",
+    "steps": [
+      {
+        "id": "start_001",
+        "type": "menu",
+        "description": "Pressionar START no menu principal",
+        "buttons": [
+          "START"
+        ],
+        "expected_result": "Menu do jogo aparece"
+      },
+      {
+        "id": "start_002",
+        "type": "menu",
+        "description": "Selecionar NEW GAME",
+        "buttons": [
+          "A"
+        ],
+        "expected_result": "Cutscene do Prof. Oak inicia"
+      },
+      {
+        "id": "start_003",
+        "type": "system",
+        "description": "Assistir introdução do Prof. Oak",
+        "duration_frames": 1800,
+        "expected_result": "Oak pergunta sobre o mundo Pokémon"
+      },
+      {
+        "id": "start_004",
+        "type": "interact",
+        "description": "Avançar diálogo do Oak (spam A)",
+        "buttons": [
+          "A",
+          "A",
+          "A",
+          "A",
+          "A"
+        ],
+        "expected_result": "Tela de seleção de nome do jogador"
+      },
+      {
+        "id": "start_005",
+        "type": "menu",
+        "description": "Aceitar nome padrão ou criar novo",
+        "buttons": [
+          "A"
+        ],
+        "note": "Sistema usa nome do agente automaticamente",
+        "expected_result": "Oak pergunta nome do rival"
+      },
+      {
+        "id": "start_006",
+        "type": "menu",
+        "description": "Aceitar nome do rival",
+        "buttons": [
+          "A"
+        ],
+        "expected_result": "Cutscene termina, jogador no quarto"
+      }
+    ]
+  },
+  "oak_event": {
+    "objective": "Sair de casa, encontrar Oak, receber starter Pokémon",
+    "steps": [
+      {
+        "id": "oak_001",
+        "type": "move",
+        "description": "Descer escada do quarto",
+        "navigation": "Mover DOWN até sair do quarto",
+        "target_map": 37,
+        "expected_result": "Jogador na sala de estar"
+      },
+      {
+        "id": "oak_002",
+        "type": "interact",
+        "description": "Falar com a mãe (opcional)",
+        "buttons": [
+          "A"
+        ],
+        "optional": true
+      },
+      {
+        "id": "oak_003",
+        "type": "move",
+        "description": "Sair de casa",
+        "navigation": "Mover DOWN até a porta da frente",
+        "target_map": 0,
+        "expected_result": "Jogador em Pallet Town"
+      },
+      {
+        "id": "oak_004",
+        "type": "move",
+        "description": "Tentar ir para Route 1 (norte da cidade)",
+        "navigation": "Mover UP em direção à saída norte",
+        "expected_result": "Oak aparece e para o jogador"
+      },
+      {
+        "id": "oak_005",
+        "type": "system",
+        "description": "Cutscene: Oak leva jogador ao laboratório",
+        "duration_frames": 600,
+        "expected_result": "Jogador no laboratório de Oak"
+      },
+      {
+        "id": "oak_006",
+        "type": "move",
+        "description": "Aproximar da mesa com Pokébolas",
+        "navigation": "Mover UP até ficar em frente às Pokébolas",
+        "expected_result": "Posição para interagir com Pokébolas"
+      },
+      {
+        "id": "oak_007",
+        "type": "interact",
+        "description": "Escolher Charmander (Pokébola da direita)",
+        "navigation": "Posicionar em frente à Pokébola direita",
+        "buttons": [
+          "A"
+        ],
+        "rationale": "Charmander evolui rápido e é forte, apesar da desvantagem vs Brock",
+        "expected_result": "Pergunta de confirmação aparece"
+      },
+      {
+        "id": "oak_008",
+        "type": "menu",
+        "description": "Confirmar escolha do Charmander",
+        "buttons": [
+          "A"
+        ],
+        "expected_result": "Recebe Charmander! (Nível 5)"
+      },
+      {
+        "id": "oak_009",
+        "type": "interact",
+        "description": "Avançar diálogo pós-recebimento",
+        "buttons": [
+          "A",
+          "A",
+          "A"
+        ],
+        "expected_result": "Rival escolhe Squirtle"
+      }
+    ]
+  },
+  "pallet_after_starter": {
+    "objective": "Lidar com batalha opcional do Rival e sair do laboratório",
+    "steps": [
+      {
+        "id": "pallet_001",
+        "type": "move",
+        "description": "Mover em direção à saída do laboratório",
+        "navigation": "Mover DOWN em direção à porta",
+        "expected_result": "Rival desafia para batalha (opcional)"
+      },
+      {
+        "id": "pallet_002",
+        "type": "battle",
+        "description": "Batalha vs Rival - Squirtle Nv.5",
+        "strategy": "Usar Scratch repetidamente. Charmander está em desvantagem de tipo.",
+        "moves_priority": [
+          "Scratch"
+        ],
+        "expected_result": "Vitória ou derrota (não crítico para progressão)"
+      },
+      {
+        "id": "pallet_003",
+        "type": "move",
+        "description": "Sair do laboratório",
+        "navigation": "Mover DOWN",
+        "target_map": 0,
+        "expected_result": "De volta a Pallet Town"
+      }
+    ]
+  },
+  "route1_to_viridian": {
+    "objective": "Atravessar Route 1 até Viridian City pela primeira vez",
+    "steps": [
+      {
+        "id": "route1_001",
+        "type": "move",
+        "description": "Ir para saída norte de Pallet Town",
+        "navigation": "Mover UP",
+        "target_map": 1,
+        "expected_result": "Entra em Route 1"
+      },
+      {
+        "id": "route1_002",
+        "type": "move",
+        "description": "Atravessar Route 1 indo para norte",
+        "navigation": "Seguir o caminho principal para NORTH/UP, evitar grama alta se possível",
+        "encounters": "Rattata, Pidgey (níveis 2-5)",
+        "battle_strategy": "Se encontrar Pokémon selvagem, fugir (B) para economizar HP para Viridian",
+        "expected_result": "Chega à entrada de Viridian City"
+      },
+      {
+        "id": "route1_003",
+        "type": "move",
+        "description": "Entrar em Viridian City",
+        "navigation": "Continuar UP/NORTE",
+        "target_map": 2,
+        "expected_result": "Entra em Viridian City"
+      }
+    ]
+  },
+  "viridian_first_visit": {
+    "objective": "Ir ao PokéMart e obter o Parcel de Oak",
+    "steps": [
+      {
+        "id": "viridian_001",
+        "type": "move",
+        "description": "Localizar o PokéMart (edifício azul com telhado)",
+        "navigation": "Mover UP/NORTE e depois RIGHT/LESTE",
+        "expected_result": "Em frente ao PokéMart"
+      },
+      {
+        "id": "viridian_002",
+        "type": "move",
+        "description": "Entrar no PokéMart",
+        "navigation": "Pressionar UP na porta",
+        "target_map": "PokéMart Interior",
+        "expected_result": "Dentro do PokéMart"
+      },
+      {
+        "id": "viridian_003",
+        "type": "interact",
+        "description": "Falar com o atendente do balcão",
+        "navigation": "Aproximar do balcão e pressionar A",
+        "buttons": [
+          "A"
+        ],
+        "expected_result": "Atendente entrega Parcel de Oak"
+      },
+      {
+        "id": "viridian_004",
+        "type": "interact",
+        "description": "Receber Oak's Parcel",
+        "buttons": [
+          "A"
+        ],
+        "item_received": "Oak's Parcel",
+        "expected_result": "Parcel adicionado aos Key Items"
+      },
+      {
+        "id": "viridian_005",
+        "type": "move",
+        "description": "Sair do PokéMart",
+        "navigation": "Mover DOWN para a porta",
+        "expected_result": "De volta a Viridian City"
+      }
+    ]
+  },
+  "return_to_pallet": {
+    "objective": "Retornar a Pallet Town com o Parcel",
+    "steps": [
+      {
+        "id": "return_001",
+        "type": "move",
+        "description": "Voltar para Route 1",
+        "navigation": "Mover para sul/DOWN da cidade",
+        "target_map": 1,
+        "expected_result": "Em Route 1"
+      },
+      {
+        "id": "return_002",
+        "type": "move",
+        "description": "Atravessar Route 1 de volta",
+        "navigation": "Seguir caminho principal para DOWN/SUL",
+        "note": "Pode encontrar Pokémon selvagens. Fugir se HP estiver baixo.",
+        "expected_result": "De volta a Pallet Town"
+      },
+      {
+        "id": "return_003",
+        "type": "move",
+        "description": "Ir ao laboratório de Oak",
+        "navigation": "Mover UP e RIGHT para o laboratório",
+        "expected_result": "Em frente ao lab de Oak"
+      },
+      {
+        "id": "return_004",
+        "type": "move",
+        "description": "Entrar no laboratório",
+        "navigation": "Pressionar UP na porta",
+        "expected_result": "Dentro do laboratório"
+      }
+    ]
+  },
+  "deliver_parcel": {
+    "objective": "Entregar Parcel a Oak e receber Pokédex",
+    "steps": [
+      {
+        "id": "deliver_001",
+        "type": "interact",
+        "description": "Falar com Prof. Oak",
+        "navigation": "Aproximar de Oak e pressionar A",
+        "buttons": [
+          "A"
+        ],
+        "expected_result": "Oak agradece pelo Parcel"
+      },
+      {
+        "id": "deliver_002",
+        "type": "interact",
+        "description": "Receber Pokédex de Oak",
+        "buttons": [
+          "A",
+          "A",
+          "A"
+        ],
+        "item_received": "Pokédex",
+        "expected_result": "Pokédex adicionado! Agora pode ver dados de Pokémon capturados"
+      },
+      {
+        "id": "deliver_003",
+        "type": "interact",
+        "description": "Rival também recebe Pokédex",
+        "buttons": [
+          "A",
+          "A"
+        ],
+        "expected_result": "Rival sai do laboratório"
+      },
+      {
+        "id": "deliver_004",
+        "type": "move",
+        "description": "Sair do laboratório",
+        "navigation": "Mover DOWN",
+        "expected_result": "De volta a Pallet Town com Pokédex"
+      }
+    ]
+  },
+  "pallet_to_viridian_second": {
+    "objective": "Retornar a Viridian City para comprar itens",
+    "steps": [
+      {
+        "id": "second_001",
+        "type": "move",
+        "description": "Ir para Route 1",
+        "navigation": "Mover UP da cidade",
+        "expected_result": "Em Route 1"
+      },
+      {
+        "id": "second_002",
+        "type": "move",
+        "description": "Atravessar Route 1 novamente",
+        "navigation": "Seguir caminho para UP/NORTE",
+        "training_opportunity": "Batalhar Rattata/Pidgey para subir Charmander para nível 7-8",
+        "expected_result": "De volta a Viridian City"
+      }
+    ]
+  },
+  "viridian_to_route2": {
+    "objective": "Atravessar Viridian City e ir para Route 2",
+    "steps": [
+      {
+        "id": "route2_001",
+        "type": "move",
+        "description": "Ir para norte de Viridian",
+        "navigation": "Mover UP pela cidade",
+        "expected_result": "Saída norte de Viridian"
+      },
+      {
+        "id": "route2_002",
+        "type": "move",
+        "description": "Entrar em Route 2",
+        "navigation": "Continuar UP",
+        "target_map": "Route 2",
+        "expected_result": "Em Route 2"
+      },
+      {
+        "id": "route2_003",
+        "type": "move",
+        "description": "Seguir caminho até entrada da Viridian Forest",
+        "navigation": "Mover UP/NORTE pelo caminho",
+        "encounters": "Rattata, Pidgey, Caterpie (nv 3-5)",
+        "training_note": "Batalhar para evoluir Charmander para nível 9-10 antes da floresta",
+        "expected_result": "Porta de entrada da Viridian Forest"
+      },
+      {
+        "id": "route2_004",
+        "type": "move",
+        "description": "Entrar na Viridian Forest",
+        "navigation": "Pressionar UP na entrada",
+        "target_map": "Viridian Forest",
+        "expected_result": "Dentro da Viridian Forest"
+      }
+    ]
+  },
+  "viridian_forest": {
+    "objective": "Atravessar Viridian Forest e treinar equipe",
+    "steps": [
+      {
+        "id": "forest_001",
+        "type": "condition",
+        "description": "Verificar nível de Charmander",
+        "check": "Charmander >= Nível 10",
+        "if_false": "Batalhar mais Pokémon selvagens",
+        "expected_result": "Charmander pronto para evoluir (nível 16)"
+      },
+      {
+        "id": "forest_002",
+        "type": "move",
+        "description": "Navegar pela floresta (caminho principal)",
+        "navigation": "Seguir caminho evitando trainers se possível, mas batalhar para XP",
+        "encounters": "Caterpie, Metapod, Weedle, Kakuna, Pikachu (raro)",
+        "trainers": [
+          "Bug Catcher - Weedle nv 9",
+          "Bug Catcher - Caterpie nv 10, Weedle nv 9, Caterpie nv 9",
+          "Bug Catcher - Weedle nv 9, Kakuna nv 9, Caterpie nv 9, Metapod nv 9"
+        ],
+        "strategy": "Batalhar todos os trainers para maximizar XP. Usar Ember (aprendido no nv 9) contra Bugs.",
+        "expected_result": "Atravessando a floresta"
+      },
+      {
+        "id": "forest_003",
+        "type": "battle",
+        "description": "Batalhar trainers para XP",
+        "strategy": "Charmander aprende Ember no nível 9. Usar contra todos os Bug types (super-efetivo).",
+        "healing": "Se HP < 50%, usar Potion (se tiver)",
+        "expected_result": "Vitórias contra trainers, ganho de XP"
+      },
+      {
+        "id": "forest_004",
+        "type": "condition",
+        "description": "Verificar nível antes de sair",
+        "check": "Charmander >= Nível 13",
+        "target_level": 16,
+        "note": "Ideal é Charmander nível 14-16 para evoluir antes/durante Brock",
+        "expected_result": "Equipe forte o suficiente"
+      },
+      {
+        "id": "forest_005",
+        "type": "move",
+        "description": "Sair da Viridian Forest",
+        "navigation": "Continuar UP/NORTE até a saída",
+        "target_map": "Route 2 Norte",
+        "expected_result": "Saiu da floresta, em Route 2 (parte norte)"
+      }
+    ]
+  },
+  "route2_to_pewter": {
+    "objective": "Atravessar Route 2 norte e entrar em Pewter City",
+    "steps": [
+      {
+        "id": "pewter_001",
+        "type": "move",
+        "description": "Seguir caminho de Route 2 para Pewter",
+        "navigation": "Mover UP/NORTE",
+        "expected_result": "Entrada de Pewter City à vista"
+      },
+      {
+        "id": "pewter_002",
+        "type": "move",
+        "description": "Entrar em Pewter City",
+        "navigation": "Continuar UP",
+        "target_map": "Pewter City",
+        "expected_result": "Primeira cidade com ginásio!"
+      }
+    ]
+  },
+  "pewter_arrival": {
+    "objective": "Explorar Pewter City e curar equipe",
+    "steps": [
+      {
+        "id": "pewter_explore_001",
+        "type": "move",
+        "description": "Localizar Pokémon Center (edifício vermelho)",
+        "navigation": "Mover pela cidade procurando edifício com símbolo de Poké Ball",
+        "expected_result": "Em frente ao Pokémon Center"
+      },
+      {
+        "id": "pewter_explore_002",
+        "type": "move",
+        "description": "Entrar no Pokémon Center",
+        "navigation": "Pressionar UP na porta",
+        "expected_result": "Dentro do Pokémon Center"
+      },
+      {
+        "id": "pewter_explore_003",
+        "type": "interact",
+        "description": "Curar Pokémon com Nurse Joy",
+        "navigation": "Aproximar do balcão e pressionar A",
+        "buttons": [
+          "A",
+          "A"
+        ],
+        "expected_result": "Pokémon totalmente curados (HP e PP restaurados)"
+      },
+      {
+        "id": "pewter_explore_004",
+        "type": "move",
+        "description": "Sair do Pokémon Center",
+        "navigation": "Mover DOWN",
+        "expected_result": "De volta a Pewter City"
+      },
+      {
+        "id": "pewter_explore_005",
+        "type": "move",
+        "description": "Localizar PokéMart",
+        "navigation": "Procurar edifício azul",
+        "optional": true,
+        "expected_result": "Pode comprar Poções se tiver dinheiro"
+      }
+    ]
+  },
+  "pre_brock_prep": {
+    "objective": "Preparação final antes da batalha com Brock",
+    "steps": [
+      {
+        "id": "prep_001",
+        "type": "condition",
+        "description": "Verificar nível de Charmander",
+        "check": "Charmander >= Nível 14",
+        "recommendation": "Nível 16+ ideal para evoluir para Charmeleon antes de Brock",
+        "if_false": "Treinar mais na grama de Route 2 ou lutar contra trainers que ainda não enfrentou",
+        "expected_result": "Equipe forte"
+      },
+      {
+        "id": "prep_002",
+        "type": "condition",
+        "description": "Verificar itens",
+        "check": "Tem pelo menos 2 Potions",
+        "if_false": "Comprar Potions no PokéMart",
+        "expected_result": "Preparado para batalha longa"
+      },
+      {
+        "id": "prep_003",
+        "type": "interact",
+        "description": "Curar no Pokémon Center antes do ginásio",
+        "expected_result": "HP e PP completos"
+      },
+      {
+        "id": "prep_004",
+        "type": "move",
+        "description": "Ir para Pewter Gym",
+        "navigation": "O ginásio é o edifício grande ao norte da cidade",
+        "expected_result": "Em frente ao Pewter Gym"
+      }
+    ]
+  },
+  "brock_battle": {
+    "objective": "Derrotar Brock e conquistar a Boulder Badge",
+    "steps": [
+      {
+        "id": "brock_001",
+        "type": "move",
+        "description": "Entrar no Pewter Gym",
+        "navigation": "Pressionar UP na porta do ginásio",
+        "target_map": "Pewter Gym Interior",
+        "expected_result": "Dentro do ginásio de pedra"
+      },
+      {
+        "id": "brock_002",
+        "type": "move",
+        "description": "Aproximar do primeiro trainer",
+        "navigation": "Mover UP pela arena",
+        "expected_result": "Jr. Trainer desafia"
+      },
+      {
+        "id": "brock_003",
+        "type": "battle",
+        "description": "Batalha vs Jr. Trainer",
+        "opponent": "Jr. Trainer ♂",
+        "team": [
+          "Diglett nv 11",
+          "Sandshrew nv 11"
+        ],
+        "strategy": "Usar Ember repetidamente. Não são muito fortes. Economizar PP se possível.",
+        "moves_priority": [
+          "Ember",
+          "Scratch"
+        ],
+        "expected_result": "Vitória, ganho de XP e dinheiro"
+      },
+      {
+        "id": "brock_004",
+        "type": "condition",
+        "description": "Verificar HP antes de Brock",
+        "check": "Charmander HP > 70%",
+        "if_false": "Usar Potion",
+        "expected_result": "HP adequado para batalha de ginásio"
+      },
+      {
+        "id": "brock_005",
+        "type": "move",
+        "description": "Aproximar de Brock",
+        "navigation": "Mover UP até o líder do ginásio",
+        "expected_result": "Brock desafia!"
+      },
+      {
+        "id": "brock_006",
+        "type": "battle",
+        "description": "BATALHA DE GINÁSIO vs BROCK",
+        "opponent": "Leader Brock",
+        "team": [
+          {
+            "pokemon": "Geodude",
+            "level": 12,
+            "type": [
+              "Rock",
+              "Ground"
+            ],
+            "moves": [
+              "Tackle",
+              "Defense Curl"
+            ],
+            "weakness": [
+              "Water",
+              "Grass"
+            ],
+            "resistance": [
+              "Fire",
+              "Normal"
+            ]
+          },
+          {
+            "pokemon": "Onix",
+            "level": 14,
+            "type": [
+              "Rock",
+              "Ground"
+            ],
+            "moves": [
+              "Tackle",
+              "Screech",
+              "Bide",
+              "Bind"
+            ],
+            "weakness": [
+              "Water",
+              "Grass"
+            ],
+            "resistance": [
+              "Fire",
+              "Normal"
+            ],
+            "note": "Alta defesa, baixo ataque especial"
+          }
+        ],
+        "strategy_detailed": {
+          "overview": "Batalha DIFÍCIL com Charmander. Rock/Ground resiste a Fire (Ember não muito efetivo).",
+          "geodude_strategy": [
+            "Usar Ember repetidamente",
+            "Se Geodude usar Defense Curl, continuar atacando",
+            "Não trocar Pokémon (só tem Charmander)",
+            "Geodude tem baixo HP, deve cair em 4-5 Embers"
+          ],
+          "onix_strategy": [
+            "BOSS FIGHT: Onix tem defesa altíssima mas HP e Atk Esp baixos",
+            "Usar Ember (mesmo não sendo efetivo, é o melhor move disponível)",
+            "Se Onix usar Bide, CONTINUAR ATACANDO (Bide acumula dano e devolve dobrado)",
+            "Se Onix usar Bind, vai prender Charmander por 2-5 turnos causando dano",
+            "Usar Potion quando HP < 40%",
+            "Ember causará ~6-8 de dano por hit. Onix tem ~55 HP. Precisará de ~7-9 Embers.",
+            "Metal Claw (se aprendido no nv 13) é neutro e pode ajudar"
+          ],
+          "healing_plan": [
+            "Antes de Onix: curar se HP < 70%",
+            "Durante Onix: usar Potion se HP < 50%",
+            "Se ficar sem Potions: rezar e continuar atacando"
+          ],
+          "level_advantage": "Se Charmander evoluiu para Charmeleon (nv 16), batalha fica mais fácil devido a stats maiores"
+        },
+        "moves_priority": [
+          "Ember",
+          "Metal Claw (se tiver)",
+          "Scratch"
+        ],
+        "critical_success": "BOULDER BADGE CONQUISTADA!",
+        "expected_result": "Vitória após batalha difícil. Brock entrega Boulder Badge e TM34 (Bide)"
+      },
+      {
+        "id": "brock_007",
+        "type": "interact",
+        "description": "Receber Boulder Badge",
+        "buttons": [
+          "A",
+          "A",
+          "A"
+        ],
+        "rewards": [
+          "Boulder Badge",
+          "TM34 - Bide",
+          "Prize money"
+        ],
+        "badge_effect": "Ataque de todos Pokémon aumenta levemente. Pode usar Flash fora de batalha.",
+        "expected_result": "Primeira badge conquistada! Marco importante."
+      },
+      {
+        "id": "brock_008",
+        "type": "move",
+        "description": "Sair do ginásio vitorioso",
+        "navigation": "Mover DOWN para sair",
+        "expected_result": "De volta a Pewter City como campeão do ginásio!"
+      },
+      {
+        "id": "brock_009",
+        "type": "interact",
+        "description": "Curar no Pokémon Center após batalha",
+        "expected": "HP e PP restaurados",
+        "next_goal": "Preparar para jornada para Mt. Moon e Cerulean City"
+      }
+    ]
+  },
+  "meta_rules": {
+    "general_guidelines": [
+      "Sempre curar no Pokémon Center antes de batalhas de ginásio",
+      "Capturar Pokémon adicionais se encontrar (especialmente Pikachu na Viridian Forest para vantagem vs Misty)",
+      "Economizar dinheiro para comprar Potions e Poké Balls",
+      "Batalhar trainers sempre que possível para maximizar XP",
+      "Salvar o jogo frequentemente em pontos importantes"
+    ],
+    "battle_priority": {
+      "wild_pokemon": "Fugir se HP < 50% ou se não precisa de XP",
+      "trainers": "Sempre batalhar para XP e dinheiro",
+      "gym_leaders": "Preparar adequadamente: nível apropriado, itens, HP completo"
+    },
+    "resource_management": {
+      "money": "Priorizar Potions > Poké Balls > outros itens",
+      "pp": "Conservar moves fortes (Ember) para batalhas importantes",
+      "hp": "Usar Potions estrategicamente, não desperdiçar"
+    },
+    "level_recommendations": {
+      "viridian_forest_entry": "Nível 8-10",
+      "viridian_forest_exit": "Nível 12-14",
+      "brock_battle": "Nível 14-16 (ideal: 16 para Charmeleon)"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+# --- ROM ------------------------------------------------------------------
+# Pokémon Blue/Red são software comercial protegido por direitos autorais e não
+# podem ser distribuídos com este repositório. Traga sua própria cópia legal; o
+# SHA-1 é validado na inicialização por blue-agents/rom_identity.py.
+roms/*.gb
+roms/*.gbc
+
+# --- dependências ---------------------------------------------------------
+.env
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# --- estado de execução, não código ---------------------------------------
+# Cada jornada gera saves, snapshots do emulador e logs continuamente. É tudo
+# derivado e específico de uma execução: nada aqui é necessário para o projeto
+# rodar do zero. Os states de partida ficam em states/ e SÃO versionados.
+trainers/
+archives/
+*.bak-*/
+blue-agents/tasks/*.db
+blue-agents/tasks/*.state
+blue-agents/tasks/agent_states.json
+blue-agents/tasks/runtime_controls.json
+blue-agents/tasks/runtime_controls.json.tmp
+blue-agents/tasks/training.pid
+blue-agents/tasks/viz.pid
+blue-agents/tasks/journey_memory/
+blue-agents/tasks/decision_logs/
+blue-agents/tasks/matplotlib/
+blue-agents/tasks/save_state_signal
+blue-agents/*_autosave.state
+blue-agents/checkpoints/
+blue-agents/tasks/journey_states/
+
+# --- checkpoints de treino e telemetria -----------------------------------
+# Pesados e regeneráveis a cada execução.
+blue-agents/v2_repro_runs/
+blue-agents/dashboard-react/dist/
+dist/
+runs/
+wandb/
+
+# --- logs -----------------------------------------------------------------
+*.log
+
+# --- sistema --------------------------------------------------------------
+.DS_Store

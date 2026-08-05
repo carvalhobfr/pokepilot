@@ -1,0 +1,128 @@
+{
+  "zones": {
+    "pallet_town": {
+      "map_ids": [
+        0,
+        40,
+        5,
+        13
+      ],
+      "name": "Pallet Town Area",
+      "safe_spots": [
+        {
+          "map_id": 5,
+          "x": 3,
+          "y": 6,
+          "desc": "Mom's House (Heal)"
+        }
+      ],
+      "connections": [
+        "route_1"
+      ]
+    },
+    "route_1": {
+      "map_ids": [
+        12
+      ],
+      "name": "Route 1",
+      "connections": [
+        "pallet_town",
+        "viridian_city"
+      ]
+    },
+    "viridian_city": {
+      "map_ids": [
+        1,
+        29,
+        32,
+        23
+      ],
+      "name": "Viridian City Area",
+      "safe_spots": [
+        {
+          "map_id": 23,
+          "x": 3,
+          "y": 3,
+          "desc": "Poke Center"
+        }
+      ],
+      "connections": [
+        "route_1",
+        "route_2",
+        "route_22"
+      ]
+    },
+    "pewter_city": {
+      "map_ids": [
+        3,
+        54
+      ],
+      "name": "Pewter City",
+      "safe_spots": [
+        {
+          "map_id": 54,
+          "x": 3,
+          "y": 3,
+          "desc": "Poke Center"
+        }
+      ],
+      "connections": [
+        "route_2"
+      ]
+    }
+  },
+  "quests": [
+    {
+      "id": "get_parcel",
+      "zone": "viridian_city",
+      "condition": {
+        "item_missing": "Oak's Parcel",
+        "badges": 0,
+        "pokedex": false
+      },
+      "target": {
+        "map_id": 29,
+        "action": "talk_clerk"
+      },
+      "description": "Go to Viridian Mart and pick up Oak's Parcel"
+    },
+    {
+      "id": "deliver_parcel",
+      "zone": "pallet_town",
+      "condition": {
+        "item_present": "Oak's Parcel",
+        "pokedex": false
+      },
+      "target": {
+        "map_id": 40,
+        "action": "talk_oak"
+      },
+      "description": "Return to Oak's Lab and deliver Parcel"
+    },
+    {
+      "id": "get_pokedex",
+      "zone": "pallet_town",
+      "condition": {
+        "event_flag_missing": "pokedex_obtained"
+      },
+      "target": {
+        "map_id": 40,
+        "action": "talk_oak"
+      },
+      "description": "Talk to Oak to get Pokedex"
+    },
+    {
+      "id": "beat_brock",
+      "zone": "pewter_city",
+      "condition": {
+        "badges": 0,
+        "pokedex": true
+      },
+      "target": {
+        "map_id": 54,
+        "action": "battle_gym"
+      },
+      "description": "Defeat Brock at Pewter Gym"
+    }
+  ]
+}

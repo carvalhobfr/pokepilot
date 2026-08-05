@@ -1,0 +1,59 @@
+{
+  "game_flow": {
+    "start": {
+      "actions": [
+        "Start -> New Game",
+        "Complete Oak introduction",
+        "Set player name and rival name",
+        "Leave house and try to go to Route 1"
+      ]
+    },
+    "oak_event": {
+      "actions": [
+        "Choose starter: Bulbasaur, Charmander or Squirtle",
+        "Accept or reject optional rival fight",
+        "Leave Lab and go to Viridian City"
+      ]
+    },
+    "parcel_event": {
+      "actions": [
+        "Go to PokeMart in Viridian",
+        "Get Oak's Parcel",
+        "Return to Oak's Lab in Pallet",
+        "Deliver Parcel and get Pokedex"
+      ]
+    },
+    "buy_pokeballs": {
+      "actions": [
+        "Go to Viridian City PokeMart",
+        "Buy Poke Balls and Potions"
+      ]
+    },
+    "route_2_nav": {
+      "actions": [
+        "Go to Viridian City North Exit",
+        "Traverse Route 2 to Viridian Forest Entrance"
+      ]
+    },
+    "viridian_forest_nav": {
+      "actions": [
+        "Enter Viridian Forest",
+        "Traverse Viridian Forest to Pewter City Exit"
+      ]
+    },
+    "pewter_city_nav": {
+      "actions": [
+        "Go to Pewter City",
+        "Heal at Pewter Center",
+        "Go to Pewter Gym"
+      ]
+    },
+    "brock_quest": {
+      "actions": [
+        "Enter Pewter Gym",
+        "Defeat Jr Trainer",
+        "Defeat Brock"
+      ]
+    }
+  }
+}

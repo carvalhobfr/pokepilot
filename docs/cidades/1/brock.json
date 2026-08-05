@@ -1,0 +1,508 @@
+{
+  "game": "Pokemon Blue",
+  "goal": "Guiar o agente desde o início do jogo em Pallet Town até derrotar Brock no ginásio de Pewter City.",
+  "notes": [
+    "Este walkthrough assume uma ROM padrão de Pokémon Blue em inglês.",
+    "As direções são dadas em termos de UP, DOWN, LEFT, RIGHT no D-Pad.",
+    "Onde houver RNG (encontros selvagens, críticos, etc.), o agente deve seguir as instruções de decisão definidas em cada passo."
+  ],
+  "steps": [
+    {
+      "id": 1,
+      "area": "PlayerRoom",
+      "title": "Acordar no quarto e descer as escadas",
+      "condition": "Jogo recém-iniciado, jogador aparece no quarto.",
+      "instructions": [
+        "Você está no quarto do jogador, em pé na parte inferior do tapete central, virado para baixo.",
+        "A TV está no canto superior esquerdo da sala.",
+        "O PC está no canto superior direito da sala.",
+        "A escada que leva para o andar de baixo está no canto inferior direito da sala.",
+        "Se quiser interagir com a TV ou PC, mova-se até ficar imediatamente em frente ao objeto e pressione A.",
+        "Para seguir a progressão da história, ignore TV e PC por enquanto.",
+        "Movimente-se com RIGHT até encostar na parte superior da escada (canto inferior direito da sala).",
+        "Quando estiver alinhado com a escada, pressione DOWN para descer.",
+        "Ao pressionar DOWN na escada, você será levado automaticamente ao andar de baixo (térreo)."
+      ],
+      "encounters": [],
+      "notes": [
+        "Interagir com o PC pode permitir retirar uma Potion, mas não é obrigatório neste guia básico.",
+        "O agente pode aprender que objetos interagíveis normalmente estão diretamente à frente do personagem ao apertar A."
+      ]
+    },
+    {
+      "id": 2,
+      "area": "PlayerHouse_GroundFloor",
+      "title": "Sair de casa pela porta principal",
+      "condition": "Jogador no térreo da casa após descer as escadas.",
+      "instructions": [
+        "Ao descer, você estará em uma sala com uma mesa no centro e sua mãe perto da mesa.",
+        "A porta de saída da casa fica na parte inferior da tela, aproximadamente no centro horizontal.",
+        "Se quiser falar com sua mãe, mova-se até ficar em frente a ela e pressione A (opcional).",
+        "Para sair da casa, mova-se até o centro da parte inferior da sala, alinhado com a porta.",
+        "Pressione DOWN até encostar na porta. Ao tocar nela, a animação de saída será acionada automaticamente.",
+        "Você agora estará fora da casa, em Pallet Town."
+      ],
+      "encounters": [],
+      "notes": [
+        "Falar com a mãe é opcional e não altera o progresso até Brock."
+      ]
+    },
+    {
+      "id": 3,
+      "area": "PalletTown",
+      "title": "Primeira vez em Pallet Town – acionar o Professor Oak",
+      "condition": "Jogador acabou de sair da própria casa em Pallet Town.",
+      "instructions": [
+        "Você aparece em frente à sua casa, voltado para baixo.",
+        "A casa do rival fica à esquerda da sua casa.",
+        "O laboratório do Professor Oak fica ao norte da cidade, um prédio maior com um telhado diferente.",
+        "A saída da cidade para a Rota 1 fica no extremo norte, acima da área de grama.",
+        "Para acionar o evento com o Professor Oak, vá em direção ao norte da cidade:",
+        "1. Pressione UP continuamente, passando pela frente da casa do rival (à esquerda) e seguindo para cima.",
+        "2. Continue indo para cima até alcançar a borda superior da cidade, onde começa uma área de grama.",
+        "3. Ao tentar entrar na grama pela primeira vez (parte superior de Pallet Town, indo para Rota 1), uma cutscene será acionada automaticamente.",
+        "O Professor Oak aparecerá vindo de cima, impedindo você de entrar na grama sem um Pokémon.",
+        "Após o diálogo, ele levará você automaticamente de volta para dentro do laboratório."
+      ],
+      "encounters": [],
+      "notes": [
+        "Não há batalhas selvagens antes de Oak te levar ao laboratório pela primeira vez.",
+        "O agente não precisa apertar nenhum botão de movimento durante a cutscene, apenas confirmar diálogos com A."
+      ]
+    },
+    {
+      "id": 4,
+      "area": "OakLab",
+      "title": "Escolher o Pokémon inicial",
+      "condition": "Jogador está dentro do laboratório após a cutscene com Oak.",
+      "instructions": [
+        "Você estará na parte inferior do laboratório, virado para cima.",
+        "No centro da sala há uma mesa com três Pokébolas alinhadas na parte superior.",
+        "O Professor Oak está atrás da mesa, voltado para você.",
+        "Seu rival está à direita da mesa.",
+        "Movimente-se com UP até ficar em frente à mesa com as Pokébolas.",
+        "Para falar com Oak, posicione-se diretamente à frente dele e pressione A. Ele explicará que você pode escolher um Pokémon.",
+        "Para selecionar um Pokémon, posicione-se em frente a uma das Pokébolas:",
+        " - A Pokébola da ESQUERDA é Bulbasaur.",
+        " - A Pokébola do MEIO é Charmander.",
+        " - A Pokébola da DIREITA é Squirtle.",
+        "Fique de frente para a Pokébola desejada (um tile abaixo dela) e pressione A.",
+        "Confirme a escolha do Pokémon pressionando A novamente quando o jogo perguntar se você quer esse Pokémon.",
+        "Após escolher, seu rival irá automaticamente escolher o Pokémon com vantagem de tipo.",
+        "Você pode dar um apelido ou não ao Pokémon; isso não afeta a progressão."
+      ],
+      "encounters": [],
+      "notes": [
+        "Bulbasaur e Squirtle facilitam a luta contra Brock.",
+        "Charmander exige normalmente capturar um Caterpie e chegar a Butterfree com Confusion antes de lutar contra Brock."
+      ]
+    },
+    {
+      "id": 5,
+      "area": "OakLab",
+      "title": "Primeira batalha com o rival",
+      "condition": "Jogador já escolheu o Pokémon inicial e tenta sair do laboratório.",
+      "instructions": [
+        "Após escolher seu Pokémon, mova-se para baixo, em direção à saída do laboratório.",
+        "Quando você estiver próximo da saída (na parte inferior da sala), seu rival irá falar com você automaticamente.",
+        "O rival desafiará você para uma batalha.",
+        "Durante a batalha:",
+        " - Use o comando FIGHT para selecionar o ataque principal de dano (Tackle ou Scratch, dependendo do inicial).",
+        " - Use Growl se quiser reduzir o ataque do Pokémon do rival.",
+        "Continue usando o ataque principal até que o Pokémon do rival seja derrotado ou até que seu Pokémon desmaie.",
+        "Se você vencer, ganhará experiência e dinheiro.",
+        "Se perder, o jogo continua; você apenas não ganha o dinheiro e a experiência da luta.",
+        "Após a batalha, você retornará automaticamente ao interior do laboratório."
+      ],
+      "encounters": [],
+      "notes": [
+        "Não há punição de progressão por perder esta primeira batalha.",
+        "Esta batalha ensina o agente a usar o menu de batalha básico: FIGHT, POKÉMON, BAG, RUN (RUN não está disponível em batalhas contra treinadores)."
+      ]
+    },
+    {
+      "id": 6,
+      "area": "PalletTown",
+      "title": "Primeira saída real de Pallet Town em direção à Rota 1",
+      "condition": "Jogador está novamente em Pallet Town após a primeira batalha com o rival.",
+      "instructions": [
+        "Saia do laboratório movendo-se para DOWN até a porta e atravessando-a.",
+        "Você aparecerá em frente ao laboratório.",
+        "Seu objetivo agora é ir à Rota 1 em direção a Viridian City.",
+        "A Rota 1 fica ao norte de Pallet Town.",
+        "Movimente-se com UP, passando pela frente das casas, até alcançar a parte superior da cidade.",
+        "Na parte superior, há uma faixa de grama que marca a transição para a Rota 1.",
+        "Continue movendo-se UP até entrar na Rota 1."
+      ],
+      "encounters": [],
+      "notes": [
+        "A partir de agora, caminhar na grama pode gerar encontros aleatórios com Pokémon selvagens."
+      ]
+    },
+    {
+      "id": 7,
+      "area": "Route1",
+      "title": "Subindo a Rota 1 até Viridian City",
+      "condition": "Jogador entra na Rota 1 vindo de Pallet Town (pelo sul).",
+      "instructions": [
+        "Você aparece na parte inferior da Rota 1, voltado para cima.",
+        "Nesta rota, o caminho é essencialmente linear, indo do sul (Pallet Town) para o norte (Viridian City).",
+        "Logo à frente de você haverá blocos de grama à esquerda e à direita do caminho.",
+        "Se quiser minimizar encontros, tente andar pelos espaços sem grama, quando possível.",
+        "Para seguir o caminho principal:",
+        "1. Pressione UP e avance pela rota.",
+        "2. Em cerca de metade do caminho, haverá um NPC no meio da rota.",
+        "   - Fale com ele (pressionando A) para receber uma Potion (opcional, mas útil).",
+        "3. Continue seguindo UP após o NPC, atravessando mais áreas de grama e espaços livres.",
+        "4. Ao chegar à parte superior da Rota 1, você verá a entrada de Viridian City.",
+        "5. Continue indo UP até a tela mudar para Viridian City."
+      ],
+      "encounters": [
+        {
+          "type": "wild",
+          "description": "Pokémon selvagens na grama da Rota 1",
+          "possible_pokemon": [
+            "Pidgey (nível 2–3)",
+            "Rattata (nível 2–3)"
+          ],
+          "decision_rules": [
+            "Se o objetivo for apenas chegar rápido a Viridian City, o agente pode tentar fugir usando RUN em cada encontro.",
+            "Se o HP do Pokémon estiver abaixo de aproximadamente 40%, o agente deve considerar usar uma Potion antes de continuar na rota.",
+            "Se o objetivo incluir treinar o inicial, o agente pode escolher FIGHT e derrotar alguns Pokémon selvagens para ganhar experiência.",
+            "Se o agente tiver Pokébolas (ainda não é o caso na primeira ida), poderia tentar capturar, mas nesta primeira passagem ainda não há Pokébolas."
+          ]
+        }
+      ],
+      "notes": [
+        "Este trecho introduz o conceito de encontros aleatórios na grama.",
+        "Não há treinadores nesta rota, apenas um NPC que fornece uma Potion gratuitamente."
+      ]
+    },
+    {
+      "id": 8,
+      "area": "ViridianCity",
+      "title": "Chegada em Viridian City e obtenção do Oak's Parcel",
+      "condition": "Jogador chega em Viridian City vindo do sul (Rota 1).",
+      "instructions": [
+        "Você entra em Viridian City pela parte inferior da área.",
+        "O Centro Pokémon fica um pouco à esquerda da entrada.",
+        "O PokéMart fica à direita da área central da cidade.",
+        "Ao chegar, recomenda-se ir primeiro ao Centro Pokémon:",
+        "1. Movimente-se para LEFT até encontrar o prédio com a placa 'Poke' e um telhado vermelho (Centro Pokémon).",
+        "2. Entre pela porta do Centro Pokémon movendo-se para UP em direção à entrada.",
+        "3. Fale com a enfermeira na frente do balcão pressionando A para curar seus Pokémon.",
+        "Depois de curar, saia do Centro Pokémon.",
+        "Agora vá ao PokéMart:",
+        "1. Saia do Centro Pokémon e mova-se para RIGHT até ver o prédio com a placa 'Mart'.",
+        "2. Entre no PokéMart indo para UP até a porta.",
+        "3. Assim que entrar, o atendente falará com você automaticamente.",
+        "4. Ele entregará o 'Oak's Parcel' para você levar de volta ao Professor Oak em Pallet Town.",
+        "5. Não é necessário comprar nada ainda nesta primeira visita, pois você ainda não pode usar a Pokédex."
+      ],
+      "encounters": [],
+      "notes": [
+        "O ginásio de Viridian City está fechado nesta fase; o agente deve ignorá-lo.",
+        "A saída oeste da cidade está bloqueada por um NPC deitado; isso também faz parte da progressão natural."
+      ]
+    },
+    {
+      "id": 9,
+      "area": "Route1",
+      "title": "Retornando de Viridian City para Pallet Town com o Oak's Parcel",
+      "condition": "Jogador está em Viridian City com o Oak's Parcel no inventário.",
+      "instructions": [
+        "Saia de Viridian City pela saída sul, voltando à Rota 1.",
+        "Você aparecerá na parte superior da Rota 1, agora voltado para DOWN.",
+        "Para voltar a Pallet Town:",
+        "1. Pressione DOWN para seguir o caminho principal.",
+        "2. Passe pelo mesmo NPC do meio da rota (agora vindo de cima); ele não dará outra Potion.",
+        "3. Continue seguindo DOWN até chegar à parte inferior da Rota 1.",
+        "4. Ao chegar ao limite inferior, a tela mudará de volta para Pallet Town.",
+        "Na grama, os mesmos encontros de antes podem ocorrer; o agente pode:",
+        " - Escolher FIGHT para treinar um pouco.",
+        " - Ou escolher RUN se quiser ir mais rápido para Pallet Town.",
+        "Ao chegar em Pallet Town, vá ao laboratório do Oak:",
+        "1. Mova-se para UP, em direção à parte superior da cidade.",
+        "2. Entre no prédio do laboratório (o mesmo de antes), indo para UP em frente à porta.",
+        "3. Fale com o Professor Oak (posicionado atrás da mesa) pressionando A.",
+        "4. Ele receberá o Oak's Parcel e, em seguida, dará a Pokédex para você.",
+        "Depois disso, você está livre para voltar a Viridian City."
+      ],
+      "encounters": [
+        {
+          "type": "wild",
+          "description": "Encontros selvagens na Rota 1 na volta",
+          "possible_pokemon": [
+            "Pidgey (nível 2–3)",
+            "Rattata (nível 2–3)"
+          ],
+          "decision_rules": [
+            "O agente pode aproveitar para subir um nível ou dois com o Pokémon inicial.",
+            "Se o HP ficar baixo, use uma Potion se disponível.",
+            "Se o agente quiser evitar risco, pode tentar correr (RUN) de todos os encontros."
+          ]
+        }
+      ],
+      "notes": [
+        "Depois de entregar o pacote e obter a Pokédex, o jogo abre as mecânicas de captura com Pokébolas.",
+        "Ainda não há Pokébolas até voltar a Viridian City e comprar."
+      ]
+    },
+    {
+      "id": 10,
+      "area": "ViridianCity",
+      "title": "Voltar a Viridian City e comprar Pokébolas",
+      "condition": "Jogador está em Pallet Town com Pokédex obtida.",
+      "instructions": [
+        "Saia de Pallet Town pelo norte novamente e atravesse a Rota 1 como antes, seguindo sempre UP.",
+        "Chegue a Viridian City.",
+        "Vá ao Centro Pokémon se precisar curar.",
+        "Em seguida, vá ao PokéMart, entrando pela porta na parte frontal do prédio.",
+        "Agora você pode comprar itens.",
+        "Comandos de compra:",
+        " - Fale com o atendente pressionando A em frente ao balcão.",
+        " - Selecione BUY.",
+        " - Compre algumas POKE BALLs, POTIONs e alguns ANTIDOTEs (importantes para a floresta com Weedle).",
+        "Depois de comprar, saia do PokéMart.",
+        "Você pode explorar a cidade, mas o ginásio ainda está fechado, então o próximo objetivo é seguir para o norte (Rota 2 e Floresta de Viridian)."
+      ],
+      "encounters": [],
+      "notes": [
+        "A partir deste momento, o agente pode começar a montar o time capturando Pokémon selvagens.",
+        "É recomendável ter pelo menos algumas Potions e Antidotes antes de entrar na floresta."
+      ]
+    },
+    {
+      "id": 11,
+      "area": "Route2",
+      "title": "Da Viridian City até a entrada da Floresta de Viridian",
+      "condition": "Jogador está em Viridian City, pronto para seguir em frente.",
+      "instructions": [
+        "A saída para a Rota 2 fica ao norte de Viridian City.",
+        "A partir do centro da cidade, mova-se para UP até alcançar a borda superior da área.",
+        "Ao atravessar a borda, a tela mudará para Rota 2.",
+        "Na Rota 2, o layout é simples:",
+        " - A entrada da floresta fica mais ao norte.",
+        " - Há pequenas áreas de grama à esquerda e à direita do caminho, onde podem ocorrer encontros selvagens.",
+        "Para seguir direto à floresta:",
+        "1. Pressione UP, seguindo o caminho principal reto.",
+        "2. Ignore desvios laterais por enquanto, a não ser que queira capturar mais Pokémon.",
+        "3. Continue empurrando UP até ver um prédio/túnel que funciona como entrada para a Floresta de Viridian.",
+        "4. Entre nesse prédio movendo-se UP até a porta.",
+        "5. Atravessando o prédio, você sairá na entrada da floresta."
+      ],
+      "encounters": [
+        {
+          "type": "wild",
+          "description": "Pokémon selvagens na Rota 2",
+          "possible_pokemon": [
+            "Pidgey",
+            "Rattata"
+          ],
+          "decision_rules": [
+            "O agente pode escolher capturar um Pidgey ou Rattata para compor o time.",
+            "Se o HP estiver baixo, considerar voltar ao Centro Pokémon em Viridian antes de prosseguir.",
+            "Se não quiser treinar ou capturar, pode tentar fugir (RUN) das batalhas."
+          ]
+        }
+      ],
+      "notes": [
+        "Ainda não há treinadores obrigatórios nessa parte da Rota 2.",
+        "É um bom lugar para subir um pouco de nível se o time estiver muito fraco."
+      ]
+    },
+    {
+      "id": 12,
+      "area": "ViridianForest",
+      "title": "Navegar a Floresta de Viridian rumo a Pewter City",
+      "condition": "Jogador atravessou o prédio de transição da Rota 2 e entrou na Floresta de Viridian.",
+      "instructions": [
+        "Ao entrar na floresta, você aparecerá na parte inferior da área da floresta.",
+        "Há um caminho de terra que segue grosso modo em direção ao norte, mas com pequenas curvas para esquerda e direita.",
+        "Objetivo: sair da floresta pela parte superior, em direção a Pewter City.",
+        "Caminho simplificado (sem explorar tudo):",
+        "1. Comece indo UP seguindo o caminho principal.",
+        "2. Logo você verá uma bifurcação com espaço para ir um pouco à esquerda ou à direita.",
+        "   - Se quiser evitar alguns treinadores, mantenha-se ligeiramente à esquerda sempre que possível.",
+        "3. Ao avançar, você encontrará treinadores de Bug Catcher espalhados pelo caminho.",
+        "   - Alguns deles são opcionais; você pode desviar andando por trilhas laterais.",
+        "4. Continue seguindo majoritariamente UP, com pequenas correções LEFT ou RIGHT para contornar árvores.",
+        "5. Quando estiver próximo à saída, o caminho passa por um corredor de árvores que funila para o topo da tela.",
+        "6. Siga esse funil até alcançar a borda superior da floresta, onde há outro prédio de transição.",
+        "7. Entre no prédio (movendo-se UP até a porta) para sair da floresta.",
+        "8. Ao sair do prédio do outro lado, você estará numa pequena seção da Rota 2 que leva diretamente a Pewter City; siga UP e depois um pouco LEFT/RIGHT conforme o layout, até entrar em Pewter City."
+      ],
+      "encounters": [
+        {
+          "type": "wild",
+          "description": "Pokémon selvagens na Floresta de Viridian",
+          "possible_pokemon": [
+            "Caterpie",
+            "Metapod",
+            "Weedle",
+            "Kakuna",
+            "Pikachu (raro)"
+          ],
+          "decision_rules": [
+            "Se o agente escolheu Charmander como inicial, é altamente recomendado capturar um Caterpie de nível 4–6.",
+            "Treinar o Caterpie até o nível 10: Caterpie → Metapod (lvl 7) → Butterfree (lvl 10), que aprende Confusion.",
+            "Weedle pode usar Poison Sting, que pode envenenar o Pokémon.",
+            "Se o Pokémon estiver envenenado (status PSN), o agente deve usar um Antidote assim que possível.",
+            "Se o HP estiver baixo ou o time estiver muito danificado, o agente deve considerar sair da floresta e voltar ao Centro Pokémon anterior.",
+            "Pikachu é raro mas útil; o agente pode tentar capturá-lo se quiser um Pokémon elétrico para o futuro.",
+            "Se o objetivo for apenas chegar a Pewter City rapidamente, o agente pode fugir (RUN) da maioria dos encontros, desde que o HP não esteja perigosamente baixo."
+          ]
+        },
+        {
+          "type": "trainer",
+          "description": "Bug Catchers na floresta",
+          "possible_pokemon": [
+            "Caterpie",
+            "Metapod",
+            "Weedle",
+            "Kakuna"
+          ],
+          "decision_rules": [
+            "Treinadores não podem ser evitados se você passar diretamente na linha de visão deles.",
+            "Antes de entrar em possíveis linhas de visão, o agente deve avaliar HP e decidir se vale lutar ou contornar.",
+            "Em lutas contra bugs, ataques físicos básicos normalmente são suficientes.",
+            "Metapod e Kakuna tendem a usar Harden repetidamente, tornando a batalha longa, mas pouco perigosa.",
+            "O agente deve gerenciar Potions se HP cair para menos de aproximadamente 30% durante essas lutas."
+          ]
+        }
+      ],
+      "notes": [
+        "Esta é a área chave para treinar e evoluir Caterpie até Butterfree se o agente estiver com Charmander.",
+        "A floresta também serve para ensinar o agente sobre veneno (Poison) e o uso de itens como Antidotes."
+      ]
+    },
+    {
+      "id": 13,
+      "area": "PewterCity",
+      "title": "Chegada em Pewter City e preparação para o ginásio",
+      "condition": "Jogador sai da floresta pela parte superior e entra em Pewter City.",
+      "instructions": [
+        "Ao sair do prédio de transição após a floresta, siga o caminho curto em direção à cidade.",
+        "Você entrará em Pewter City pela parte inferior da área.",
+        "O Centro Pokémon fica próximo da entrada; procure o prédio com o telhado vermelho e placa 'Poke'.",
+        "Entre no Centro Pokémon (UP na porta) e fale com a enfermeira pressionando A para curar todo o time.",
+        "Depois de curar, você pode:",
+        " - Visitar a PokéMart para comprar mais Potions e Antidotes se necessário.",
+        " - Explorar a cidade e visitar o museu (opcional, não é necessário para enfrentar Brock).",
+        "Antes de enfrentar Brock, verifique os níveis do seu time:",
+        " - Bulbasaur: recomendado nível 12 ou mais, com Vine Whip aprendido.",
+        " - Squirtle: recomendado nível 12 ou mais, com Bubble aprendido.",
+        " - Charmander: recomendado nível 12–13, e Butterfree nível 10 com Confusion aprendido.",
+        "Quando o time estiver no nível adequado e curado, vá para o ginásio:",
+        " - O ginásio de Pewter fica na parte sul da cidade, com um prédio de aparência distinta e placa de GYM.",
+        "Dirija-se ao prédio do ginásio e entre pela porta (UP)."
+      ],
+      "encounters": [],
+      "notes": [
+        "A preparação adequada no nível facilita bastante a luta contra Brock.",
+        "O ginásio é o primeiro grande checkpoint de progresso."
+      ]
+    },
+    {
+      "id": 14,
+      "area": "PewterGym",
+      "title": "Derrotar o treinador do ginásio antes de Brock",
+      "condition": "Jogador entrou no ginásio de Pewter City.",
+      "instructions": [
+        "Ao entrar no ginásio, você estará na parte inferior da sala, voltado para cima.",
+        "O chão tem aparência de areia ou solo marrom.",
+        "Brock está no topo da sala, mas há um treinador entre você e ele.",
+        "Para seguir o caminho mais direto:",
+        "1. Mova-se para UP até encontrar o primeiro treinador (Junior Trainer) no meio do caminho.",
+        "2. Ao entrar na linha de visão dele, uma batalha será iniciada automaticamente.",
+        "Batalha com o Junior Trainer:",
+        " - Ele usa normalmente Diglett e Sandshrew (ambos Ground-type).",
+        "Estratégias gerais:",
+        " - Bulbasaur: use Vine Whip para derrotar rapidamente.",
+        " - Squirtle: use Bubble ou Water Gun se disponível.",
+        " - Butterfree (se estiver usando estratégia de Charmander): pode usar Confusion; funciona bem, pois os oponentes têm defesa física mas menor defesa especial.",
+        "Durante a batalha:",
+        " - Monitore o HP do seu Pokémon; se cair abaixo de 30%, considere usar uma Potion.",
+        "Após vencer, você ganha dinheiro e experiência.",
+        "Você agora está livre para caminhar até Brock no topo da sala."
+      ],
+      "encounters": [
+        {
+          "type": "trainer",
+          "description": "Junior Trainer no ginásio de Pewter",
+          "possible_pokemon": [
+            "Diglett (nível ~11)",
+            "Sandshrew (nível ~11)"
+          ],
+          "decision_rules": [
+            "Se o time estiver muito danificado após a luta, o agente pode optar por sair do ginásio e voltar ao Centro Pokémon antes de enfrentar Brock.",
+            "Caso o time ainda esteja em boas condições, pode prosseguir diretamente para Brock."
+          ]
+        }
+      ],
+      "notes": [
+        "Este treinador é opcional em algumas rotas de movimento, mas no caminho direto ele é praticamente inevitável.",
+        "É um bom teste para ver se você está pronto para enfrentar Brock."
+      ]
+    },
+    {
+      "id": 15,
+      "area": "PewterGym",
+      "title": "Batalha contra Brock",
+      "condition": "Jogador derrotou o treinador do ginásio e está pronto para falar com Brock.",
+      "instructions": [
+        "Após derrotar o treinador, mova-se para UP até chegar em frente a Brock, que está centralizado na parte superior do ginásio.",
+        "Posicione-se exatamente um tile à frente dele e pressione A para iniciar a conversa.",
+        "Brock falará sobre ser o líder de ginásio e desafiará você para uma batalha.",
+        "A batalha começa com o time de Brock:",
+        " - Geodude (nível 12)",
+        " - Onix (nível 14)",
+        "Estratégias dependendo do inicial:",
+        "1. Se o seu inicial for Bulbasaur:",
+        "   - Use Vine Whip em Geodude; normalmente será um ou dois golpes para derrotar.",
+        "   - Use Vine Whip também em Onix; será super efetivo e causará muito dano.",
+        "   - Se HP cair, use Potion, mas normalmente a luta é fácil se você estiver no nível recomendado.",
+        "2. Se o seu inicial for Squirtle:",
+        "   - Use Bubble ou Water Gun contra Geodude e Onix.",
+        "   - Os ataques de água são super efetivos e reduzem a Speed do adversário.",
+        "   - Mantenha o HP em nível seguro usando Potions se necessário.",
+        "3. Se estiver com Charmander e Butterfree:",
+        "   - É recomendado usar Butterfree como principal contra Brock.",
+        "   - Use Confusion contra Geodude e Onix; apesar de não ser super efetivo por tipo, causa dano especial consistente.",
+        "   - Se Brock usar Bide com Onix:",
+        "     - Quando Onix começar a usar Bide, o agente deve PARAR de usar ataques de dano direto.",
+        "     - Durante Bide, use movimentos que não causem dano (como Growl) ou simplesmente não atacar, até que Bide termine.",
+        "     - Se você atacar durante Bide e causar dano, Onix irá devolver acumulado, o que pode nocautear seu Pokémon.",
+        "Durante toda a luta:",
+        " - Monitore o HP dos Pokémon.",
+        " - Use Potions se algum Pokémon importante cair abaixo de 30% de HP.",
+        " - Se um Pokémon desmaiar, escolha outro e continue conforme a melhor combinação de tipo ou nível.",
+        "Após derrotar Geodude e Onix, você vence a luta contra Brock.",
+        "Você receberá:",
+        " - A Boulder Badge (primeira insígnia).",
+        " - TM34 (Bide).",
+        " - Dinheiro.",
+        "Depois da batalha, você será devolvido ao interior do ginásio, pronto para sair pela porta na parte inferior."
+      ],
+      "encounters": [
+        {
+          "type": "trainer",
+          "description": "Líder de Ginásio Brock",
+          "possible_pokemon": [
+            "Geodude (nível 12)",
+            "Onix (nível 14)"
+          ],
+          "decision_rules": [
+            "Priorize o uso de golpes super efetivos (Grass contra Rock/Ground, Water contra Rock/Ground).",
+            "Com Butterfree, use Confusion repetidamente, tomando cuidado com Bide.",
+            "Se todos os Pokémon estiverem com HP baixo e sem Potions, considerar reiniciar a luta carregando o save anterior (dependendo das regras do sistema de IA)."
+          ]
+        }
+      ],
+      "notes": [
+        "Ao obter a Boulder Badge, o objetivo deste walkthrough está completo: chegar até Brock e derrotá-lo.",
+        "A partir daqui, o jogo continua em direção à Rota 3, Mt. Moon e assim por diante, mas isso está fora do escopo atual."
+      ]
+    }
+  ]
+}
