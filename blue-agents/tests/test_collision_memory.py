@@ -166,6 +166,41 @@ class RouteReplanningTests(unittest.TestCase):
             (10, 33), visited, "o plano não deve oscilar para trás do objetivo"
         )
 
+    def test_an_unintended_warp_is_learned_like_a_wall(self):
+        # Leaving Brock's gym lands the bot on the Pewter door tile. The plan to
+        # the next anchor crossed that same tile, warped back in, and the pair
+        # bounced gym → city → gym forever. Stepping onto a warp succeeds, so
+        # only the map change itself can reveal it.
+        agent = self.make_agent((16, 18), map_id=2)
+        agent.route_id = "mt-moon-2-gym"
+        agent.route_index = 1
+        agent.route_stuck_steps = 0
+        agent.route_last_position = (2, 16, 18)
+        agent.route_last_direction = "U"
+        agent.route_target_was_final = False
+        agent.memory_probe.map_id = 54
+        agent.memory_probe.position = (4, 13)
+        agent._follow_route("mt-moon-2-gym", [(16, 18), (10, 18), (10, 13)])
+        self.assertTrue(
+            agent._collision_memory().is_blocked(2, 16, 18, "U"),
+            "a porta atravessada sem querer precisa virar aresta bloqueada",
+        )
+
+    def test_the_warp_that_ends_a_route_stays_free(self):
+        # Routes deliberately end on a warp: the last waypoint is often one tile
+        # past the map border. Learning those would seal every exit.
+        agent = self.make_agent((1, 0), map_id=51)
+        agent.route_id = "forest-51"
+        agent.route_index = 1
+        agent.route_stuck_steps = 0
+        agent.route_last_position = (51, 1, 0)
+        agent.route_last_direction = "U"
+        agent.route_target_was_final = True
+        agent.memory_probe.map_id = 13
+        agent.memory_probe.position = (3, 11)
+        agent._follow_route("forest-13", [(3, 11), (3, 8)])
+        self.assertFalse(agent._collision_memory().is_blocked(51, 1, 0, "U"))
+
     def test_a_wall_that_was_an_npc_is_forgotten_after_it_is_crossed(self):
         agent = self.make_agent((5, 5))
         agent._collision_memory().mark_blocked(51, 5, 5, "R")

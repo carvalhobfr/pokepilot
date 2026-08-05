@@ -1607,6 +1607,31 @@ class ScriptedAgent(BaseAgent):
 
         current_x, current_y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
+
+        # A warp is invisible to collision learning: stepping onto a door works,
+        # so nothing ever looks blocked. Walking out of Brock's gym landed the
+        # bot on the door tile in Pewter, the plan to the next anchor crossed
+        # that same tile, and the pair bounced gym → city → gym forever.
+        #
+        # Only unintended transitions are learned. Routes deliberately end on a
+        # warp — the last waypoint is often one tile past the map border — so a
+        # transition while chasing the final waypoint is how a route is supposed
+        # to finish, and must stay free. This runs before the route switch below
+        # resets the bookkeeping it depends on.
+        entry_position = getattr(self, "route_last_position", None)
+        entry_direction = getattr(self, "route_last_direction", None)
+        if (
+            entry_position is not None
+            and entry_direction is not None
+            and entry_position[0] != map_id
+            and not getattr(self, "route_target_was_final", True)
+        ):
+            self._collision_memory().mark_blocked(
+                entry_position[0], entry_position[1], entry_position[2],
+                entry_direction,
+            )
+            self.route_plan = None
+
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
 
@@ -1677,7 +1702,9 @@ class ScriptedAgent(BaseAgent):
         ):
             self.route_index += 1
 
-        target_x, target_y = waypoints[min(self.route_index, len(waypoints) - 1)]
+        index = min(self.route_index, len(waypoints) - 1)
+        target_x, target_y = waypoints[index]
+        self.route_target_was_final = index == len(waypoints) - 1
 
         # Waypoints are route anchors, not the only way to travel. Search the
         # walkable tiles from wherever the bot actually stands, so leaving the
