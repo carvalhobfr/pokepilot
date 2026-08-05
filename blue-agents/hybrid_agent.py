@@ -2614,13 +2614,19 @@ class HybridGymEnv(RedGymEnv):
         starts over from where it actually stands. Route state is a cache of
         intentions, not progress — dropping it costs a few steps and never
         touches the save.
+
+        The task itself is deliberately left alone. Clearing it made the agent
+        re-run its checkpoint detection, which sees a Pokémon in the party and
+        concludes the run is back at the rival fight in Oak's lab — an objective
+        that finished long ago and has nothing left to do, so it returns no
+        action at all and every bot freezes at once.
         """
         agent = getattr(self, "scripted_agent", None)
         for attribute in (
             "route_id", "route_index", "route_plan", "route_suspect",
             "route_last_position", "route_last_direction", "route_stuck_steps",
             "route_stuck_cycles", "route_menu_presses", "route_previous_tile",
-            "route_target_was_final", "current_task_name",
+            "route_target_was_final",
         ):
             if agent is not None and hasattr(agent, attribute):
                 delattr(agent, attribute)
