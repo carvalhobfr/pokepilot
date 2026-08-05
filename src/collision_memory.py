@@ -38,36 +38,50 @@ class CollisionMemory:
     def __init__(self, path=None):
         self.path = Path(path) if path else None
         self.blocked = set()
+        # Edges this session proved walkable. Kept so a merge with the file on
+        # disk cannot resurrect a wall that turned out to be an NPC.
+        self.cleared = set()
         self._load()
 
     def _load(self):
+        for edge in self._read_file():
+            self.blocked.add(edge)
+
+    def _read_file(self):
+        """Edges currently on disk, so concurrent trainers pool instead of
+        overwriting each other. Map geometry does not depend on who walks it."""
         if self.path is None or not self.path.exists():
-            return
+            return set()
         try:
             with self.path.open("r") as handle:
                 payload = json.load(handle)
         except (OSError, ValueError):
             # A truncated file is not worth crashing a journey over; the agent
             # relearns the edges as it walks.
-            return
-        for map_key, edges in (payload.get("blocked") or {}).items():
+            return set()
+        edges = set()
+        for map_key, entries in (payload.get("blocked") or {}).items():
             try:
                 map_id = int(map_key)
             except (TypeError, ValueError):
                 continue
-            for edge in edges:
-                parts = str(edge).split(",")
+            for entry in entries:
+                parts = str(entry).split(",")
                 if len(parts) != 3 or parts[2] not in DIRECTIONS:
                     continue
                 try:
                     x, y = int(parts[0]), int(parts[1])
                 except ValueError:
                     continue
-                self.blocked.add((map_id, x, y, parts[2]))
+                edges.add((map_id, x, y, parts[2]))
+        return edges
 
     def save(self):
         if self.path is None:
             return
+        # Read-modify-write: two trainers walk at the same time and a plain
+        # overwrite would throw away whatever the other one just learned.
+        self.blocked |= self._read_file() - self.cleared
         grouped = {}
         for map_id, x, y, direction in sorted(self.blocked):
             grouped.setdefault(str(map_id), []).append(f"{x},{y},{direction}")
@@ -88,6 +102,7 @@ class CollisionMemory:
         if edge in self.blocked:
             return False
         self.blocked.add(edge)
+        self.cleared.discard(edge)
         self.save()
         return True
 
@@ -99,6 +114,7 @@ class CollisionMemory:
         planning around a person who has already moved.
         """
         edge = (int(map_id), int(x), int(y), direction)
+        self.cleared.add(edge)
         if edge not in self.blocked:
             return False
         self.blocked.discard(edge)

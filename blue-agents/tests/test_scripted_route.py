@@ -8,6 +8,7 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[2])
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
+from src.collision_memory import CollisionMemory
 from src.scripted_agent import ScriptedAgent
 
 
@@ -41,6 +42,9 @@ class ScriptedRouteTests(unittest.TestCase):
         agent.emulator = type("FakeEmulator", (), {
             "memory": FakeRouteMemory(position, map_id),
         })()
+        # In-memory only: the shared knowledge file must never be read into a
+        # test's assertions, nor written to by one.
+        agent.collision_memory = CollisionMemory()
         return agent
 
     def test_resumed_route_continues_after_exact_mid_route_waypoint(self):

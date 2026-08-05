@@ -90,11 +90,28 @@ class CollisionMemoryTests(unittest.TestCase):
             self.assertEqual(set(), CollisionMemory(path).blocked)
 
 
+class LedgeWorldMemory(FakeWorldMemory):
+    """Route 3 style ledge: walking down the ledge row jumps two tiles."""
+
+    def __init__(self, position, map_id=14, ledges=()):
+        super().__init__(position, map_id)
+        self.ledges = set(ledges)
+
+    def walk(self, dx, dy):
+        if dy == 1 and self.position in self.ledges:
+            self.position = (self.position[0], self.position[1] + 2)
+            return
+        super().walk(dx, dy)
+
+
 class RouteReplanningTests(unittest.TestCase):
-    def make_agent(self, position, map_id=51, walls=()):
+    def make_agent(self, position, map_id=51, walls=(), memory_path=None):
         agent = ScriptedAgent.__new__(ScriptedAgent)
         agent.memory_probe = FakeWorldMemory(position, map_id, walls)
         agent.emulator = type("FakeEmulator", (), {"memory": agent.memory_probe})()
+        # Never touch the shared knowledge file from a test: it would both read
+        # real learned walls into the assertions and write test junk back.
+        agent.collision_memory = CollisionMemory(memory_path)
         return agent
 
     def drive(self, agent, route_id, waypoints, steps):
@@ -124,15 +141,22 @@ class RouteReplanningTests(unittest.TestCase):
             "a colisão observada precisa ser aprendida",
         )
 
-    def test_learned_walls_persist_for_the_trainer(self):
+    def test_learned_walls_are_persisted_and_shared(self):
         with tempfile.TemporaryDirectory() as directory:
             walls = {(7, y) for y in range(25, 40) if y != 33}
-            agent = self.make_agent((6, 30), walls=walls)
-            agent.save_dir = directory
+            path = Path(directory) / "collision.json"
+            agent = self.make_agent((6, 30), walls=walls, memory_path=path)
             self.drive(agent, "forest-51", [(10, 30)], 220)
-            self.assertTrue((Path(directory) / "collision.json").exists())
-            reloaded = CollisionMemory(Path(directory) / "collision.json")
-            self.assertTrue(reloaded.is_blocked(51, 6, 30, "R"))
+            self.assertTrue(path.exists())
+            # A second trainer opening the same file starts with the wall
+            # already known instead of walking into it again.
+            other = CollisionMemory(path)
+            self.assertTrue(other.is_blocked(51, 6, 30, "R"))
+            other.mark_blocked(51, 1, 1, "U")
+            self.assertTrue(
+                CollisionMemory(path).is_blocked(51, 6, 30, "R"),
+                "a escrita de um treinador não pode apagar o que o outro aprendeu",
+            )
 
     def test_leaving_the_line_is_no_longer_a_dead_end(self):
         # Off-route to the north-west of the anchor, the old controller kept
@@ -165,6 +189,40 @@ class RouteReplanningTests(unittest.TestCase):
         self.assertNotIn(
             (10, 33), visited, "o plano não deve oscilar para trás do objetivo"
         )
+
+    def test_a_ledge_jump_is_learned_because_it_is_not_a_single_step(self):
+        agent = self.make_agent((10, 8))
+        agent.memory_probe = LedgeWorldMemory((10, 8), ledges={(10, 8)})
+        agent.emulator.memory = agent.memory_probe
+        agent._follow_route("route3-14", [(10, 9)])
+        agent.memory_probe.walk(0, 1)
+        agent._follow_route("route3-14", [(10, 9)])
+        self.assertEqual((10, 10), agent.memory_probe.position)
+        self.assertTrue(
+            agent._collision_memory().is_blocked(14, 10, 8, "D"),
+            "um salto de duas casas não é um passo que o planejador possa usar",
+        )
+
+    def test_a_stuck_menu_flag_does_not_freeze_the_route_forever(self):
+        # On Route 2 north a bot sat on (3,11) for hundreds of steps pressing A
+        # while the probe showed the tile above was walkable: 0xCFC4 stayed at 1
+        # and nothing cleared it. Obeying it forever is a livelock, and the bot
+        # never even tries to walk, so it also learns nothing.
+        agent = self.make_agent((3, 11), map_id=13)
+        agent.memory_probe.read_byte = lambda address: 1 if address == 0xCFC4 else 0
+        actions = [agent._follow_route("mt-moon-recovery-13", [(3, 8)]) for _ in range(40)]
+        self.assertEqual(WindowEvent.PRESS_BUTTON_A, actions[0])
+        self.assertIn(WindowEvent.PRESS_ARROW_UP, actions)
+
+    def test_a_route_walking_through_dialogue_records_no_walls(self):
+        # While the menu flag is up the bot cannot tell a wall from a text box.
+        # A wrong edge would outlive the conversation, so it walks but writes
+        # nothing down.
+        agent = self.make_agent((3, 11), map_id=13, walls={(3, 10)})
+        agent.memory_probe.read_byte = lambda address: 1 if address == 0xCFC4 else 0
+        for _ in range(60):
+            agent._follow_route("mt-moon-recovery-13", [(3, 8)])
+        self.assertEqual(set(), agent._collision_memory().blocked)
 
     def test_an_unintended_warp_is_learned_like_a_wall(self):
         # Leaving Brock's gym lands the bot on the Pewter door tile. The plan to

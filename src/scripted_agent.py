@@ -11,6 +11,17 @@ from src.navigation import Navigation
 from src.exploration_tracker import ExplorationTracker
 from src.collision_memory import DIRECTIONS, CollisionMemory
 
+# How many A presses a route spends on a dialogue before it walks anyway. The
+# menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
+MENU_PRESS_LIMIT = 12
+
+# Learned walls live with the rest of the map knowledge, not inside a trainer:
+# geometry is the same for everyone who walks it.
+SHARED_COLLISION_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "blue-agents" / "knowledge" / "maps" / "collision.json"
+)
+
 ROUTE_EVENTS = {
     "U": WindowEvent.PRESS_ARROW_UP,
     "D": WindowEvent.PRESS_ARROW_DOWN,
@@ -1602,8 +1613,20 @@ class ScriptedAgent(BaseAgent):
         # Trainer victory lines, signs and story speech can remain open after
         # the battle flag clears. Advance them before issuing movement; waiting
         # for the stuck watchdog can otherwise re-talk to the same NPC.
-        if self._menu_is_open():
-            return WindowEvent.PRESS_BUTTON_A
+        #
+        # But the flag is not always telling the truth. On Route 2 north a bot
+        # sat on (3,11) for hundreds of steps pressing A while the probe showed
+        # the tile above was walkable: 0xCFC4 stayed at 1 and nothing ever
+        # cleared it. Obeying it forever is a livelock with no learning at all,
+        # because the bot never even tries to walk. Give the dialogue a bounded
+        # number of presses and then move regardless.
+        menu_open = self._menu_is_open()
+        if menu_open:
+            self.route_menu_presses = getattr(self, "route_menu_presses", 0) + 1
+            if self.route_menu_presses <= MENU_PRESS_LIMIT:
+                return WindowEvent.PRESS_BUTTON_A
+        else:
+            self.route_menu_presses = 0
 
         current_x, current_y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
@@ -1672,11 +1695,24 @@ class ScriptedAgent(BaseAgent):
                     previous_position[1] + delta[0],
                     previous_position[2] + delta[1],
                 )
-                if previous_position[0] == map_id and expected == (current_x, current_y):
-                    self._collision_memory().mark_open(
-                        map_id, previous_position[1], previous_position[2],
-                        last_direction,
-                    )
+                if previous_position[0] == map_id:
+                    if expected == (current_x, current_y):
+                        self._collision_memory().mark_open(
+                            map_id, previous_position[1], previous_position[2],
+                            last_direction,
+                        )
+                    else:
+                        # Landed somewhere else entirely: a Route 3 ledge jumps
+                        # two tiles down and cannot be climbed back. The step
+                        # "worked", so nothing looked blocked, and the pair
+                        # paced in front of the same ledge. The planner only
+                        # models single steps, so an edge that does not behave
+                        # like one is not an edge it may use.
+                        self._collision_memory().mark_blocked(
+                            map_id, previous_position[1], previous_position[2],
+                            last_direction,
+                        )
+                        self.route_plan = None
             self.route_stuck_steps = 0
             self.route_stuck_cycles = 0
         self.route_last_position = current_position
@@ -1690,6 +1726,11 @@ class ScriptedAgent(BaseAgent):
             self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
             if self.route_stuck_cycles == 1:
                 return WindowEvent.PRESS_BUTTON_A
+            # Real dialogue also eats the D-pad. While the menu flag is up the
+            # bot cannot tell a wall from a text box, so it walks but refuses to
+            # write anything down: a wrong edge would outlive the conversation.
+            if menu_open:
+                last_direction = None
             if last_direction is not None:
                 self._collision_memory().mark_blocked(
                     map_id, current_x, current_y, last_direction
@@ -1755,11 +1796,20 @@ class ScriptedAgent(BaseAgent):
         return None
 
     def _collision_memory(self):
-        """Per-trainer collision memory, persisted beside ``journey.json``."""
+        """Collision memory shared by every trainer.
+
+        Where the walls are does not depend on who walks into them, so making
+        each bot rediscover the same map is pure waste — and it is the honest
+        version of "let one bot guide the others": they share the map, not a
+        command channel. Writes merge with the file, so two journeys running at
+        once pool what they learn instead of overwriting each other.
+        """
         memory = getattr(self, "collision_memory", None)
         if memory is None:
-            save_dir = getattr(self, "save_dir", None)
-            path = Path(save_dir) / "collision.json" if save_dir else None
+            path = SHARED_COLLISION_PATH
+            if path is None:
+                save_dir = getattr(self, "save_dir", None)
+                path = Path(save_dir) / "collision.json" if save_dir else None
             memory = CollisionMemory(path)
             self.collision_memory = memory
         return memory
