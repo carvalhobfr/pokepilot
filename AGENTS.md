@@ -83,9 +83,23 @@ corrida inteira pareceu bug de política.
 | `completionist` | 100% do que é alcançável em cada área, raridade sempre |
 | `speedrunner` | só reserva e Pokémon forte; o resto é turno perdido |
 | `team_builder` | o que ocupa vaga ou melhora a linha de frente |
+| `fire_dragon` | só fogo e dragão; o resto é experiência, nunca vaga |
 
 O arquétipo vive no campo `archetype` de cada slot em
-`blue-agents/tasks/slot_roster.json`.
+`blue-agents/tasks/slot_roster.json`, e escolhe também o inicial — cada um com
+motivo, não por índice: Bulbasaur para completista e rushador (Brock e Misty
+caem para grama, e Sleep Powder deixa encontro longo barato), Squirtle para o
+construtor, Charmander para o temático, cujo time é montado em volta do
+Charizard.
+
+## Replay de batalha
+
+`stream_agent_wrapper` guarda os quadros que a arena **já codifica**, então
+gravar não custa encode a mais. Duas condições, ambas reais: painel aberto
+(`viewers > 0`) e velocidade até 2× — acima disso as batalhas saem mais rápido
+do que alguém assistiria, e seriam quadros queimados para ninguém. O relay
+mantém as 5 últimas de cada treinador e só envia os quadros quando alguém
+aperta play.
 
 ## Conhecimento gerado, não escrito à mão
 

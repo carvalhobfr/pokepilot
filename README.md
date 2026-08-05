@@ -156,7 +156,7 @@ diferentes.
 | Completista | 100% do alcançável em cada área; raridade nunca escapa |
 | Rushador | reserva e Pokémon forte; o resto é turno perdido |
 | Construtor de time | o que ocupa vaga ou melhora a linha de frente |
-| Nuzlocke | um Pokémon por área, o primeiro que aparecer |
+| Fogo e dragão | só fogo e dragão no time; a corrida mais difícil de Kanto |
 
 Antes eles eram sorteados a cada execução, e um sorteio ruim já deixou um
 treinador abaixo de todo limiar de captura — a corrida inteira pareceu bug.
@@ -247,6 +247,17 @@ Para continuar os estados salvos anteriormente, use explicitamente:
     ./blue-agents/run_all.sh --resume
 
 O dashboard abre a arena de batalhas apenas quando você clica no botão Arena.
+
+## Rever as batalhas
+
+Ninguém acompanha quatro bots lutando ao vivo — mas dá para rever uma luta
+depois. O botão **Replays** abre as últimas batalhas de cada treinador, com play,
+pausa e passo a passo quadro a quadro.
+
+A gravação só acontece com o painel aberto e em `0.5×`, `1×` ou `2×`. Acima
+disso as batalhas terminam mais rápido do que alguém conseguiria assistir, e os
+quadros seriam guardados para ninguém. Não custa desempenho: são exatamente os
+quadros que a arena já codifica.
 
 ## Controles da jornada
 
