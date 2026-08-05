@@ -70,6 +70,26 @@ Cinnabar/Blaine, Giovanni, Liga e Mewtwo.
 
 ## Política de captura: por que o time cresce
 
+Ordem de decisão em `_capture_policy`, do mais forte ao mais fraco. As duas
+primeiras regras foram acrescentadas em 2026-08-05 depois de um bot lançar
+Poké Bolas num Kakuna com `17/17` HP até o próprio starter cair a `2` HP:
+
+| # | Regra | `reason_code` |
+|---|---|---|
+| 1 | Ativo abaixo de `SELF_PRESERVATION_HP` (35%) → lutar | `self_preservation` |
+| 2 | Alvo acima de `CAPTURE_HP_THRESHOLD` (50%) → reduzir HP antes | `soften_before_capture` |
+| 3 | Espécie já na Pokédex → nunca capturar | `duplicate_species` |
+| 4 | Vaga livre + espécie nova → capturar | `party_slot_new_species` |
+| 5 | Time cheio: personalidade decide | `collector_new_species`, `team_upgrade` |
+| 6 | Nada disso | `training_value` |
+
+Shiny continua acima de tudo. Taxas de captura da Gen I escalam com HP perdido,
+então lançar numa vida cheia é quase bola jogada fora **e** um turno grátis para
+o selvagem. Aplicar status (sono, paralisia) multiplicaria mais ainda a taxa —
+está registrado como trabalho futuro, ainda não implementado.
+
+
+
 Corrigido em 2026-08-05 depois de dois treinadores ficarem permanentemente com
 um único Pokémon. Eram três causas somadas, todas em `hybrid_agent.py`:
 
@@ -162,12 +182,46 @@ waypoints medidos à mão para aquele trecho específico. É paliativo: qualquer
 NPC que ande para um tile diferente recria o problema.
 
 **Correção recomendada:** trocar o passo em linha reta por uma busca em largura
-sobre os tiles caminháveis até o próximo waypoint, que é exatamente o que
-`tools/probe_route.py` já faz offline. A lógica existe e está validada; falta
-portá-la para dentro do agente e rodá-la sobre o estado real a cada replanejo.
-Waypoints continuam úteis como âncoras de rota, mas param de ser a única forma
-de navegar. Isso remove a classe inteira de travamentos e torna desnecessária a
-medição manual tile a tile de cada trecho novo.
+sobre os tiles caminháveis até o próximo waypoint. Waypoints continuam úteis
+como âncoras de rota, mas param de ser a única forma de navegar.
+
+O obstáculo é que **não existe leitura de colisão em lugar nenhum do projeto**.
+`tools/probe_route.py` descobre paredes ramificando save states — salva e
+recarrega o emulador para cada tile testado. Funciona offline; a cada passo do
+jogo é inviável.
+
+Duas saídas:
+
+1. **Ler a colisão da RAM.** `wTilesetCollisionPtr` (`0xD530`) aponta para a
+   lista de tiles atravessáveis do tileset atual, e a janela de tiles fica em
+   `wTileMap`. Dá o grid exato, mas exige lidar com troca de banco de ROM e
+   com a diferença entre tile e bloco.
+
+2. **Aprender a colisão jogando** *(recomendado)*. O agente já produz essa
+   informação e a joga fora: tentou andar na direção D a partir do tile T e não
+   saiu do lugar — logo `T→D` é bloqueado. Guardar isso num conjunto por
+   `(mapa, x, y, direção)`, tratar arestas desconhecidas como livres e
+   replanejar a cada falha. Não exige engenharia reversa, melhora sozinho a cada
+   execução e pode ser persistido por treinador junto do resto da jornada.
+
+A opção 2 também resolve o sintoma que originou tudo isto: como o BFS replaneja
+a partir do tile atual, sair da linha deixa de ser um estado sem retorno.
+
+### Regras de comportamento pedidas (dependem da navegação)
+
+Registradas em 2026-08-05, todas bloqueadas pela navegação acima porque cada
+uma é, no fundo, "chegar até X e interagir":
+
+- ao entrar numa cidade nova: Centro Pokémon, curar, Mart, comprar Poké Bolas;
+- curar por bom senso quando o HP estiver baixo e houver Centro acessível, sem
+  depender de estar num nó específico do QuestGraph;
+- capturar ao menos um de cada tipo, não só espécie nova — cobertura de tipos é
+  o que faz o time durar; excedentes ficam no PC e a montagem final do time de
+  seis vira etapa própria.
+
+Sem BFS, cada uma exige medir à mão a rota até a porta do Centro e do Mart de
+**cada** cidade, e cada rota dessas quebra quando um NPC para num tile
+diferente.
 
 ### Cura antes da Floresta (pendente)
 

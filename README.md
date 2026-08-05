@@ -1,7 +1,30 @@
 # PokeAI 2026
 
-Base consolidada a partir do `poke-ai-2.0`, com o dashboard React mais completo,
-treinamento PPO local e monitoramento em tempo real.
+Dois bots jogando **Pokémon Blue de verdade** — a ROM original rodando num
+emulador, não uma simulação. Você acompanha pelo navegador: o mapa de Kanto com
+os treinadores se movendo, o time de cada um, e o diário explicando por que cada
+decisão foi tomada.
+
+O que garante que nada é inventado: **todo progresso é confirmado lendo a
+memória do cartucho**. Um script nunca declara que terminou; a insígnia só conta
+quando o bit dela aparece na RAM.
+
+## Começando do zero
+
+Você precisa de três coisas: um Mac, a sua cópia de Pokémon Blue, e um clique.
+
+1. **Coloque a ROM** em `roms/PokemonBlue.gb` (veja [Rodar](#rodar) para o SHA-1).
+2. **Dê dois cliques em `start.command`.**
+
+Ele instala o que faltar, sobe o dashboard, abre o navegador e começa a jogar.
+A primeira execução demora alguns minutos baixando dependências; as seguintes
+sobem em segundos. `Ctrl+C` encerra e salva o progresso dos bots.
+
+> Se o macOS bloquear o arquivo na primeira vez, clique com o botão direito →
+> *Abrir* → *Abrir*. É o aviso padrão para scripts baixados.
+
+Na tela: arrastar move o mapa, roda do mouse ou pinça dá zoom, e clicar num bot
+trava a câmera para acompanhá-lo.
 
 ## Continuidade do desenvolvimento
 
@@ -14,15 +37,29 @@ O [mapa visual do QuestGraph](docs/QUEST_GRAPH.md) mostra os 19 objetivos até
 Mewtwo e separa claramente o que já foi validado no cartucho, o que possui
 executor em validação e o que ainda é apenas planejamento.
 
-## O que é aprendizado de verdade aqui?
+## O que é aprendizado de verdade aqui? (medido, não estimado)
 
-- O PPO aprende uma política de navegação/exploração a partir das observações do
-  emulador e das recompensas.
-- Batalhas e partes críticas da história ainda são híbridas: regras/scripts
-  controlam essas etapas para manter o experimento estável.
-- As personalidades alteram o starter, o modo de desafio e os metadados. Elas
-  ainda não formam times completamente diferentes por uma política própria.
-- Checkpoints em `blue-agents/v2_repro_runs/` continuam o treinamento anterior.
+Instrumentando a origem de cada ação numa travessia real até Brock, em 471
+passos:
+
+```
+battle_controller : 252  (53.5%)   heurística lendo a RAM
+quest_controller  : 219  (46.5%)   rotas determinísticas
+ppo               :   0   (0.0%)
+transições treináveis: nenhuma
+```
+
+**Não chame isto de agente que aprendeu a jogar.** É um speedrunner
+determinístico com verificação por RAM: reproduzível, auditável e retomável.
+
+O PPO existe no código e só recebe o passo quando nenhum controlador quer agir.
+Além disso, `ScriptAwarePPO` descarta o rollout inteiro se **qualquer** passo
+foi sobrescrito por script — creditar a recompensa a uma ação que a rede não
+tomou seria treinar com dado falso. Como script e batalha dominam a história,
+o cérebro praticamente não atualiza durante a campanha.
+
+As personalidades alteram starter, limiares de decisão e metadados; elas ainda
+não produzem times diferentes por política própria.
 
 ## Estrutura
 

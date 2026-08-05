@@ -60,6 +60,11 @@ CAPTURE_RESULT_ADVANCE_STEPS = 18
 # A Gen I team is six. Below that, an empty slot is a weakness in itself.
 PARTY_TARGET = 6
 
+# Soften the target before spending a ball, and never keep throwing while the
+# active Pokémon is about to faint.
+CAPTURE_HP_THRESHOLD = 0.5
+SELF_PRESERVATION_HP = 0.35
+
 # Value reflects what the line *becomes*, not the form met in the grass:
 # Metapod is a bad Pokémon and a good catch because Butterfree carries Kanto's
 # opening hours. Anything absent defaults to 50.
@@ -1592,6 +1597,18 @@ class HybridGymEnv(RedGymEnv):
             or (new_species and strategic_value >= 75)
             or enemy_level > strongest_level
         )
+        # Gen I catch rates scale with missing HP. Throwing at a full-health
+        # target mostly fails, and each failed throw is a free turn for the
+        # wild Pokémon — a bot did that until its own starter was at 2 HP.
+        enemy_max_hp = int(battle_info.get("enemy_max_hp") or 0)
+        enemy_hp = int(battle_info.get("enemy_hp") or 0)
+        enemy_hp_fraction = (enemy_hp / enemy_max_hp) if enemy_max_hp else 1.0
+
+        active = battle_info.get("active_pokemon") or {}
+        own_max_hp = int(active.get("max_hp") or 0)
+        own_hp = int(active.get("hp") or 0)
+        own_hp_fraction = (own_hp / own_max_hp) if own_max_hp else 1.0
+
         # An empty bench is itself a weakness. Judging every wild encounter only
         # by level made a single strong starter reject everything in the early
         # routes, so the team never grew past one Pokémon.
@@ -1611,6 +1628,8 @@ class HybridGymEnv(RedGymEnv):
             "party_has_room": party_size < PARTY_TARGET,
             "party_slots_free": max(PARTY_TARGET - party_size, 0),
             "already_in_party": species_id in party_species,
+            "enemy_hp_fraction": round(enemy_hp_fraction, 3),
+            "own_hp_fraction": round(own_hp_fraction, 3),
         }
 
     def get_journey_snapshot(self):
@@ -1966,6 +1985,28 @@ class HybridGymEnv(RedGymEnv):
             return decision(
                 "capture", "shiny_priority", "shiny_priority",
                 "prioridade absoluta: DVs compatíveis com shiny da Geração II; sempre tentar capturar",
+            )
+
+        # Losing the battle costs more than missing one catch: a fainted party
+        # means a whiteout and a wasted trip. Fight first, catch later.
+        if quality["own_hp_fraction"] <= SELF_PRESERVATION_HP:
+            return decision(
+                "defeat", "self_preservation", "survival",
+                (
+                    f"Pokémon ativo com {int(quality['own_hp_fraction'] * 100)}% de HP; "
+                    "vencer a batalha vem antes de tentar capturar"
+                ),
+            )
+
+        # Gen I catch rates scale with missing HP. Throwing at full health is
+        # close to a wasted ball and gives the wild Pokémon a free turn.
+        if quality["enemy_hp_fraction"] > CAPTURE_HP_THRESHOLD:
+            return decision(
+                "defeat", "soften_before_capture", "capture_setup",
+                (
+                    f"alvo com {int(quality['enemy_hp_fraction'] * 100)}% de HP; "
+                    "reduzir a vida antes de gastar Poké Bola"
+                ),
             )
 
         # Never spend a ball on a species already registered in the Pokédex.

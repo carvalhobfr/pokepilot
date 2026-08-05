@@ -25,12 +25,50 @@ class CapturePolicyTests(unittest.TestCase):
         return env, ram
 
     @staticmethod
-    def encounter(species=25, level=5, shiny=False):
+    def encounter(species=25, level=5, shiny=False, enemy_hp=1, enemy_max_hp=10,
+                  own_hp=10, own_max_hp=10):
         return {
             "enemy_species_id": species,
             "enemy_level": level,
             "shiny_candidate": shiny,
+            "enemy_hp": enemy_hp,
+            "enemy_max_hp": enemy_max_hp,
+            "active_pokemon": {"hp": own_hp, "max_hp": own_max_hp},
         }
+
+    def test_full_health_target_is_softened_before_spending_a_ball(self):
+        # A bot threw balls at a 17/17 Kakuna until its own starter hit 2 HP.
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 9}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(species=14, enemy_hp=17, enemy_max_hp=17)
+        )
+        self.assertEqual("defeat", decision["choice"])
+        self.assertEqual("soften_before_capture", decision["reason_code"])
+
+    def test_weakened_target_is_captured(self):
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 9}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(species=14, enemy_hp=3, enemy_max_hp=17)
+        )
+        self.assertEqual("capture", decision["choice"])
+
+    def test_dying_pokemon_stops_trying_to_capture(self):
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 9}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(species=14, enemy_hp=1, enemy_max_hp=17,
+                           own_hp=2, own_max_hp=25)
+        )
+        self.assertEqual("defeat", decision["choice"])
+        self.assertEqual("self_preservation", decision["reason_code"])
 
     def test_picking_up_parcel_does_not_unlock_capture(self):
         env, _ = self.make_env(
