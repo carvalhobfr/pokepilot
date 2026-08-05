@@ -11,6 +11,7 @@ from src.navigation import Navigation
 from src.exploration_tracker import ExplorationTracker
 from src.collision_memory import DIRECTIONS, CollisionMemory
 from src.warp_memory import WarpMemory
+from src.tile_collision import TileCollision
 
 # How many A presses a route spends on a dialogue before it walks anyway. The
 # menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
@@ -1783,6 +1784,19 @@ class ScriptedAgent(BaseAgent):
             self.route_suspect = set()
         self.route_last_position = current_position
 
+        # What the cartridge says about this tile, right now. Terrain is real
+        # geometry and worth sharing with every trainer; a sprite is a person
+        # who will walk away, so it only steers this route and teaches nobody.
+        # With truth available there is nothing left to guess from failures.
+        truth = self._tile_truth()
+        for direction, reason in truth.items():
+            if reason == "terrain":
+                self._collision_memory().mark_blocked(
+                    map_id, current_x, current_y, direction
+                )
+            else:
+                self.route_suspect.add((map_id, current_x, current_y, direction))
+
         # Two different reasons make a step produce no movement, and they need
         # different answers. Dialogue and map transitions ignore input, so A
         # clears them. A wall or an NPC never clears: that edge is recorded as
@@ -1816,6 +1830,11 @@ class ScriptedAgent(BaseAgent):
                 clean = (
                     not menu_open
                     and getattr(self, "route_last_issue", "move") == "move"
+                    # With the cartridge readable there is no reason to guess:
+                    # a failure the tile data does not explain was a person, a
+                    # script or a text box, never geometry. Where it cannot be
+                    # read at all, the old learning by bumping still applies.
+                    and (not truth or truth.get(last_direction) == "terrain")
                 )
                 if clean:
                     self._collision_memory().mark_blocked(
@@ -1931,6 +1950,20 @@ class ScriptedAgent(BaseAgent):
             return self._follow_route(f"leave-{map_id}", [(entry_x, entry_y)])
         self.last_action_was_move = True
         return ROUTE_EVENTS[OPPOSITE_DIRECTIONS[entry_direction]]
+
+    def _tile_truth(self):
+        """Blocked directions read from the cartridge, or {} if unreadable."""
+        reader = getattr(self, "tile_collision", None)
+        if reader is None:
+            pyboy = getattr(self.emulator, "pyboy", None)
+            if pyboy is None:
+                return {}
+            reader = TileCollision(pyboy)
+            self.tile_collision = reader
+        try:
+            return reader.blocked_directions()
+        except Exception:
+            return {}
 
     def _warp_memory(self):
         """Doors shared by every trainer, beside the learned collision map."""
