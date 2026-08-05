@@ -64,7 +64,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
     }
     return [
       'location_discovered', 'story_milestone', 'rare_encounter',
-      'capture_decision', 'capture', 'capture_attempt', 'starter_selected',
+      'capture_decision', 'capture_outcome', 'capture', 'capture_attempt', 'starter_selected',
       'level_up', 'move_learned', 'training_target', 'evolution', 'badge', 'pc_deposit',
       'battle_loss', 'death', 'objective_changed',
     ].includes(e.type);
@@ -100,6 +100,13 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   </div>
                 )}
                 {e.type === 'capture_attempt' && <Crosshair size={20} className="text-amber-300" />}
+                {e.type === 'capture_outcome' && (
+                  e.data.outcome === 'captured'
+                    ? <Sparkles size={20} className="text-yellow-300" />
+                    : e.data.outcome === 'defeated'
+                      ? <Swords size={20} className="text-orange-300" />
+                      : <Skull size={20} className="text-gray-400" />
+                )}
                 {e.type === 'starter_selected' && <Target size={20} className="text-green-300" />}
                 {e.type === 'training_target' && <Target size={20} className="text-cyan-300" />}
                 {e.type === 'location_discovered' && <MapPin size={20} className="text-emerald-300" />}
@@ -180,6 +187,23 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                       <div className="text-gray-400">{e.data.reason}</div>
                       <div className="text-gray-600">
                         motivo: {e.data.motivation || 'treino'} · Poké Balls: {e.data.pokeballs ?? 0}
+                      </div>
+                    </span>
+                  )}
+                  {e.type === 'capture_outcome' && (
+                    <span className={e.data.outcome === 'captured' ? 'text-yellow-200' : 'text-gray-300'}>
+                      {e.data.intent === 'capture' ? 'Quis capturar' : 'Quis derrotar'}{' '}
+                      <span className="font-bold">#{e.data.enemy_species_id}</span>
+                      {' → '}
+                      <span className="font-bold">
+                        {e.data.outcome === 'captured' && 'capturou'}
+                        {e.data.outcome === 'defeated' && 'derrotou'}
+                        {e.data.outcome === 'fled' && 'fugiu'}
+                        {e.data.outcome === 'fainted' && 'desmaiou'}
+                      </span>
+                      <div className="text-gray-500">
+                        bolas usadas: {e.data.balls_thrown ?? 0} · restam {e.data.pokeballs ?? 0}
+                        {e.data.outcome === 'captured' && ` · time: ${e.data.party_size}`}
                       </div>
                     </span>
                   )}

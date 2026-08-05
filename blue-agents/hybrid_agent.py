@@ -2395,10 +2395,14 @@ class HybridGymEnv(RedGymEnv):
             )
             if self.last_battle_player_hp == 0 or not has_alive_pokemon:
                 battle_result = "optional_loss" if optional_rival_loss else "loss"
+            elif capture_confirmed:
+                # A new party member and a new Pokédex entry are stronger
+                # evidence than the last enemy-HP read, which can land on zero
+                # while the ball is closing. Ranked below the win check, a real
+                # capture was reported as a knockout.
+                battle_result = "capture"
             elif self.last_battle_is_trainer or self.last_battle_enemy_hp == 0:
                 battle_result = "win"
-            elif capture_confirmed:
-                battle_result = "capture"
             else:
                 battle_result = "escaped"
             self._log_event("battle_end", {
@@ -2450,7 +2454,49 @@ class HybridGymEnv(RedGymEnv):
                         "battle_location": self.last_battle_map_id,
                         "reason": "whiteout confirmado pela transição de mapa e cura automática",
                     })
-            elif battle_result == "escaped":
+            # A capture decision is only half the story. Close it with what
+            # actually happened to that Pokémon, so the feed never leaves
+            # "decidiu capturar" hanging without "capturou", "derrotou" ou
+            # "fugiu".
+            if battle_kind == "wild":
+                intent = getattr(self, "battle_capture_intent", None) or (
+                    self.last_capture_policy or {}
+                )
+                balls_before = getattr(self, "battle_balls_before", None)
+                balls_now = self._poke_ball_count()
+                outcome = {
+                    "capture": "captured",
+                    "win": "defeated",
+                    "escaped": "fled",
+                    "loss": "fainted",
+                    "optional_loss": "fainted",
+                }.get(battle_result, battle_result)
+                party_after = self.get_party_info()
+                self._log_event("capture_outcome", {
+                    "intent": intent.get("choice"),
+                    "reason_code": intent.get("reason_code"),
+                    "reason": intent.get("reason"),
+                    "outcome": outcome,
+                    "enemy_species_id": intent.get("enemy_species_id"),
+                    "enemy_level": intent.get("enemy_level"),
+                    "balls_thrown": (
+                        max(balls_before - balls_now, 0)
+                        if balls_before is not None
+                        else None
+                    ),
+                    "pokeballs": balls_now,
+                    "shiny_candidate": intent.get("shiny_candidate", False),
+                    "party": party_after,
+                    "party_size": len(party_after),
+                }, live=(outcome == "captured" or intent.get("choice") == "capture"))
+                if outcome == "captured":
+                    # The panel reads a snapshot written every few dozen steps.
+                    # A new team member is exactly the moment someone is looking,
+                    # so publish it now instead of at the next interval.
+                    self._update_agent_state()
+                self.battle_capture_intent = None
+
+            if battle_result == "escaped":
                 self._log_event("battle_escaped", {
                     "type": battle_kind,
                     "enemy_id": self.last_battle_enemy_id,
@@ -2496,6 +2542,11 @@ class HybridGymEnv(RedGymEnv):
                 self.last_battle_map_id = int(self.read_m(0xD35E))
                 self.battle_party_count_before = len(self.get_party_info())
                 self.battle_pokedex_owned_before = self._pokedex_owned_count()
+                # What the bot meant to do with this encounter, kept for the
+                # end of the battle. A decision without an outcome cannot be
+                # read: "quis capturar" and "capturou" are different facts.
+                self.battle_capture_intent = None
+                self.battle_balls_before = self._poke_ball_count()
                 self.last_battle_enemy_id = battle_info.get('enemy_id', 0)
                 # Check if trainer battle (0xD057 bit 1)
                 battle_type = self.read_m(0xD057)
@@ -2535,6 +2586,14 @@ class HybridGymEnv(RedGymEnv):
                     )
                     decision_is_new = decision_key not in self.announced_capture_decisions
                     self.announced_capture_decisions.add(decision_key)
+                    self.battle_capture_intent = {
+                        "choice": capture_policy.get("choice"),
+                        "reason_code": capture_policy.get("reason_code"),
+                        "reason": capture_policy.get("reason"),
+                        "enemy_species_id": battle_info.get("enemy_species_id"),
+                        "enemy_level": battle_info.get("enemy_level"),
+                        "shiny_candidate": capture_policy.get("shiny_candidate", False),
+                    }
                     self._log_event("capture_decision", {
                         "enemy_id": battle_info.get("enemy_id"),
                         "enemy_species_id": battle_info.get("enemy_species_id"),
@@ -2734,6 +2793,10 @@ class HybridGymEnv(RedGymEnv):
                     })
                 else:
                     self.capture_count += 1
+                    # Publish the new team right away: this is the moment the
+                    # panel is worth looking at, and the periodic snapshot can
+                    # be dozens of steps away.
+                    self._update_agent_state()
                     result = "party" if len(current_party) > len(self.last_party_info) else "pc"
                     capture_policy = self.last_capture_policy or {}
                     self._log_event("capture", {
