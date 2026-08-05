@@ -62,6 +62,22 @@ ARCHETYPES = {
             "melhora o time, e ignora o que não muda a linha de frente."
         ),
     },
+
+    "nuzlocke": {
+        "label": "Nuzlocke",
+        "traits": {
+            "meta_score": 80,
+            "exploration": 70,
+            "collector": 45,
+            "mission_focus": 60,
+        },
+        "starter_preference": 0,
+        "capture_stance": "first_of_each_area",
+        "summary": (
+            "Um Pokémon por área, o primeiro que aparecer. O time é o que a "
+            "sorte deu, e cada área só responde uma vez."
+        ),
+    },
 }
 
 DEFAULT_ARCHETYPE = "team_builder"

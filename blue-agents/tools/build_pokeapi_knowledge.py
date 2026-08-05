@@ -69,18 +69,27 @@ def blue_encounters(area_name):
         ]
         if not details:
             continue
-        levels = [
-            entry["min_level"]
-            for detail in details for entry in detail["encounter_details"]
-        ] + [
-            entry["max_level"]
-            for detail in details for entry in detail["encounter_details"]
+        entries = [
+            entry for detail in details for entry in detail["encounter_details"]
         ]
+        levels = (
+            [entry["min_level"] for entry in entries]
+            + [entry["max_level"] for entry in entries]
+        )
         name = encounter["pokemon"]["name"]
         species[name] = {
             "species_id": int(encounter["pokemon"]["url"].rstrip("/").split("/")[-1]),
             "min_level": min(levels) if levels else None,
             "max_level": max(levels) if levels else None,
+            # Encounter chance is what separates "a Pikachu lives here" from
+            # "you will meet one": 5% in Viridian Forest against 45% Caterpie.
+            "chance": sum(entry["chance"] for entry in entries),
+            # The method separates rare from impossible: a species that only
+            # appears while surfing does not exist for a trainer without Surf.
+            "methods": sorted({
+                entry["method"]["name"]
+                for entry in entries if entry.get("method")
+            }),
         }
     return dict(sorted(species.items()))
 

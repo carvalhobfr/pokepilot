@@ -1,117 +1,44 @@
 {
   "version": 1,
-  "slot_count": 6,
-  "next_agent_index": 18,
+  "slot_count": 4,
+  "next_agent_index": 4,
   "slots": [
     {
       "slot": 0,
-      "agent_name": "DARON",
-      "identity_index": 3,
-      "profile_index": 3,
-      "generation": 2,
+      "agent_name": "AARON",
+      "identity_index": 0,
+      "profile_index": 0,
+      "generation": 1,
       "status": "active",
       "archetype": "completionist"
     },
     {
       "slot": 1,
-      "agent_name": "EARON",
-      "identity_index": 4,
-      "profile_index": 4,
-      "generation": 2,
+      "agent_name": "BARON",
+      "identity_index": 1,
+      "profile_index": 1,
+      "generation": 1,
       "status": "active",
       "archetype": "speedrunner"
     },
     {
       "slot": 2,
-      "agent_name": "KARON",
-      "identity_index": 10,
+      "agent_name": "CARON",
+      "identity_index": 2,
       "profile_index": 2,
       "generation": 1,
-      "status": "active"
+      "status": "active",
+      "archetype": "team_builder"
     },
     {
       "slot": 3,
-      "agent_name": "LARON",
-      "identity_index": 11,
+      "agent_name": "DARON",
+      "identity_index": 3,
       "profile_index": 3,
       "generation": 1,
-      "status": "active"
-    },
-    {
-      "slot": 4,
-      "agent_name": "QARON",
-      "identity_index": 16,
-      "profile_index": 0,
-      "generation": 1,
-      "status": "active"
-    },
-    {
-      "slot": 5,
-      "agent_name": "RARON",
-      "identity_index": 17,
-      "profile_index": 1,
-      "generation": 1,
-      "status": "active"
+      "status": "active",
+      "archetype": "nuzlocke"
     }
   ],
-  "completed_runs": [
-    {
-      "agent_name": "AARON",
-      "slot": 0,
-      "archive": "archives/20260805T101255.414852Z-AARON",
-      "replaced_by": "BARON"
-    },
-    {
-      "agent_name": "BARON",
-      "slot": 0,
-      "archive": "archives/20260805T172903.723287Z-BARON",
-      "replaced_by": "DARON",
-      "note": "congelado a pedido do operador para observar uma corrida nova do zero"
-    },
-    {
-      "agent_name": "CARON",
-      "slot": 1,
-      "archive": "archives/20260805T172903.756314Z-CARON",
-      "replaced_by": "EARON",
-      "note": "congelado a pedido do operador para observar uma corrida nova do zero"
-    }
-  ],
-  "retired_slots": [
-    {
-      "agent_name": "FARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "JARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "IARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "HARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "GARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "PARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "OARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "NARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "MARON",
-      "reason": "slot removido; treinador preservado em trainers/"
-    }
-  ]
+  "completed_runs": []
 }

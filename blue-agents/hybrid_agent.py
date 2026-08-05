@@ -35,7 +35,7 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
-from area_knowledge import area_coverage, area_target
+from area_knowledge import area_coverage, area_target, encounter_chance, is_rare_here
 from archetypes import (
     DEFAULT_ARCHETYPE,
     MINIMUM_BACKUP_PARTY,
@@ -1565,7 +1565,9 @@ class HybridGymEnv(RedGymEnv):
     def _area_coverage(self):
         """How much of the current area is registered, or None if it has none."""
         try:
-            return area_coverage(self._map_name(), self._owned_species())
+            return area_coverage(
+                self._map_name(), self._owned_species(), self._badge_count()
+            )
         except Exception:
             return None
 
@@ -2026,6 +2028,7 @@ class HybridGymEnv(RedGymEnv):
         story_complete = self._capture_story_complete()
         shiny_candidate = bool(battle_info.get("shiny_candidate"))
         quality = self._capture_quality(battle_info)
+        quality_species_id = int(battle_info.get("enemy_species_id") or 0)
         selected_ball = self._select_capture_ball(shiny_candidate)
 
         common = {
@@ -2142,6 +2145,39 @@ class HybridGymEnv(RedGymEnv):
                         "Pokémon comum não paga os turnos da captura"
                     ),
                 )
+        if stance in ("every_new_species", "first_of_each_area"):
+            # A 5% Pikachu is not the same encounter as a 45% Caterpie, and no
+            # quota should be allowed to skip it. This is the rule that decides
+            # whether a run ends with the Pokémon its areas are remembered for.
+            if is_rare_here(
+                self._map_name(), quality_species_id, badges=self._badge_count()
+            ):
+                return decision(
+                    "capture", "rare_for_this_area", "collector",
+                    (
+                        f"encontro raro nesta área "
+                        f"({encounter_chance(self._map_name(), quality_species_id, self._badge_count())}% "
+                        "de chance); não passar batido"
+                    ),
+                )
+
+        if stance == "first_of_each_area":
+            # Nuzlocke: one Pokémon per area, whichever shows up first. Owning
+            # anything from this area already answers the question.
+            coverage = self._area_coverage()
+            if coverage is None or coverage["owned"] == 0:
+                return decision(
+                    "capture", "first_of_this_area", "collector",
+                    "regra da área: o primeiro encontro novo daqui é o escolhido",
+                )
+            return decision(
+                "defeat", "area_already_claimed", "collector",
+                (
+                    "regra da área: esta já tem o Pokémon dela "
+                    f"({coverage['owned']}/{coverage['total']} registrados)"
+                ),
+            )
+
         if stance == "every_new_species":
             # Not 100% from the start: Surf and the fishing rods gate whole
             # encounter tables, so a bot that refuses to leave Route 1 until it

@@ -6,2588 +6,4566 @@
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "poliwhirl": {
         "species_id": 61,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "celadon-city-celadon-mansion": {
       "eevee": {
         "species_id": 133,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       }
     },
     "celadon-city-prize-corner": {
       "abra": {
         "species_id": 63,
         "min_level": 6,
-        "max_level": 6
+        "max_level": 6,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "clefairy": {
         "species_id": 35,
         "min_level": 12,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "dratini": {
         "species_id": 147,
         "min_level": 24,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "nidorino": {
         "species_id": 33,
         "min_level": 17,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "pinsir": {
         "species_id": 127,
         "min_level": 20,
-        "max_level": 20
+        "max_level": 20,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "porygon": {
         "species_id": 137,
         "min_level": 18,
-        "max_level": 18
+        "max_level": 18,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       }
     },
     "cerulean-city-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 84,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "jynx": {
         "species_id": 124,
         "min_level": 23,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 33,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 33,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "cinnabar-island-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "horsea": {
         "species_id": 116,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "cinnabar-island-cinnabar-lab": {
       "aerodactyl": {
         "species_id": 142,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "electrode": {
         "species_id": 101,
         "min_level": 3,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       },
       "kabuto": {
         "species_id": 140,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "omanyte": {
         "species_id": 138,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "seel": {
         "species_id": 86,
         "min_level": 28,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       },
       "tangela": {
         "species_id": 114,
         "min_level": 22,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       }
     },
     "digletts-cave-area": {
       "diglett": {
         "species_id": 50,
         "min_level": 15,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 95,
+        "methods": [
+          "walk"
+        ]
       },
       "dugtrio": {
         "species_id": 51,
         "min_level": 29,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "fuchsia-city-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 125,
+        "methods": [
+          "old-rod",
+          "super-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "seaking": {
         "species_id": 119,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "mt-moon-1f": {
       "clefairy": {
         "species_id": 35,
         "min_level": 8,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "geodude": {
         "species_id": 74,
         "min_level": 8,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "paras": {
         "species_id": 46,
         "min_level": 8,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 6,
-        "max_level": 11
+        "max_level": 11,
+        "chance": 79,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "mt-moon-b1f": {
       "clefairy": {
         "species_id": 35,
         "min_level": 9,
-        "max_level": 9
+        "max_level": 9,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "geodude": {
         "species_id": 74,
         "min_level": 7,
-        "max_level": 9
+        "max_level": 9,
+        "chance": 26,
+        "methods": [
+          "walk"
+        ]
       },
       "paras": {
         "species_id": 46,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 7,
-        "max_level": 11
+        "max_level": 11,
+        "chance": 60,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "mt-moon-b2f": {
       "clefairy": {
         "species_id": 35,
         "min_level": 10,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 6,
+        "methods": [
+          "walk"
+        ]
       },
       "geodude": {
         "species_id": 74,
         "min_level": 9,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "paras": {
         "species_id": 46,
         "min_level": 10,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 9,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 49,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pallet-town-area": {
       "bulbasaur": {
         "species_id": 1,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "charmander": {
         "species_id": 4,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 100,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "squirtle": {
         "species_id": 7,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "rock-tunnel-b1f": {
       "geodude": {
         "species_id": 74,
         "min_level": 16,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "machop": {
         "species_id": 66,
         "min_level": 15,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "onix": {
         "species_id": 95,
         "min_level": 13,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 15,
-        "max_level": 18
+        "max_level": 18,
+        "chance": 55,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "rock-tunnel-b2f": {
       "geodude": {
         "species_id": 74,
         "min_level": 16,
-        "max_level": 18
+        "max_level": 18,
+        "chance": 26,
+        "methods": [
+          "walk"
+        ]
       },
       "machop": {
         "species_id": 66,
         "min_level": 15,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "onix": {
         "species_id": 95,
         "min_level": 13,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 9,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 16,
-        "max_level": 18
+        "max_level": 18,
+        "chance": 50,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-1-area": {
       "pidgey": {
         "species_id": 16,
         "min_level": 2,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 50,
+        "methods": [
+          "walk"
+        ]
       },
       "rattata": {
         "species_id": 19,
         "min_level": 2,
-        "max_level": 4
+        "max_level": 4,
+        "chance": 50,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-10-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "poliwhirl": {
         "species_id": 61,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "sandshrew": {
         "species_id": 27,
         "min_level": 11,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 13,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "voltorb": {
         "species_id": 100,
         "min_level": 14,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-11-area": {
       "drowzee": {
         "species_id": 96,
         "min_level": 9,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "nidorina": {
         "species_id": 30,
         "min_level": 16,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "sandshrew": {
         "species_id": 27,
         "min_level": 12,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 13,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-12-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 22,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 125,
+        "methods": [
+          "old-rod",
+          "super-rod"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 23,
-        "max_level": 27
+        "max_level": 27,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "snorlax": {
         "species_id": 143,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "pokeflute"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "venonat": {
         "species_id": 48,
         "min_level": 24,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "weepinbell": {
         "species_id": 70,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-13-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 22,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "ditto": {
         "species_id": 132,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 125,
+        "methods": [
+          "old-rod",
+          "super-rod"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 25,
-        "max_level": 27
+        "max_level": 27,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "venonat": {
         "species_id": 48,
         "min_level": 24,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "weepinbell": {
         "species_id": 70,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-14-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 22,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "ditto": {
         "species_id": 132,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgeotto": {
         "species_id": 17,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "venonat": {
         "species_id": 48,
         "min_level": 24,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "weepinbell": {
         "species_id": 70,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-15-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 22,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "ditto": {
         "species_id": 132,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgeotto": {
         "species_id": 17,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "venonat": {
         "species_id": 48,
         "min_level": 26,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "weepinbell": {
         "species_id": 70,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-16-area": {
       "doduo": {
         "species_id": 84,
         "min_level": 18,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "raticate": {
         "species_id": 20,
         "min_level": 23,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "rattata": {
         "species_id": 19,
         "min_level": 18,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "snorlax": {
         "species_id": 143,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "pokeflute"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 20,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-17-area": {
       "doduo": {
         "species_id": 84,
         "min_level": 24,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "fearow": {
         "species_id": 22,
         "min_level": 25,
-        "max_level": 27
+        "max_level": 27,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 125,
+        "methods": [
+          "old-rod",
+          "super-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "raticate": {
         "species_id": 20,
         "min_level": 25,
-        "max_level": 29
+        "max_level": 29,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 20,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "kanto-route-18-area": {
       "doduo": {
         "species_id": 84,
         "min_level": 24,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "fearow": {
         "species_id": 22,
         "min_level": 25,
-        "max_level": 29
+        "max_level": 29,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "lickitung": {
         "species_id": 108,
         "min_level": 23,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 125,
+        "methods": [
+          "old-rod",
+          "super-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "raticate": {
         "species_id": 20,
         "min_level": 25,
-        "max_level": 29
+        "max_level": 29,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 20,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "kanto-sea-route-19-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "horsea": {
         "species_id": 116,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 100,
+        "methods": [
+          "surf"
+        ]
       }
     },
     "kanto-route-2-south-towards-viridian-city": {
       "caterpie": {
         "species_id": 10,
         "min_level": 3,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 3,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 45,
+        "methods": [
+          "walk"
+        ]
       },
       "rattata": {
         "species_id": 19,
         "min_level": 2,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-2-north-towards-pewter-city": {
       "mr-mime": {
         "species_id": 122,
         "min_level": 8,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       }
     },
     "kanto-sea-route-20-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "horsea": {
         "species_id": 116,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 100,
+        "methods": [
+          "surf"
+        ]
       }
     },
     "kanto-sea-route-21-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "horsea": {
         "species_id": 116,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "pidgeotto": {
         "species_id": 17,
         "min_level": 30,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 21,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "raticate": {
         "species_id": 20,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "rattata": {
         "species_id": 19,
         "min_level": 21,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "tangela": {
         "species_id": 114,
         "min_level": 28,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 5,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 100,
+        "methods": [
+          "surf"
+        ]
       }
     },
     "kanto-route-22-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 100,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "nidoran-f": {
         "species_id": 29,
         "min_level": 2,
-        "max_level": 4
+        "max_level": 4,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "nidoran-m": {
         "species_id": 32,
         "min_level": 3,
-        "max_level": 4
+        "max_level": 4,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 100,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "rattata": {
         "species_id": 19,
         "min_level": 2,
-        "max_level": 4
+        "max_level": 4,
+        "chance": 45,
+        "methods": [
+          "walk"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 3,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-24-area": {
       "abra": {
         "species_id": 63,
         "min_level": 8,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "bellsprout": {
         "species_id": 69,
         "min_level": 12,
-        "max_level": 14
+        "max_level": 14,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "caterpie": {
         "species_id": 10,
         "min_level": 7,
-        "max_level": 7
+        "max_level": 7,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 84,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 33,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "metapod": {
         "species_id": 11,
         "min_level": 8,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 12,
-        "max_level": 13
+        "max_level": 13,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 33,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "kanto-route-25-area": {
       "abra": {
         "species_id": 63,
         "min_level": 10,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "bellsprout": {
         "species_id": 69,
         "min_level": 12,
-        "max_level": 14
+        "max_level": 14,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "caterpie": {
         "species_id": 10,
         "min_level": 8,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 84,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "kakuna": {
         "species_id": 14,
         "min_level": 7,
-        "max_level": 7
+        "max_level": 7,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 33,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "metapod": {
         "species_id": 11,
         "min_level": 9,
-        "max_level": 9
+        "max_level": 9,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 13,
-        "max_level": 13
+        "max_level": 13,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 33,
+        "methods": [
+          "super-rod"
+        ]
       },
       "weedle": {
         "species_id": 13,
         "min_level": 8,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-3-area": {
       "jigglypuff": {
         "species_id": 39,
         "min_level": 3,
-        "max_level": 7
+        "max_level": 7,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 6,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 45,
+        "methods": [
+          "walk"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 5,
-        "max_level": 8
+        "max_level": 8,
+        "chance": 45,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-3-pokemon-center": {
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       }
     },
     "kanto-route-4-area": {
       "rattata": {
         "species_id": 19,
         "min_level": 8,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "sandshrew": {
         "species_id": 27,
         "min_level": 6,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 8,
-        "max_level": 12
+        "max_level": 12,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-4-pokemon-center": {
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       }
     },
     "kanto-route-5-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 13,
-        "max_level": 16
+        "max_level": 16,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "meowth": {
         "species_id": 52,
         "min_level": 10,
-        "max_level": 16
+        "max_level": 16,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 13,
-        "max_level": 16
+        "max_level": 16,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-6-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 13,
-        "max_level": 16
+        "max_level": 16,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "meowth": {
         "species_id": 52,
         "min_level": 10,
-        "max_level": 16
+        "max_level": 16,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 13,
-        "max_level": 16
+        "max_level": 16,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "kanto-route-7-area": {
       "bellsprout": {
         "species_id": 69,
         "min_level": 19,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "meowth": {
         "species_id": 52,
         "min_level": 17,
-        "max_level": 20
+        "max_level": 20,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 19,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "vulpix": {
         "species_id": 37,
         "min_level": 18,
-        "max_level": 20
+        "max_level": 20,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-8-area": {
       "meowth": {
         "species_id": 52,
         "min_level": 18,
-        "max_level": 20
+        "max_level": 20,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "pidgey": {
         "species_id": 16,
         "min_level": 18,
-        "max_level": 20
+        "max_level": 20,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "sandshrew": {
         "species_id": 27,
         "min_level": 17,
-        "max_level": 19
+        "max_level": 19,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "vulpix": {
         "species_id": 37,
         "min_level": 15,
-        "max_level": 18
+        "max_level": 18,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-9-area": {
       "rattata": {
         "species_id": 19,
         "min_level": 14,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "sandshrew": {
         "species_id": 27,
         "min_level": 11,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 13,
-        "max_level": 17
+        "max_level": 17,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "seafoam-islands-1f": {
       "golbat": {
         "species_id": 42,
         "min_level": 29,
-        "max_level": 29
+        "max_level": 29,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "seel": {
         "species_id": 86,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "slowbro": {
         "species_id": 80,
         "min_level": 38,
-        "max_level": 38
+        "max_level": 38,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 28,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 19,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 21,
-        "max_level": 21
+        "max_level": 21,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "seafoam-islands-b1f": {
       "dewgong": {
         "species_id": 87,
         "min_level": 38,
-        "max_level": 38
+        "max_level": 38,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "kingler": {
         "species_id": 99,
         "min_level": 37,
-        "max_level": 37
+        "max_level": 37,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 30,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "seel": {
         "species_id": 86,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 32,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "seafoam-islands-b2f": {
       "golbat": {
         "species_id": 42,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "golduck": {
         "species_id": 55,
         "min_level": 37,
-        "max_level": 37
+        "max_level": 37,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 30,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "seel": {
         "species_id": 86,
         "min_level": 30,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 28,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "seafoam-islands-b3f": {
       "dewgong": {
         "species_id": 87,
         "min_level": 37,
-        "max_level": 37
+        "max_level": 37,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "horsea": {
         "species_id": 116,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "kingler": {
         "species_id": 99,
         "min_level": 39,
-        "max_level": 39
+        "max_level": 39,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 29,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 31,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "seel": {
         "species_id": 86,
         "min_level": 31,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 15,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 40,
+        "methods": [
+          "super-rod",
+          "walk"
+        ]
       }
     },
     "seafoam-islands-b4f": {
       "articuno": {
         "species_id": 144,
         "min_level": 50,
-        "max_level": 50
+        "max_level": 50,
+        "chance": 100,
+        "methods": [
+          "static"
+        ]
       },
       "golbat": {
         "species_id": 42,
         "min_level": 32,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 75,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "golduck": {
         "species_id": 55,
         "min_level": 39,
-        "max_level": 39
+        "max_level": 39,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "horsea": {
         "species_id": 116,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 31,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 29,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "seel": {
         "species_id": 86,
         "min_level": 29,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "staryu": {
         "species_id": 120,
         "min_level": 15,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 55,
+        "methods": [
+          "super-rod",
+          "walk"
+        ]
       }
     },
     "cerulean-cave-1f": {
       "ditto": {
         "species_id": 132,
         "min_level": 53,
-        "max_level": 53
+        "max_level": 53,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "dodrio": {
         "species_id": 85,
         "min_level": 49,
-        "max_level": 49
+        "max_level": 49,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "golbat": {
         "species_id": 42,
         "min_level": 46,
-        "max_level": 46
+        "max_level": 46,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "hypno": {
         "species_id": 97,
         "min_level": 46,
-        "max_level": 46
+        "max_level": 46,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "kadabra": {
         "species_id": 64,
         "min_level": 49,
-        "max_level": 49
+        "max_level": 49,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "kingler": {
         "species_id": 99,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "magneton": {
         "species_id": 82,
         "min_level": 46,
-        "max_level": 46
+        "max_level": 46,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "parasect": {
         "species_id": 47,
         "min_level": 52,
-        "max_level": 52
+        "max_level": 52,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "raichu": {
         "species_id": 26,
         "min_level": 53,
-        "max_level": 53
+        "max_level": 53,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "sandslash": {
         "species_id": 28,
         "min_level": 52,
-        "max_level": 52
+        "max_level": 52,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "seadra": {
         "species_id": 117,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "seaking": {
         "species_id": 119,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "slowbro": {
         "species_id": 80,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "venomoth": {
         "species_id": 49,
         "min_level": 49,
-        "max_level": 49
+        "max_level": 49,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "cerulean-cave-2f": {
       "chansey": {
         "species_id": 113,
         "min_level": 56,
-        "max_level": 56
+        "max_level": 56,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "ditto": {
         "species_id": 132,
         "min_level": 55,
-        "max_level": 60
+        "max_level": 60,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "dodrio": {
         "species_id": 85,
         "min_level": 51,
-        "max_level": 51
+        "max_level": 51,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "electrode": {
         "species_id": 101,
         "min_level": 52,
-        "max_level": 52
+        "max_level": 52,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "kadabra": {
         "species_id": 64,
         "min_level": 51,
-        "max_level": 51
+        "max_level": 51,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "marowak": {
         "species_id": 105,
         "min_level": 52,
-        "max_level": 52
+        "max_level": 52,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "rhydon": {
         "species_id": 112,
         "min_level": 52,
-        "max_level": 52
+        "max_level": 52,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "venomoth": {
         "species_id": 49,
         "min_level": 51,
-        "max_level": 51
+        "max_level": 51,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "wigglytuff": {
         "species_id": 40,
         "min_level": 54,
-        "max_level": 54
+        "max_level": 54,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "cerulean-cave-b1f": {
       "chansey": {
         "species_id": 113,
         "min_level": 64,
-        "max_level": 64
+        "max_level": 64,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "ditto": {
         "species_id": 132,
         "min_level": 63,
-        "max_level": 67
+        "max_level": 67,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "electrode": {
         "species_id": 101,
         "min_level": 55,
-        "max_level": 55
+        "max_level": 55,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "kingler": {
         "species_id": 99,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "marowak": {
         "species_id": 105,
         "min_level": 55,
-        "max_level": 55
+        "max_level": 55,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "mewtwo": {
         "species_id": 150,
         "min_level": 70,
-        "max_level": 70
+        "max_level": 70,
+        "chance": 100,
+        "methods": [
+          "static"
+        ]
       },
       "parasect": {
         "species_id": 47,
         "min_level": 64,
-        "max_level": 64
+        "max_level": 64,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "raichu": {
         "species_id": 26,
         "min_level": 64,
-        "max_level": 64
+        "max_level": 64,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "rhydon": {
         "species_id": 112,
         "min_level": 55,
-        "max_level": 55
+        "max_level": 55,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "sandslash": {
         "species_id": 28,
         "min_level": 57,
-        "max_level": 57
+        "max_level": 57,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "seadra": {
         "species_id": 117,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "seaking": {
         "species_id": 119,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "slowbro": {
         "species_id": 80,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "vermilion-city-area": {
       "farfetchd": {
         "species_id": 83,
         "min_level": 3,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "vermilion-city-ss-anne-dock": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "shellder": {
         "species_id": 90,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "viridian-city-area": {
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 100,
+        "methods": [
+          "good-rod",
+          "super-rod"
+        ]
       },
       "tentacool": {
         "species_id": 72,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 50,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "viridian-forest-area": {
       "caterpie": {
         "species_id": 10,
         "min_level": 3,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 45,
+        "methods": [
+          "walk"
+        ]
       },
       "kakuna": {
         "species_id": 14,
         "min_level": 4,
-        "max_level": 4
+        "max_level": 4,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "metapod": {
         "species_id": 11,
         "min_level": 4,
-        "max_level": 6
+        "max_level": 6,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "pikachu": {
         "species_id": 25,
         "min_level": 3,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "weedle": {
         "species_id": 13,
         "min_level": 3,
-        "max_level": 3
+        "max_level": 3,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-route-23-area": {
       "ditto": {
         "species_id": 132,
         "min_level": 33,
-        "max_level": 43
+        "max_level": 43,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "fearow": {
         "species_id": 22,
         "min_level": 38,
-        "max_level": 43
+        "max_level": 43,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "kingler": {
         "species_id": 99,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "sandshrew": {
         "species_id": 27,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "sandslash": {
         "species_id": 28,
         "min_level": 41,
-        "max_level": 41
+        "max_level": 41,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "seadra": {
         "species_id": 117,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "seaking": {
         "species_id": 119,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "slowbro": {
         "species_id": 80,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "spearow": {
         "species_id": 21,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-power-plant-area": {
       "electrode": {
         "species_id": 101,
         "min_level": 43,
-        "max_level": 43
+        "max_level": 43,
+        "chance": 200,
+        "methods": [
+          "static"
+        ]
       },
       "magnemite": {
         "species_id": 81,
         "min_level": 21,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "magneton": {
         "species_id": 82,
         "min_level": 32,
-        "max_level": 35
+        "max_level": 35,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "pikachu": {
         "species_id": 25,
         "min_level": 20,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "raichu": {
         "species_id": 26,
         "min_level": 33,
-        "max_level": 36
+        "max_level": 36,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "voltorb": {
         "species_id": 100,
         "min_level": 21,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 630,
+        "methods": [
+          "static",
+          "walk"
+        ]
       },
       "zapdos": {
         "species_id": 145,
         "min_level": 50,
-        "max_level": 50
+        "max_level": 50,
+        "chance": 100,
+        "methods": [
+          "static"
+        ]
       }
     },
     "kanto-victory-road-2-1f": {
       "geodude": {
         "species_id": 74,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "golbat": {
         "species_id": 42,
         "min_level": 41,
-        "max_level": 41
+        "max_level": 41,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "graveler": {
         "species_id": 75,
         "min_level": 41,
-        "max_level": 41
+        "max_level": 41,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "machoke": {
         "species_id": 67,
         "min_level": 42,
-        "max_level": 42
+        "max_level": 42,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "machop": {
         "species_id": 66,
         "min_level": 24,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "marowak": {
         "species_id": 105,
         "min_level": 43,
-        "max_level": 43
+        "max_level": 43,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "onix": {
         "species_id": 95,
         "min_level": 36,
-        "max_level": 42
+        "max_level": 42,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-victory-road-2-2f": {
       "geodude": {
         "species_id": 74,
         "min_level": 24,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "golbat": {
         "species_id": 42,
         "min_level": 40,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "graveler": {
         "species_id": 75,
         "min_level": 43,
-        "max_level": 43
+        "max_level": 43,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "machoke": {
         "species_id": 67,
         "min_level": 41,
-        "max_level": 41
+        "max_level": 41,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "machop": {
         "species_id": 66,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "marowak": {
         "species_id": 105,
         "min_level": 40,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "moltres": {
         "species_id": 146,
         "min_level": 50,
-        "max_level": 50
+        "max_level": 50,
+        "chance": 100,
+        "methods": [
+          "static"
+        ]
       },
       "onix": {
         "species_id": 95,
         "min_level": 36,
-        "max_level": 42
+        "max_level": 42,
+        "chance": 30,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-victory-road-2-3f": {
       "geodude": {
         "species_id": 74,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "golbat": {
         "species_id": 42,
         "min_level": 41,
-        "max_level": 41
+        "max_level": 41,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "graveler": {
         "species_id": 75,
         "min_level": 43,
-        "max_level": 43
+        "max_level": 43,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "machoke": {
         "species_id": 67,
         "min_level": 42,
-        "max_level": 45
+        "max_level": 45,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "machop": {
         "species_id": 66,
         "min_level": 24,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "onix": {
         "species_id": 95,
         "min_level": 42,
-        "max_level": 45
+        "max_level": 45,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "venomoth": {
         "species_id": 49,
         "min_level": 40,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "zubat": {
         "species_id": 41,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-tower-3f": {
       "cubone": {
         "species_id": 104,
         "min_level": 20,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 9,
+        "methods": [
+          "walk"
+        ]
       },
       "gastly": {
         "species_id": 92,
         "min_level": 18,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 90,
+        "methods": [
+          "walk"
+        ]
       },
       "haunter": {
         "species_id": 93,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-tower-4f": {
       "cubone": {
         "species_id": 104,
         "min_level": 20,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 9,
+        "methods": [
+          "walk"
+        ]
       },
       "gastly": {
         "species_id": 92,
         "min_level": 18,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 86,
+        "methods": [
+          "walk"
+        ]
       },
       "haunter": {
         "species_id": 93,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-tower-5f": {
       "cubone": {
         "species_id": 104,
         "min_level": 20,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 9,
+        "methods": [
+          "walk"
+        ]
       },
       "gastly": {
         "species_id": 92,
         "min_level": 18,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 86,
+        "methods": [
+          "walk"
+        ]
       },
       "haunter": {
         "species_id": 93,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-tower-6f": {
       "cubone": {
         "species_id": 104,
         "min_level": 22,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 9,
+        "methods": [
+          "walk"
+        ]
       },
       "gastly": {
         "species_id": 92,
         "min_level": 19,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 85,
+        "methods": [
+          "walk"
+        ]
       },
       "haunter": {
         "species_id": 93,
         "min_level": 26,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 6,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-tower-7f": {
       "cubone": {
         "species_id": 104,
         "min_level": 22,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "gastly": {
         "species_id": 92,
         "min_level": 20,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 75,
+        "methods": [
+          "walk"
+        ]
       },
       "haunter": {
         "species_id": 93,
         "min_level": 28,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-mansion-1f": {
       "grimer": {
         "species_id": 88,
         "min_level": 30,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "koffing": {
         "species_id": 109,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "muk": {
         "species_id": 89,
         "min_level": 37,
-        "max_level": 37
+        "max_level": 37,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "ponyta": {
         "species_id": 77,
         "min_level": 28,
-        "max_level": 34
+        "max_level": 34,
+        "chance": 40,
+        "methods": [
+          "walk"
+        ]
       },
       "vulpix": {
         "species_id": 37,
         "min_level": 34,
-        "max_level": 34
+        "max_level": 34,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "weezing": {
         "species_id": 110,
         "min_level": 39,
-        "max_level": 39
+        "max_level": 39,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-mansion-2f": {
       "grimer": {
         "species_id": 88,
         "min_level": 30,
-        "max_level": 34
+        "max_level": 34,
+        "chance": 45,
+        "methods": [
+          "walk"
+        ]
       },
       "koffing": {
         "species_id": 109,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "muk": {
         "species_id": 89,
         "min_level": 39,
-        "max_level": 39
+        "max_level": 39,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "ponyta": {
         "species_id": 77,
         "min_level": 28,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 25,
+        "methods": [
+          "walk"
+        ]
       },
       "vulpix": {
         "species_id": 37,
         "min_level": 32,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "weezing": {
         "species_id": 110,
         "min_level": 37,
-        "max_level": 37
+        "max_level": 37,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-mansion-3f": {
       "grimer": {
         "species_id": 88,
         "min_level": 31,
-        "max_level": 35
+        "max_level": 35,
+        "chance": 35,
+        "methods": [
+          "walk"
+        ]
       },
       "koffing": {
         "species_id": 109,
         "min_level": 34,
-        "max_level": 34
+        "max_level": 34,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "magmar": {
         "species_id": 126,
         "min_level": 34,
-        "max_level": 34
+        "max_level": 34,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "muk": {
         "species_id": 89,
         "min_level": 38,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "ponyta": {
         "species_id": 77,
         "min_level": 32,
-        "max_level": 36
+        "max_level": 36,
+        "chance": 14,
+        "methods": [
+          "walk"
+        ]
       },
       "vulpix": {
         "species_id": 37,
         "min_level": 33,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "weezing": {
         "species_id": 110,
         "min_level": 42,
-        "max_level": 42
+        "max_level": 42,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "pokemon-mansion-b1f": {
       "grimer": {
         "species_id": 88,
         "min_level": 31,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 50,
+        "methods": [
+          "walk"
+        ]
       },
       "koffing": {
         "species_id": 109,
         "min_level": 35,
-        "max_level": 35
+        "max_level": 35,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "magmar": {
         "species_id": 126,
         "min_level": 38,
-        "max_level": 38
+        "max_level": 38,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "muk": {
         "species_id": 89,
         "min_level": 40,
-        "max_level": 40
+        "max_level": 40,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "ponyta": {
         "species_id": 77,
         "min_level": 32,
-        "max_level": 34
+        "max_level": 34,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "vulpix": {
         "species_id": 37,
         "min_level": 35,
-        "max_level": 35
+        "max_level": 35,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "weezing": {
         "species_id": 110,
         "min_level": 42,
-        "max_level": 42
+        "max_level": 42,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-safari-zone-middle": {
       "chansey": {
         "species_id": 113,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "dratini": {
         "species_id": 147,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "exeggcute": {
         "species_id": 102,
         "min_level": 24,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "nidoran-f": {
         "species_id": 29,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "nidorina": {
         "species_id": 30,
         "min_level": 31,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "nidorino": {
         "species_id": 33,
         "min_level": 31,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "parasect": {
         "species_id": 47,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "pinsir": {
         "species_id": 127,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "rhyhorn": {
         "species_id": 111,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "venonat": {
         "species_id": 48,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-safari-zone-area-1-east": {
       "doduo": {
         "species_id": 84,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "dratini": {
         "species_id": 147,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "exeggcute": {
         "species_id": 102,
         "min_level": 23,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "kangaskhan": {
         "species_id": 115,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "nidoran-f": {
         "species_id": 29,
         "min_level": 24,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "nidoran-m": {
         "species_id": 32,
         "min_level": 24,
-        "max_level": 24
+        "max_level": 24,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "nidorina": {
         "species_id": 30,
         "min_level": 33,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "paras": {
         "species_id": 46,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "parasect": {
         "species_id": 47,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "pinsir": {
         "species_id": 127,
         "min_level": 28,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       }
     },
     "kanto-safari-zone-area-2-north": {
       "chansey": {
         "species_id": 113,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "dratini": {
         "species_id": 147,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "exeggcute": {
         "species_id": 102,
         "min_level": 25,
-        "max_level": 27
+        "max_level": 27,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "nidoran-f": {
         "species_id": 29,
         "min_level": 22,
-        "max_level": 22
+        "max_level": 22,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "nidorina": {
         "species_id": 30,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "nidorino": {
         "species_id": 33,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "paras": {
         "species_id": 46,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "rhyhorn": {
         "species_id": 111,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "tauros": {
         "species_id": 128,
         "min_level": 28,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "venomoth": {
         "species_id": 49,
         "min_level": 32,
-        "max_level": 32
+        "max_level": 32,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "kanto-safari-zone-area-3-west": {
       "doduo": {
         "species_id": 84,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "dratini": {
         "species_id": 147,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "exeggcute": {
         "species_id": 102,
         "min_level": 24,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "goldeen": {
         "species_id": 118,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "kangaskhan": {
         "species_id": 115,
         "min_level": 28,
-        "max_level": 28
+        "max_level": 28,
+        "chance": 1,
+        "methods": [
+          "walk"
+        ]
       },
       "krabby": {
         "species_id": 98,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "magikarp": {
         "species_id": 129,
         "min_level": 5,
-        "max_level": 5
+        "max_level": 5,
+        "chance": 100,
+        "methods": [
+          "old-rod"
+        ]
       },
       "nidoran-f": {
         "species_id": 29,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 20,
+        "methods": [
+          "walk"
+        ]
       },
       "nidoran-m": {
         "species_id": 32,
         "min_level": 25,
-        "max_level": 25
+        "max_level": 25,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "nidorina": {
         "species_id": 30,
         "min_level": 33,
-        "max_level": 33
+        "max_level": 33,
+        "chance": 10,
+        "methods": [
+          "walk"
+        ]
       },
       "poliwag": {
         "species_id": 60,
         "min_level": 10,
-        "max_level": 10
+        "max_level": 10,
+        "chance": 50,
+        "methods": [
+          "good-rod"
+        ]
       },
       "psyduck": {
         "species_id": 54,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "slowpoke": {
         "species_id": 79,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 25,
+        "methods": [
+          "super-rod"
+        ]
       },
       "tauros": {
         "species_id": 128,
         "min_level": 26,
-        "max_level": 26
+        "max_level": 26,
+        "chance": 4,
+        "methods": [
+          "walk"
+        ]
       },
       "venomoth": {
         "species_id": 49,
         "min_level": 31,
-        "max_level": 31
+        "max_level": 31,
+        "chance": 5,
+        "methods": [
+          "walk"
+        ]
       },
       "venonat": {
         "species_id": 48,
         "min_level": 23,
-        "max_level": 23
+        "max_level": 23,
+        "chance": 15,
+        "methods": [
+          "walk"
+        ]
       }
     },
     "saffron-city-fighting-dojo": {
       "hitmonchan": {
         "species_id": 107,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       },
       "hitmonlee": {
         "species_id": 106,
         "min_level": 30,
-        "max_level": 30
+        "max_level": 30,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       }
     },
     "saffron-city-silph-co-7f": {
       "lapras": {
         "species_id": 131,
         "min_level": 15,
-        "max_level": 15
+        "max_level": 15,
+        "chance": 100,
+        "methods": [
+          "gift"
+        ]
       }
     },
     "kanto-underground-path-area": {
       "nidoran-f": {
         "species_id": 29,
         "min_level": 2,
-        "max_level": 100
+        "max_level": 100,
+        "chance": 100,
+        "methods": [
+          "npc-trade"
+        ]
       }
     }
   }

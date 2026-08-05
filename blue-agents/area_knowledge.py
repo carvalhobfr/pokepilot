@@ -22,6 +22,10 @@ ENCOUNTERS_PATH = Path(__file__).parent / "knowledge" / "maps" / "encounters.jso
 # Before the League, the water and fishing halves of most areas are unreachable.
 # Half of what an area offers is what a walking trainer can realistically get.
 AREA_TARGET_EARLY = 0.5
+
+# At or below this chance, an encounter is the area's rarity, not its filler.
+# Viridian Forest: Pikachu 5%, Caterpie 45%.
+RARE_ENCOUNTER_CHANCE = 15
 AREA_TARGET_POSTGAME = 1.0
 POSTGAME_BADGES = 8
 
@@ -70,25 +74,59 @@ def area_key(map_name):
     return None
 
 
-def area_species(map_name):
-    """Species ids obtainable in this area, as an unordered set."""
+def unlocked_methods(badges):
+    """Encounter methods a trainer can actually use at this point of the story.
+
+    Rare and impossible are different things, and the encounter method is what
+    tells them apart: a species that only appears while surfing does not exist
+    for a trainer without Surf, and counting it would leave the completionist
+    chasing an area it cannot finish.
+
+    Badges are the gate we can read from RAM with no ambiguity. Surf needs the
+    Soul Badge to be used outside battle; the rods are sold/given along the same
+    stretch of the story, so their badge counts are the honest approximation of
+    "the run has reached that point".
+    """
+    badges = int(badges or 0)
+    methods = {"walk", "gift", "gift-egg", "only-one"}
+    if badges >= 3:      # Vermilion: Old Rod
+        methods.add("old-rod")
+    if badges >= 5:      # Soul Badge: Surf fora de batalha, e Good Rod em Fuchsia
+        methods.update({"surf", "good-rod"})
+    if badges >= 6:      # Super Rod, Rota 12
+        methods.add("super-rod")
+    return methods
+
+
+def area_species(map_name, badges=None):
+    """Species ids obtainable in this area, filtered by what the run can do.
+
+    ``badges=None`` means "everything the area holds", which is the right answer
+    for a catalogue and the wrong one for a target.
+    """
     key = area_key(map_name)
     if key is None:
         return set()
-    return {
-        int(entry["species_id"])
-        for entry in _areas()[key].values()
-        if entry.get("species_id")
-    }
+    allowed = None if badges is None else unlocked_methods(badges)
+    species = set()
+    for entry in _areas()[key].values():
+        if not entry.get("species_id"):
+            continue
+        methods = set(entry.get("methods") or ["walk"])
+        if allowed is not None and not methods & allowed:
+            continue
+        species.add(int(entry["species_id"]))
+    return species
 
 
-def area_coverage(map_name, owned_species):
-    """How much of this area is already registered.
+def area_coverage(map_name, owned_species, badges=None):
+    """How much of the *reachable* part of this area is already registered.
 
-    Returns ``None`` when the area has no encounter table at all — a city with
-    no grass is not an area a completionist can fail at.
+    Returns ``None`` when the area has nothing this run can meet — a city with
+    no grass, or a lake for a trainer with no rod, is not an area a
+    completionist can fail at.
     """
-    species = area_species(map_name)
+    species = area_species(map_name, badges)
     if not species:
         return None
     owned = species & {int(value) for value in owned_species}
@@ -99,6 +137,33 @@ def area_coverage(map_name, owned_species):
         "fraction": len(owned) / len(species),
         "missing": sorted(species - owned),
     }
+
+
+def encounter_chance(map_name, species_id, badges=None):
+    """Chance of meeting this species here, in percent; 0 when out of reach."""
+    key = area_key(map_name)
+    if key is None:
+        return 0
+    allowed = None if badges is None else unlocked_methods(badges)
+    for entry in _areas()[key].values():
+        if int(entry.get("species_id") or 0) != int(species_id):
+            continue
+        methods = set(entry.get("methods") or ["walk"])
+        if allowed is not None and not methods & allowed:
+            return 0
+        return int(entry.get("chance") or 0)
+    return 0
+
+
+def is_rare_here(map_name, species_id, threshold=RARE_ENCOUNTER_CHANCE, badges=None):
+    """Whether meeting this species here is the exception, not the rule.
+
+    Pikachu is 5% of Viridian Forest against Caterpie's 45%. Walking away from
+    the 5% because the area quota is already met is how a completionist ends the
+    game without the one Pokémon the area is remembered for.
+    """
+    chance = encounter_chance(map_name, species_id, badges)
+    return 0 < chance <= threshold
 
 
 def area_target(badges):
