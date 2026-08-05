@@ -319,6 +319,30 @@ class RouteReplanningTests(unittest.TestCase):
             }), 4, "todas as direções acabam sendo tentadas",
         )
 
+    def test_the_bot_never_paces_between_two_tiles(self):
+        # Forgetting a contradictory tile makes its walls unknown again, so the
+        # next plan routes right back through them. The bot then moves every
+        # step — and therefore never looks stuck — while going nowhere. A
+        # trainer spent a night on one square of Route 3 exactly like this.
+        walls = {(20, 4), (19, 3), (19, 5)}  # só a esquerda é livre
+        agent = self.make_agent((19, 4), map_id=14, walls=walls)
+        visited = []
+        deltas = {
+            WindowEvent.PRESS_ARROW_UP: (0, -1),
+            WindowEvent.PRESS_ARROW_DOWN: (0, 1),
+            WindowEvent.PRESS_ARROW_LEFT: (-1, 0),
+            WindowEvent.PRESS_ARROW_RIGHT: (1, 0),
+        }
+        for _ in range(120):
+            action = agent._follow_route("mt-moon-14", [(30, 4)])
+            if action in deltas:
+                agent.memory_probe.walk(*deltas[action])
+            visited.append(agent.memory_probe.position)
+        distinct = set(visited)
+        self.assertGreater(
+            len(distinct), 2, f"precisa explorar, não oscilar: {sorted(distinct)}"
+        )
+
     def test_a_ledge_jump_is_learned_because_it_is_not_a_single_step(self):
         agent = self.make_agent((10, 8))
         agent.memory_probe = LedgeWorldMemory((10, 8), ledges={(10, 8)})

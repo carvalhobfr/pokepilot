@@ -1715,6 +1715,7 @@ class ScriptedAgent(BaseAgent):
             self.route_last_direction = None
             self.route_plan = None
             self.route_suspect = set()
+            self.route_previous_tile = None
             self.route_stuck_steps = 0
 
         current_position = (map_id, current_x, current_y)
@@ -1750,6 +1751,8 @@ class ScriptedAgent(BaseAgent):
                             last_direction,
                         )
                         self.route_plan = None
+            if previous_position is not None and previous_position[0] == map_id:
+                self.route_previous_tile = (previous_position[1], previous_position[2])
             self.route_stuck_steps = 0
             self.route_stuck_cycles = 0
             self.route_menu_presses = 0
@@ -1912,7 +1915,20 @@ class ScriptedAgent(BaseAgent):
     def _plan_route(self, map_id, start, goal):
         """Breadth-first plan plus the tile → step index it passes through."""
         memory = self._collision_memory()
-        suspect = getattr(self, "route_suspect", set())
+        suspect = set(getattr(self, "route_suspect", set()))
+
+        # Never plan straight back into the tile just left. Forgetting a
+        # contradictory tile makes its walls unknown again, so the next plan
+        # happily routes through them — and the bot paces between two tiles
+        # forever, moving every step and therefore never looking stuck. That is
+        # how a trainer spent a night on one square of Route 3.
+        previous = getattr(self, "route_previous_tile", None)
+        if previous is not None and previous != goal:
+            back = (previous[0] - start[0], previous[1] - start[1])
+            for label, delta in DIRECTIONS.items():
+                if delta == back:
+                    suspect.add((map_id, start[0], start[1], label))
+
         directions = memory.find_path(map_id, start, goal, avoid=suspect)
 
         # Unreachable according to what we believe — so stop believing it, in
