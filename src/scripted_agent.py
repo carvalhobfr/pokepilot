@@ -24,6 +24,10 @@ BLIND_EXIT_REACH = 10
 # knows about that tile. Each cycle is four steps plus a text attempt.
 STUCK_TILE_AMNESTY_CYCLES = 6
 
+# Tiles remembered to notice pacing. Two visits to the same tile inside this
+# window is a bot going back and forth, not a bot walking a corridor.
+ROUTE_HISTORY_LENGTH = 6
+
 # Learned walls live with the rest of the map knowledge, not inside a trainer:
 # geometry is the same for everyone who walks it.
 SHARED_COLLISION_PATH = (
@@ -1730,6 +1734,7 @@ class ScriptedAgent(BaseAgent):
             self.route_plan = None
             self.route_suspect = set()
             self.route_previous_tile = None
+            self.route_recent_tiles = []
             self.route_stuck_steps = 0
 
         current_position = (map_id, current_x, current_y)
@@ -1767,6 +1772,9 @@ class ScriptedAgent(BaseAgent):
                         self.route_plan = None
             if previous_position is not None and previous_position[0] == map_id:
                 self.route_previous_tile = (previous_position[1], previous_position[2])
+            history = list(getattr(self, "route_recent_tiles", []))
+            history.append((current_x, current_y))
+            self.route_recent_tiles = history[-ROUTE_HISTORY_LENGTH:]
             self.route_stuck_steps = 0
             self.route_stuck_cycles = 0
             self.route_menu_presses = 0
@@ -1951,13 +1959,14 @@ class ScriptedAgent(BaseAgent):
         memory = self._collision_memory()
         suspect = set(getattr(self, "route_suspect", set()))
 
-        # Never plan straight back into the tile just left. Forgetting a
-        # contradictory tile makes its walls unknown again, so the next plan
-        # happily routes through them — and the bot paces between two tiles
-        # forever, moving every step and therefore never looking stuck. That is
-        # how a trainer spent a night on one square of Route 3.
+        # Forbid going straight back only when the bot is actually pacing.
+        # Forbidding it always is far worse than the disease: most of Kanto is
+        # one-tile corridors, where retracing a step is the only way out of a
+        # dead end, and the four runs stalled everywhere at once.
         previous = getattr(self, "route_previous_tile", None)
-        if previous is not None and previous != goal:
+        recent = getattr(self, "route_recent_tiles", ())
+        pacing = previous is not None and list(recent).count(tuple(previous)) >= 2
+        if pacing and previous != goal:
             back = (previous[0] - start[0], previous[1] - start[1])
             for label, delta in DIRECTIONS.items():
                 if delta == back:
