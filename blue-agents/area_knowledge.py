@@ -19,15 +19,16 @@ from pathlib import Path
 
 ENCOUNTERS_PATH = Path(__file__).parent / "knowledge" / "maps" / "encounters.json"
 
-# Before the League, the water and fishing halves of most areas are unreachable.
-# Half of what an area offers is what a walking trainer can realistically get.
-AREA_TARGET_EARLY = 0.5
+# The target is everything the run can currently meet — no fraction, no quota.
+# A fraction was only ever a stand-in for "the area holds things I cannot reach
+# yet"; now that the encounter method answers that exactly, the honest target is
+# all of it. The set itself grows when Surf and the rods arrive, so the same
+# area is asked again later without ever demanding the impossible.
+AREA_TARGET = 1.0
 
 # At or below this chance, an encounter is the area's rarity, not its filler.
 # Viridian Forest: Pikachu 5%, Caterpie 45%.
 RARE_ENCOUNTER_CHANCE = 15
-AREA_TARGET_POSTGAME = 1.0
-POSTGAME_BADGES = 8
 
 # The RAM map names and the PokéAPI slugs disagree in a handful of places that
 # no rule would ever reconcile.
@@ -166,6 +167,11 @@ def is_rare_here(map_name, species_id, threshold=RARE_ENCOUNTER_CHANCE, badges=N
     return 0 < chance <= threshold
 
 
-def area_target(badges):
-    """Completion target for the current stage of the run."""
-    return AREA_TARGET_POSTGAME if int(badges or 0) >= POSTGAME_BADGES else AREA_TARGET_EARLY
+def area_target(badges=None):
+    """Completion target: everything reachable, at every stage of the run.
+
+    Kept as a function because the caller reads better asking for the target
+    than hardcoding a constant, and because what counts as reachable is already
+    a function of how far the run has come.
+    """
+    return AREA_TARGET

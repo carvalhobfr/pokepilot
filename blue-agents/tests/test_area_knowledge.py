@@ -1,8 +1,7 @@
 import unittest
 
 from area_knowledge import (
-    AREA_TARGET_EARLY,
-    AREA_TARGET_POSTGAME,
+    AREA_TARGET,
     area_coverage,
     area_key,
     area_species,
@@ -37,12 +36,13 @@ class AreaKnowledgeTests(unittest.TestCase):
         self.assertEqual(5, coverage["total"])
         self.assertAlmostEqual(0.4, coverage["fraction"])
 
-    def test_the_target_only_becomes_literal_after_the_league(self):
-        # Surf and the fishing rods gate whole encounter tables; demanding 100%
-        # on Route 1 would park a bot there forever.
-        self.assertEqual(AREA_TARGET_EARLY, area_target(0))
-        self.assertEqual(AREA_TARGET_EARLY, area_target(7))
-        self.assertEqual(AREA_TARGET_POSTGAME, area_target(8))
+    def test_the_target_is_everything_reachable_at_any_stage(self):
+        # A fração era só um substituto para "a área guarda coisas que não
+        # alcanço"; com o método do encontro respondendo isso, o alvo honesto é
+        # tudo. Quem cresce com as insígnias é o conjunto alcançável.
+        self.assertEqual(AREA_TARGET, area_target(0))
+        self.assertEqual(AREA_TARGET, area_target(8))
+        self.assertEqual(1.0, AREA_TARGET)
 
 
 class ReachabilityTests(unittest.TestCase):
@@ -126,22 +126,23 @@ class CompletionistCoverageTests(unittest.TestCase):
         self.assertEqual("capture", decision["choice"])
         self.assertEqual("completionist_new_species", decision["reason_code"])
 
-    def test_above_the_early_target_it_moves_on(self):
+    def test_one_missing_species_still_counts_as_unfinished(self):
         env = self.make_env(
             coverage={"owned": 4, "total": 5, "fraction": 0.8},
             badges=1, party=self.full_party(),
         )
         decision = env._capture_policy(self.encounter())
-        self.assertEqual("defeat", decision["choice"])
-        self.assertEqual("completionist_area_satisfied", decision["reason_code"])
+        self.assertEqual("capture", decision["choice"])
+        self.assertEqual("completionist_new_species", decision["reason_code"])
 
-    def test_after_the_league_the_same_area_is_worth_finishing(self):
+    def test_only_a_complete_reachable_area_lets_it_move_on(self):
         env = self.make_env(
-            coverage={"owned": 4, "total": 5, "fraction": 0.8},
-            badges=8, party=self.full_party(),
+            coverage={"owned": 5, "total": 5, "fraction": 1.0},
+            badges=1, party=self.full_party(),
         )
         decision = env._capture_policy(self.encounter())
-        self.assertEqual("capture", decision["choice"])
+        self.assertEqual("defeat", decision["choice"])
+        self.assertEqual("completionist_area_satisfied", decision["reason_code"])
 
     def test_the_area_rarity_is_never_skipped_by_a_met_quota(self):
         # A área já bateu a meta, mas um Pikachu de 5% na Floresta não é o

@@ -1,155 +1,5 @@
 [
   {
-    "id": "EARON-1785953262:83:map_transition:1785953264345156000",
-    "agent": "EARON",
-    "run_id": "EARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953264.3451571,
-    "step": 83,
-    "journey_step": 83,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "KARON-1785953262:83:map_transition:1785953264349384000",
-    "agent": "KARON",
-    "run_id": "KARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953264.3493838,
-    "step": 83,
-    "journey_step": 83,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "LARON-1785953262:83:map_transition:1785953264353593000",
-    "agent": "LARON",
-    "run_id": "LARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953264.353593,
-    "step": 83,
-    "journey_step": 83,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "QARON-1785953262:83:map_transition:1785953264357755000",
-    "agent": "QARON",
-    "run_id": "QARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953264.357756,
-    "step": 83,
-    "journey_step": 83,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "RARON-1785953262:83:map_transition:1785953264362262000",
-    "agent": "RARON",
-    "run_id": "RARON-1785953262",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 37,
-      "from_map_name": "Players House First Floor",
-      "to_map_id": 0,
-      "to_map_name": "Pallet Town",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953264.362263,
-    "step": 83,
-    "journey_step": 83,
-    "map_id": 0,
-    "map_name": "Pallet Town",
-    "coords": [
-      3,
-      7
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
-    "id": "DARON-1785953261:140:map_transition:1785953265058793000",
-    "agent": "DARON",
-    "run_id": "DARON-1785953261",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 0,
-      "from_map_name": "Pallet Town",
-      "to_map_id": 40,
-      "to_map_name": "Oaks Lab",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785953265.058794,
-    "step": 140,
-    "journey_step": 140,
-    "map_id": 40,
-    "map_name": "Oaks Lab",
-    "coords": [
-      12,
-      11
-    ],
-    "task": "QUEST: START",
-    "milestone": "start",
-    "live": false
-  },
-  {
     "id": "EARON-1785953262:140:map_transition:1785953265063064000",
     "agent": "EARON",
     "run_id": "EARON-1785953262",
@@ -1533,6 +1383,171 @@
     "timestamp": 1785954305.30211,
     "step": 181,
     "journey_step": 181,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      12,
+      11
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "CARON-1785954227:249:quest_advanced:1785954334286009000",
+    "agent": "CARON",
+    "run_id": "CARON-1785954227",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": "start",
+      "to_quest_id": "oak_event",
+      "title": "Escolher o starter e concluir a primeira batalha com o rival",
+      "completed_nodes": [
+        "start"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785954334.2860212,
+    "step": 249,
+    "journey_step": 250,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      3
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "CARON-1785954227:250:objective_changed:1785954334297912000",
+    "agent": "CARON",
+    "run_id": "CARON-1785954227",
+    "type": "objective_changed",
+    "data": {
+      "from": "QUEST: START",
+      "to": "QUEST: OAK_EVENT",
+      "reason": "controlador mudou o objetivo da jornada"
+    },
+    "timestamp": 1785954334.297915,
+    "step": 250,
+    "journey_step": 250,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      5,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "CARON-1785954227:283:starter_selected:1785954348379411000",
+    "agent": "CARON",
+    "run_id": "CARON-1785954227",
+    "type": "starter_selected",
+    "data": {
+      "pokemon": {
+        "species_id": 7,
+        "internal_id": 177,
+        "id": 7,
+        "level": 5,
+        "hp": 20,
+        "max_hp": 20,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 35
+          },
+          {
+            "id": 39,
+            "pp": 30
+          }
+        ]
+      },
+      "decision": "starter_confirmed",
+      "reason": "primeiro Pok\u00e9mon detectado na party durante o in\u00edcio real da jornada"
+    },
+    "timestamp": 1785954348.379414,
+    "step": 283,
+    "journey_step": 283,
+    "map_id": 40,
+    "map_name": "Oaks Lab",
+    "coords": [
+      7,
+      4
+    ],
+    "task": "QUEST: OAK_EVENT",
+    "milestone": "oak_event",
+    "live": true
+  },
+  {
+    "id": "DARON-1785954227:334:map_transition:1785954370035303000",
+    "agent": "DARON",
+    "run_id": "DARON-1785954227",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 38,
+      "from_map_name": "Players House Second Floor",
+      "to_map_id": 37,
+      "to_map_name": "Players House First Floor",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785954370.035305,
+    "step": 334,
+    "journey_step": 334,
+    "map_id": 37,
+    "map_name": "Players House First Floor",
+    "coords": [
+      7,
+      1
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "DARON-1785954227:348:map_transition:1785954375971293000",
+    "agent": "DARON",
+    "run_id": "DARON-1785954227",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 37,
+      "from_map_name": "Players House First Floor",
+      "to_map_id": 0,
+      "to_map_name": "Pallet Town",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785954375.971296,
+    "step": 348,
+    "journey_step": 348,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      3,
+      7
+    ],
+    "task": "QUEST: START",
+    "milestone": "start",
+    "live": false
+  },
+  {
+    "id": "DARON-1785954227:405:map_transition:1785954400144380000",
+    "agent": "DARON",
+    "run_id": "DARON-1785954227",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 0,
+      "from_map_name": "Pallet Town",
+      "to_map_id": 40,
+      "to_map_name": "Oaks Lab",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785954400.144382,
+    "step": 405,
+    "journey_step": 405,
     "map_id": 40,
     "map_name": "Oaks Lab",
     "coords": [

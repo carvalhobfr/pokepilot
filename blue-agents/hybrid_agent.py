@@ -2179,10 +2179,10 @@ class HybridGymEnv(RedGymEnv):
             )
 
         if stance == "every_new_species":
-            # Not 100% from the start: Surf and the fishing rods gate whole
-            # encounter tables, so a bot that refuses to leave Route 1 until it
-            # owns every species there never reaches the rods that would let it.
-            # The target rises to literal completion after the League.
+            # Everything the run can currently meet — the coverage above only
+            # counts species whose encounter method is already unlocked, so
+            # asking for all of it never demands a Pokémon that lives past a
+            # rod or past Surf. The set grows on its own as badges arrive.
             coverage = self._area_coverage()
             target = area_target(self._badge_count())
             if coverage is None or coverage["fraction"] < target:
@@ -2193,8 +2193,8 @@ class HybridGymEnv(RedGymEnv):
                 return decision(
                     "capture", "completionist_new_species", "collector",
                     (
-                        f"completista: {progress}, alvo {int(target * 100)}%; "
-                        "espécie nova entra no registro mesmo sem vaga no time"
+                        f"completista: {progress} alcançáveis; espécie nova "
+                        "entra no registro mesmo sem vaga no time"
                     ),
                 )
             # Area target met: stop spending balls here and judge like anyone
@@ -2204,8 +2204,8 @@ class HybridGymEnv(RedGymEnv):
                     "defeat", "completionist_area_satisfied", "collector",
                     (
                         f"completista: {coverage['owned']}/{coverage['total']} "
-                        f"desta área já registrados, acima do alvo de "
-                        f"{int(target * 100)}%; seguir viagem"
+                        "alcançáveis desta área registrados; o resto exige "
+                        "vara ou Surf, então seguir viagem"
                     ),
                 )
 

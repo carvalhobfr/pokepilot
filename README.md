@@ -153,18 +153,24 @@ diferentes.
 
 | Arquétipo | Postura diante de uma captura possível |
 |---|---|
-| Completista | toda espécie nova até fechar a meta da área |
+| Completista | 100% do alcançável em cada área; raridade nunca escapa |
 | Rushador | reserva e Pokémon forte; o resto é turno perdido |
 | Construtor de time | o que ocupa vaga ou melhora a linha de frente |
+| Nuzlocke | um Pokémon por área, o primeiro que aparecer |
 
 Antes eles eram sorteados a cada execução, e um sorteio ruim já deixou um
 treinador abaixo de todo limiar de captura — a corrida inteira pareceu bug.
 
-A meta do completista **não é 100% desde o começo**. Surf e as varas de pesca
-trancam tabelas inteiras de encontro, então exigir tudo na Rota 1 estacionaria o
-bot justamente antes das ferramentas que o destravariam. Ele fecha **metade** de
-cada área durante a campanha e, depois da Liga, volta para completar área por
-área. Quanto falta em cada uma sai de `knowledge/maps/encounters.json`.
+A meta do completista é **100% do que é alcançável** em cada área — que não é a
+mesma coisa que 100% da área. Surf e as varas de pesca trancam tabelas inteiras
+de encontro, então o que conta é o que a fase atual pode encontrar: o método de
+cada espécie (andar, surfar, vara velha/boa/super) está em
+`knowledge/maps/encounters.json`, e o conjunto alcançável cresce sozinho
+conforme as insígnias chegam. A mesma área é cobrada de novo mais tarde, sem
+nunca exigir o impossível.
+
+Raridade vem antes da cota: Pikachu é 5% da Floresta de Viridian contra 45% de
+Caterpie, e nenhuma meta cumprida faz o bot passar batido por ele.
 
 ## Estrutura
 

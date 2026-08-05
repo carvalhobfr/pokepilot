@@ -80,7 +80,7 @@ corrida inteira pareceu bug de política.
 
 | Arquétipo | O que faz com um selvagem que poderia capturar |
 |---|---|
-| `completionist` | espécie nova até fechar a meta da área (50%, 100% pós-Liga) |
+| `completionist` | 100% do que é alcançável em cada área, raridade sempre |
 | `speedrunner` | só reserva e Pokémon forte; o resto é turno perdido |
 | `team_builder` | o que ocupa vaga ou melhora a linha de frente |
 
@@ -96,10 +96,15 @@ O arquétipo vive no campo `archetype` de cada slot em
 - `knowledge/gyms.json` — os 8 ginásios com tipo, líder e o que bate neles.
 
 `blue-agents/area_knowledge.py` traduz nome de mapa da RAM para área da PokéAPI
-e responde "quanto desta área já está registrado". É o que dá sentido à meta do
-completista, que é **50% por área durante a campanha e 100% depois da Liga**:
-Surf e as varas trancam tabelas inteiras, e exigir tudo cedo estacionaria o bot
-antes das ferramentas que o destravariam.
+e responde "quanto do que dá para alcançar aqui já está registrado". A meta do
+completista é **100% do alcançável**, não uma fração: o método do encontro
+(andar, surfar, vara velha/boa/super) diz o que a fase atual pode encontrar, e
+as insígnias são a régua legível na RAM — vara velha na 3ª, Surf e vara boa na
+5ª, super vara na 6ª. O conjunto cresce sozinho, então a mesma área é cobrada de
+novo mais tarde sem nunca exigir o impossível.
+
+Raridade tem prioridade sobre a cota: Pikachu é 5% da Floresta contra 45% de
+Caterpie, e nenhuma meta cumprida pode fazer o bot passar batido por ele.
 
 A jornada nunca acessa a rede; rode a ferramenta quando quiser atualizar.
 
