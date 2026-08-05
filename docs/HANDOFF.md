@@ -191,7 +191,15 @@ logo aquela aresta é bloqueada.
 | Caminho | Responsabilidade |
 |---|---|
 | `src/collision_memory.py` | conjunto de arestas bloqueadas + BFS |
-| `trainers/<AGENTE>/collision.json` | memória persistida por treinador |
+| `blue-agents/knowledge/maps/collision.json` | mapa aprendido, comum a todos |
+
+O arquivo é **compartilhado entre treinadores**, não por treinador: onde ficam
+as paredes não depende de quem esbarra nelas. É a versão honesta de "um bot
+guiando os outros" — dividem o mapa, não um canal de comando, que continua não
+existindo (`HiveMind` só é consultado em `EXPLORE`). A escrita faz
+read-modify-write, então duas jornadas simultâneas somam o que aprendem em vez
+de sobrescrever uma à outra. Um treinador que nunca pisou na Floresta já começa
+com as 300+ arestas que os outros pagaram para descobrir.
 
 Regras do controlador:
 
@@ -242,6 +250,24 @@ bloqueada, igual a uma parede. **Só as não intencionais:** rotas terminam de
 propósito num warp — o último waypoint costuma ficar um tile além da borda — e
 marcar essas selaria toda saída de mapa. O critério é o índice do waypoint
 perseguido: final = saída legítima, meio da rota = engano.
+
+### Três travas que só aparecem no cartucho
+
+Nenhuma era geometria; todas foram vistas rodando e corrigidas em 2026-08-05.
+
+| Sintoma | Causa | Correção |
+|---|---|---|
+| Parado em `(3,11)` da Rota 2 norte, centenas de passos, sem aprender nada | `0xCFC4` (menu) preso em `1`; o executor devolvia `A` para sempre e nunca tentava andar | número limitado de `A` e depois anda assim mesmo; com o flag de pé **não grava** aresta, porque aí parede e caixa de texto são indistinguíveis |
+| Vaivém na frente do mesmo ledge da Rota 3 | pular desce **duas** casas; o passo "funciona", então nada parecia bloqueado | deslocamento diferente do esperado vira aresta bloqueada — o planejador só modela passo unitário |
+| Quique ginásio ↔ cidade | warp atravessado sem querer (ver acima) | transição no meio da rota vira aresta bloqueada |
+
+A sonda foi o que separou controlador de geometria em cada caso:
+
+```bash
+cd blue-agents && ../.venv/bin/python tools/probe_route.py \
+    ../trainers/BARON/current.state --limit 40
+# start=(13, 3, 11) reachable=40 → o tile de cima era caminhável o tempo todo
+```
 
 ### Validado no cartucho (2026-08-05, `start.py --no-browser`)
 
