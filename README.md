@@ -11,20 +11,46 @@ quando o bit dela aparece na RAM.
 
 ## Começando do zero
 
-Você precisa de três coisas: um Mac, a sua cópia de Pokémon Blue, e um clique.
+Roda em **Windows, macOS e Linux**. Você precisa de três coisas: Python 3.11+,
+Node.js, e a sua cópia de Pokémon Blue.
 
-1. **Coloque a ROM** em `roms/PokemonBlue.gb` (veja [Rodar](#rodar) para o SHA-1).
-2. **Dê dois cliques em `start.command`.**
+1. Instale [Python 3.11+](https://www.python.org/downloads/) e
+   [Node.js LTS](https://nodejs.org).
+   **No Windows, marque "Add python.exe to PATH"** durante a instalação do
+   Python — é o erro mais comum.
+2. Coloque a ROM em `roms/PokemonBlue.gb` (o SHA-1 é conferido, veja abaixo).
+3. Inicie:
+
+   | Sistema | Como |
+   |---|---|
+   | **Windows** | dois cliques em `start.bat` |
+   | **macOS** | dois cliques em `start.command` |
+   | qualquer um | `python start.py` no terminal |
 
 Ele instala o que faltar, sobe o dashboard, abre o navegador e começa a jogar.
 A primeira execução demora alguns minutos baixando dependências; as seguintes
 sobem em segundos. `Ctrl+C` encerra e salva o progresso dos bots.
 
-> Se o macOS bloquear o arquivo na primeira vez, clique com o botão direito →
-> *Abrir* → *Abrir*. É o aviso padrão para scripts baixados.
+Opções úteis: `python start.py --slots 1` roda um bot só (mais leve),
+`--no-browser` não abre o navegador sozinho.
+
+> **macOS:** se o sistema bloquear o arquivo na primeira vez, clique com o botão
+> direito → *Abrir* → *Abrir*. É o aviso padrão para scripts baixados.
+>
+> **Windows:** se o SmartScreen avisar, *Mais informações* → *Executar assim mesmo*.
 
 Na tela: arrastar move o mapa, roda do mouse ou pinça dá zoom, e clicar num bot
 trava a câmera para acompanhá-lo.
+
+### Quantos bots rodar
+
+O padrão é **2**, e não é arbitrário: cada bot é um emulador mais uma rede
+neural no mesmo processo. Num laptop sem ventoinha, mais que isso esquenta e o
+jogo fica lento. Máquinas de mesa aguentam mais — use `--slots N`.
+
+Reduzir o número **não apaga ninguém**: o treinador sai da lista ativa mas
+mantém save, diário e progresso em `trainers/`, e volta de onde parou se você
+aumentar de novo.
 
 ## Continuidade do desenvolvimento
 

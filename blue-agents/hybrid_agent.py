@@ -1410,8 +1410,7 @@ class HybridGymEnv(RedGymEnv):
         Write agent state (party, pokedex, badges) to shared JSON file for Command Center.
         """
         import json
-        import fcntl
-        
+
         state_file = Path(__file__).parent / "tasks/agent_states.json"
         state_file.parent.mkdir(exist_ok=True)
         
@@ -1438,17 +1437,18 @@ class HybridGymEnv(RedGymEnv):
             "decision_log": str(self.decision_log_path),
         }
         
-        # Write back (with file locking to avoid race conditions)
+        # Write back atomically. The previous version used fcntl, which does
+        # not exist on Windows and crashed the run there on the first state
+        # update. Writing to a temporary file and replacing it is portable and
+        # also removes the torn-read window a reader could hit mid-write.
         try:
-            with open(state_file, 'w') as f:
-                # Try to lock file (non-blocking)
-                try:
-                    fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    json.dump(all_states, f)
-                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-                except IOError:
-                    pass # Skip update if locked
-        except:
+            temporary = state_file.with_suffix(".json.tmp")
+            with open(temporary, "w", encoding="utf-8") as f:
+                json.dump(all_states, f)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temporary, state_file)
+        except OSError:
             pass
 
     def _load_journey_memory(self):

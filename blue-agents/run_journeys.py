@@ -13,7 +13,7 @@ from journey_roster import load_or_create_roster, rotate_completed_slots
 from rom_identity import require_blue
 
 
-SLOT_COUNT = 2
+DEFAULT_SLOT_COUNT = 2
 
 
 def parse_args():
@@ -36,6 +36,10 @@ def parse_args():
     parser.add_argument("--state-update-interval", type=int, default=250)
     parser.add_argument("--device", choices=["auto", "cpu", "mps"], default="auto")
     parser.add_argument("--state", choices=["fresh", "pokedex"], default="fresh")
+    parser.add_argument(
+        "--slots", type=int, default=DEFAULT_SLOT_COUNT,
+        help="Bots simultâneos. 2 é o limite térmico seguro num laptop sem ventoinha.",
+    )
     parser.add_argument("--rom", default="PokemonBlue.gb")
     parser.add_argument("--roster", default="tasks/slot_roster.json")
     return parser.parse_args()
@@ -43,6 +47,7 @@ def parse_args():
 
 def main() -> int:
     args = parse_args()
+    slot_count = max(int(args.slots), 1)
     if args.chunk_steps < 64:
         raise ValueError("--chunk-steps must be at least 64")
     if args.max_chunks < 0:
@@ -58,7 +63,7 @@ def main() -> int:
     requested_rom = Path(args.rom).expanduser()
     rom_path = requested_rom if requested_rom.is_absolute() else project_root / "roms" / requested_rom
     rom_identity = require_blue(rom_path).as_dict()
-    load_or_create_roster(roster_path, SLOT_COUNT)
+    load_or_create_roster(roster_path, slot_count)
 
     stop_requested = False
     child: subprocess.Popen | None = None
@@ -80,7 +85,7 @@ def main() -> int:
             quest_graph_path=graph_path,
             policy_path=policy_path,
             rom_identity=rom_identity,
-            slot_count=SLOT_COUNT,
+            slot_count=slot_count,
         )
         for rotation in rotations:
             print(
@@ -98,7 +103,7 @@ def main() -> int:
     while not stop_requested and (
         args.max_chunks == 0 or chunks_finished < args.max_chunks
     ):
-        roster = load_or_create_roster(roster_path, SLOT_COUNT)
+        roster = load_or_create_roster(roster_path, slot_count)
         active = ", ".join(
             f"slot {slot['slot']}={slot['agent_name']}"
             for slot in roster["slots"]
@@ -111,7 +116,7 @@ def main() -> int:
         command = [
             sys.executable,
             str(agent_root / "train_hybrid.py"),
-            "--agents", str(SLOT_COUNT),
+            "--agents", str(slot_count),
             "--steps", str(args.chunk_steps),
             "--rollout-steps", str(args.rollout_steps),
             "--state-update-interval", str(args.state_update_interval),

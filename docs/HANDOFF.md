@@ -400,6 +400,25 @@ Estados temporários de diagnóstico em `runtime/` não entram no arquivo para n
 inflar armazenamento. A ROM também não é copiada; apenas sua identidade/hash é
 registrada.
 
+## Portabilidade (Windows)
+
+Suporte adicionado em 2026-08-05 porque o projeto passou a ser testado no
+Windows. Três bloqueios reais foram corrigidos:
+
+| Bloqueio | Correção |
+|---|---|
+| `import fcntl` em `_update_agent_state` | escrita atômica com `os.replace`; `fcntl` não existe no Windows e derrubava a execução no primeiro update de estado |
+| Launchers em `.sh`, `lsof`, `.venv/bin/python` | `start.py`, único e multiplataforma; resolve `Scripts\python.exe` vs `bin/python` e libera portas com `netstat`/`taskkill` ou `lsof` |
+| `--agents` inexistente em `run_journeys.py` | `--slots`, com `resize_roster` para crescer/encolher sem apagar treinador |
+
+`start.bat` e `start.command` são apenas invólucros de clique duplo para
+`start.py`. A escrita atômica também eliminou a janela de leitura parcial que um
+leitor do `agent_states.json` podia pegar no meio da escrita.
+
+**Ainda pendente no Windows:** a pausa global usa `SIGSTOP`/`SIGCONT` em
+`viz_server/ws_relay.js`, sinais que não existem lá. A pausa por agente, que
+passa por `runtime_controls.json`, é portátil e funciona.
+
 ## Execução
 
 Suíte:

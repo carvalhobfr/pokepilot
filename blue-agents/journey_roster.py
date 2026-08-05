@@ -97,6 +97,46 @@ def validate_roster(roster: dict, slot_count: int | None = None) -> dict:
     return roster
 
 
+def resize_roster(roster: dict, slot_count: int) -> dict:
+    """Grow or shrink the active slots without touching any trainer on disk.
+
+    Shrinking only removes the slot from the active list: the trainer keeps its
+    save, journey and logs, so putting it back later resumes where it stopped.
+    """
+    slot_count = int(slot_count)
+    if slot_count < 1:
+        raise ValueError("slot_count must be at least one")
+    slots = sorted(roster.get("slots", []), key=lambda entry: int(entry["slot"]))
+
+    while len(slots) > slot_count:
+        retired = slots.pop()
+        roster.setdefault("retired_slots", []).append({
+            "agent_name": retired["agent_name"],
+            "reason": "slot removido; treinador preservado em trainers/",
+        })
+
+    while len(slots) < slot_count:
+        index = int(roster.get("next_agent_index", len(slots)))
+        names = {str(entry["agent_name"]) for entry in slots}
+        while agent_name_for_index(index) in names:
+            index += 1
+        slots.append({
+            "slot": len(slots),
+            "agent_name": agent_name_for_index(index),
+            "identity_index": index,
+            "profile_index": index % PROFILE_COUNT,
+            "generation": 1,
+            "status": "active",
+        })
+        roster["next_agent_index"] = index + 1
+
+    for position, entry in enumerate(slots):
+        entry["slot"] = position
+    roster["slots"] = slots
+    roster["slot_count"] = slot_count
+    return roster
+
+
 def load_or_create_roster(path: Path, slot_count: int = DEFAULT_SLOT_COUNT) -> dict:
     path = Path(path)
     if not path.exists():
@@ -105,6 +145,10 @@ def load_or_create_roster(path: Path, slot_count: int = DEFAULT_SLOT_COUNT) -> d
         return roster
     with open(path, "r", encoding="utf-8") as source:
         roster = json.load(source)
+    if slot_count is not None and int(roster.get("slot_count", 0)) != int(slot_count):
+        roster = validate_roster(resize_roster(roster, slot_count))
+        _atomic_json_write(path, roster)
+        return roster
     return validate_roster(roster, slot_count)
 
 
