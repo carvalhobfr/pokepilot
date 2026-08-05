@@ -1,78 +1,81 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-05 15:40 (Europe/Madrid)**.
+Última atualização: **2026-08-06 (Europe/Madrid)**.
 
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
 
-## Objetivo atual
+## Navegação: o cartucho responde, não adivinhamos
 
-Executar duas jornadas reais simultâneas em um MacBook Air M1, observar jogo,
-times e decisões, chegar à Liga/Mewtwo e produzir saves recuperáveis. Login,
-monetização, criador de personagem, favoritos, times-alvo, importação de save e
-parser de metas PT/EN vêm depois da campanha completa.
+Esta é a mudança mais importante do projeto e a que mais custou a chegar.
 
-O sistema é híbrido:
+Durante meses a navegação foi **aprendizado por esbarrão**: apertou uma direção,
+não saiu do lugar, grava a aresta como parede. Funciona, e falha de um jeito
+específico e fatal — um NPC parado é indistinguível de parede naquele passo, e
+gente virava geometria permanente, em conhecimento compartilhado por todos os
+treinadores. Em cima disso foram crescendo camadas para compensar: esquecer o
+tile quando ele se contradizia, duvidar enquanto havia caixa de texto, proibir
+voltar para quebrar o vaivém que o esquecimento criava, anistia por tile,
+reinício de missão. Cada camada consertava a de baixo e inventava um jeito novo
+de travar.
 
-- PyBoy executa a ROM real;
-- QuestGraph + ScriptedAgent controlam história e navegação determinística;
-- SimpleBattleAgent opera batalhas pela RAM;
-- PPO aprende apenas com transições não roteirizadas;
-- React + WebSocket exibem jornada, eventos, time e arena opcional.
+O motivo de tudo isso existir era **uma informação ausente**: quais tiles são
+caminháveis. O cartucho responde direto, e barato:
 
-Não chamar o projeto de agente puramente aprendido.
+| Fonte | Endereço | O que dá |
+|---|---|---|
+| lista de tiles caminháveis do tileset | ponteiro em `0xD530` | terreno, verdade permanente |
+| mapa de tiles da tela (20x18) | `0xC3A0` | o que está em volta |
+| tabela de sprites (16 bytes cada) | `0xC100` | onde estão as pessoas, agora |
 
-## Estado real comprovado
+O ponteiro de colisão aponta para o **banco 0**, sempre mapeado — era isso que
+fazia a opção parecer cara ("exige troca de banco"). Não exige. E o PyBoy lê ROM
+por banco (`memory[banco, endereço]`) se algum dia for preciso.
 
-AARON executou no cartucho:
+`src/tile_collision.py` junta as três leituras e responde quais das quatro
+direções estão bloqueadas e **por quê**: `terrain` ou `sprite`. A distinção é o
+ponto inteiro — terreno é permanente, gente anda embora.
 
-```text
-novo jogo → Oak → Squirtle → rival → encomenda → Pokédex → Poké Bolas
-→ Viridian Forest → Brock → Mt. Moon → Cerulean → rival
-→ Nugget Bridge → Route 25 → Bill/S.S. Ticket → Misty
-```
+Conferido contra o save real do CARON, parado havia horas na Rota 3: a leitura
+diz `{U: terrain, D: sprite, R: sprite}` e a esquerda livre. Exatamente o que o
+operador descrevia como "NPC invisível".
 
-Snapshot persistido em `trainers/AARON/current.state` às 23:00:12:
+### O que sobrou de `_follow_route`
 
-```text
-Mapa: 65 — Cerulean Gym, posição (5, 2)
-Quest ativa: vermilion_gym_quest
-Insígnias: 2
-Party: Wartortle nível 26, 56/78 HP
-Golpes: Tackle, Bite, Bubble, Water Gun
-Poké Bolas: 1
-Nós concluídos: 11 de 19
-```
+Um escolhedor de passo, em `src/scripted_agent.py`:
 
-O JSONL confirma a vitória contra Misty, a segunda insígnia e a transição para
-`vermilion_gym_quest`. Bill foi concluído pelo evento real e o S.S. Ticket
-`0x3F` está na mochila. Rotas de ida/volta em Route 24/25 e recuperação após
-whiteout foram exercitadas no emulador.
+1. menu ou texto aberto: alterna `B` e `A` (o `B` fecha menu **e** avança texto;
+   `A` sozinho abre submenu e nunca fecha — foi o que prendeu dois bots por
+   milhares de passos);
+2. anda na direção do waypoint, eixo mais longo primeiro;
+3. lado ocupado: usa o outro eixo;
+4. se quem bloqueia é **gente**, espera alguns passos antes de contornar —
+   pessoa anda sozinha, parede não;
+5. troca de mapa grava a porta em `knowledge/maps/warps.json`, compartilhada.
 
-BARON ainda não possui jornada canônica em `trainers/BARON`; o snapshot antigo
-do dashboard não substitui um trainer save. No primeiro bloco do supervisor ele
-começa do estado inicial com seu próprio SRAM.
+Removidos por não serem mais necessários: `src/collision_memory.py`, colisão
+aprendida, suspeitas transitórias, anistia por tile, regra de contradição,
+anti-oscilação. As 910 paredes que o arquivo tinha acumulado foram descartadas.
 
-## Próximo bloqueio de jogabilidade
+**Regra para quem mexer aqui:** não volte a inferir geometria de um passo que
+falhou. Se algo parece parede e a leitura diz que não é, o obstáculo é outra
+coisa — gente, script, texto — e a resposta certa é ler mais, não gravar mais.
 
-A navegação deixou de ser o bloqueio: `_follow_route` agora planeja por busca em
-largura sobre colisão aprendida (ver "Navegação" abaixo). Com isso destravam as
-regras de comportamento pedidas, todas do formato "chegar até X e interagir":
-curar e comprar Poké Bolas ao chegar numa cidade, curar por bom senso com Centro
-acessível, e cobertura de tipos na captura.
+## Estado dos quatro treinadores
 
-`vermilion_gym_quest` existe no grafo, mas ainda não possui executor. O próximo
-trabalho é automatizar e validar:
+Reiniciados do zero em 2026-08-05, um arquétipo cada
+(`blue-agents/archetypes.py`, campo `archetype` no roster):
 
-1. saída do ginásio/cura em Cerulean;
-2. casa assaltada, Rocket e TM28;
-3. Route 5, Underground Path, Route 6 e Vermilion;
-4. S.S. Anne, rival, capitão e HM01 Cut;
-5. ensinar/usar Cut, puzzle do ginásio e Lt. Surge;
-6. whiteout e retomada em cada trecho.
+| Bot | Arquétipo | Inicial | Onde estava na última verificação |
+|---|---|---|---|
+| AARON | Completista | Bulbasaur | atravessando Pewter |
+| BARON | Rushador | Bulbasaur | Rota 1 / Floresta |
+| CARON | Construtor de time | Squirtle | **parado na Rota 3 (22,8)**, 1 insígnia |
+| DARON | Fogo e dragão | Charmander | atravessando Pewter |
 
-Depois, repetir o padrão por Celadon/Erika, Fuchsia/Koga, Saffron/Sabrina,
-Cinnabar/Blaine, Giovanni, Liga e Mewtwo.
+CARON é o caso aberto: com a navegação nova ele deixou de estar emparedado por
+conhecimento falso, mas ainda não avança na Rota 3. É por aí que a próxima
+sessão começa.
 
 ## Política de captura: por que o time cresce
 
