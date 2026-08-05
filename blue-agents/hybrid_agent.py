@@ -62,6 +62,10 @@ PARTY_TARGET = 6
 
 # Soften the target before spending a ball, and never keep throwing while the
 # active Pokémon is about to faint.
+# A panel entry nobody has rewritten for this long belongs to a trainer that is
+# no longer running. Generous enough to survive a slow block boundary.
+STALE_AGENT_SECONDS = 600
+
 CAPTURE_HP_THRESHOLD = 0.5
 SELF_PRESERVATION_HP = 0.35
 
@@ -1441,8 +1445,21 @@ class HybridGymEnv(RedGymEnv):
             "recent_events": self.recent_events,
             "journey": self.get_journey_snapshot(),
             "decision_log": str(self.decision_log_path),
+            "updated_at": time.time(),
         }
-        
+
+        # Retired trainers used to sit in the panel forever: BARON and CARON
+        # were still shown frozen inside a house long after the roster had
+        # moved on to other names. Nobody rewrites their entry, so nobody would
+        # ever remove it either. A stale entry is one that stopped being
+        # written, which is exactly what the timestamp measures.
+        now = time.time()
+        all_states = {
+            name: state for name, state in all_states.items()
+            if name == self.agent_name
+            or now - float(state.get("updated_at") or now) < STALE_AGENT_SECONDS
+        }
+
         # Write back atomically. The previous version used fcntl, which does
         # not exist on Windows and crashed the run there on the first state
         # update. Writing to a temporary file and replacing it is portable and
