@@ -1,3 +1,4 @@
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -48,6 +49,31 @@ class CollisionMemoryTests(unittest.TestCase):
         path = memory.find_path(51, (15, 47), (17, 47))
         self.assertEqual("U", path[0], "com R bloqueado o desvio sobe")
         self.assertEqual(4, len(path))
+
+    def test_a_tile_is_never_sealed_on_all_four_sides(self):
+        # The bot is standing there, so it walked in through one of the sides.
+        # Believing a sealed tile is fatal: the search finds no path, and a
+        # blocked edge is only forgotten by crossing it, which is exactly what
+        # became impossible. Oak's lab sealed itself like this, in shared
+        # knowledge, and stranded four trainers at once.
+        memory = CollisionMemory()
+        for direction in ("U", "R", "L"):
+            self.assertTrue(memory.mark_blocked(40, 8, 4, direction))
+        self.assertFalse(memory.mark_blocked(40, 8, 4, "D"))
+        self.assertFalse(memory.is_blocked(40, 8, 4, "D"))
+        self.assertIsNotNone(memory.find_path(40, (8, 4), (8, 6)))
+
+    def test_a_file_written_before_the_rule_is_repaired_on_load(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "collision.json"
+            path.write_text(json.dumps({"version": 1, "blocked": {
+                "40": ["8,4,U", "8,4,D", "8,4,L", "8,4,R", "9,4,R"],
+            }}))
+            memory = CollisionMemory(path)
+            self.assertEqual(set(), {
+                edge for edge in memory.blocked if edge[1:3] == (8, 4)
+            })
+            self.assertTrue(memory.is_blocked(40, 9, 4, "R"), "o resto continua")
 
     def test_a_walled_corridor_still_finds_the_way_around(self):
         memory = CollisionMemory()
@@ -246,18 +272,37 @@ class RouteReplanningTests(unittest.TestCase):
         self.assertEqual(WindowEvent.PRESS_BUTTON_A, actions[0])
         self.assertIn(WindowEvent.PRESS_ARROW_UP, actions)
 
-    def test_a_defeated_trainer_reopening_its_line_is_still_learned(self):
-        # A beaten Route 3 trainer stays on its tile. The blocked-route A press
-        # reopens its line, and a menu counter reset by the flag alone let the
-        # pair freeze for thousands of steps in front of an NPC they had already
-        # won against. The press budget is refilled by movement, not by silence.
+    def test_dialogue_is_never_recorded_as_a_wall(self):
+        # Text that does not clear looks exactly like a wall from the outside:
+        # the position stops changing either way. Attributing it to the last
+        # direction walled in the starter table at Oak's lab.
+        agent = self.make_agent((8, 4), map_id=40)
+        agent.memory_probe.read_byte = lambda address: 1 if address == 0xCFC4 else 0
+        for _ in range(200):
+            agent._follow_route("oak-rival-trigger", [(7, 5), (5, 5)])
+        self.assertEqual(
+            set(), {edge for edge in agent._collision_memory().blocked if edge[0] == 40},
+            "nenhuma parede pode nascer de uma caixa de texto",
+        )
+        self.assertTrue(
+            agent.route_suspect,
+            "a suspeita existe, mas fica só nesta rota e não vira conhecimento",
+        )
+
+    def test_a_defeated_trainer_reopening_its_line_never_freezes_the_route(self):
+        # A beaten Route 3 trainer stays on its tile and its line reopens on
+        # every A, so the menu flag says "text" forever. The pair once froze
+        # thousands of steps in front of someone they had already beaten.
+        #
+        # It must get around — and it must not write that around into shared
+        # knowledge, because the same signal is what a text box produces.
         agent = self.make_agent((14, 9), map_id=14, walls={(13, 9)})
         agent.memory_probe.read_byte = lambda address: 1 if address == 0xCFC4 else 0
-        for _ in range(120):
-            agent._follow_route("mt-moon-14", [(11, 9)])
-        self.assertTrue(
-            agent._collision_memory().is_blocked(14, 14, 9, "L"),
-            "com o flag preso, a parede à frente ainda precisa ser aprendida",
+        moved = self.drive(agent, "mt-moon-14", [(11, 9)], 200)
+        self.assertNotEqual((14, 9), moved, "não pode congelar diante do NPC")
+        self.assertEqual(
+            set(), agent._collision_memory().blocked,
+            "sinal ambíguo não vira conhecimento compartilhado",
         )
 
     def test_an_unintended_warp_is_learned_like_a_wall(self):

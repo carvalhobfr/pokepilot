@@ -1634,7 +1634,7 @@ class ScriptedAgent(BaseAgent):
         if menu_open:
             self.route_menu_presses = getattr(self, "route_menu_presses", 0) + 1
             if self.route_menu_presses <= MENU_PRESS_LIMIT:
-                return WindowEvent.PRESS_BUTTON_A
+                return self._route_text()
 
         current_x, current_y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
@@ -1692,6 +1692,7 @@ class ScriptedAgent(BaseAgent):
             self.route_last_position = None
             self.route_last_direction = None
             self.route_plan = None
+            self.route_suspect = set()
             self.route_stuck_steps = 0
 
         current_position = (map_id, current_x, current_y)
@@ -1730,6 +1731,9 @@ class ScriptedAgent(BaseAgent):
             self.route_stuck_steps = 0
             self.route_stuck_cycles = 0
             self.route_menu_presses = 0
+            # Real movement clears every suspicion: whatever was in the way,
+            # the bot is somewhere else now.
+            self.route_suspect = set()
         self.route_last_position = current_position
 
         # Two different reasons make a step produce no movement, and they need
@@ -1740,11 +1744,24 @@ class ScriptedAgent(BaseAgent):
             self.route_stuck_steps = 0
             self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
             if self.route_stuck_cycles == 1:
-                return WindowEvent.PRESS_BUTTON_A
+                return self._route_text()
             if last_direction is not None:
-                self._collision_memory().mark_blocked(
-                    map_id, current_x, current_y, last_direction
+                clean = (
+                    not menu_open
+                    and getattr(self, "route_last_issue", "move") == "move"
                 )
+                if clean:
+                    self._collision_memory().mark_blocked(
+                        map_id, current_x, current_y, last_direction
+                    )
+                else:
+                    # Ambiguous: a text box eats the D-pad exactly like a wall
+                    # does, and guessing wrong writes a permanent lie into
+                    # knowledge every trainer shares. Step around it now and
+                    # teach nobody — the suspicion dies with the next real move.
+                    self.route_suspect.add(
+                        (map_id, current_x, current_y, last_direction)
+                    )
                 self.route_plan = None
 
         while (
@@ -1849,7 +1866,9 @@ class ScriptedAgent(BaseAgent):
 
     def _plan_route(self, map_id, start, goal):
         """Breadth-first plan plus the tile → step index it passes through."""
-        directions = self._collision_memory().find_path(map_id, start, goal)
+        directions = self._collision_memory().find_path(
+            map_id, start, goal, avoid=getattr(self, "route_suspect", set())
+        )
         if not directions:
             return None
         index = {start: 0}
@@ -1864,7 +1883,20 @@ class ScriptedAgent(BaseAgent):
         """Issue a D-pad press and remember it, so a failure can be attributed."""
         self.last_action_was_move = True
         self.route_last_direction = direction
+        self.route_last_issue = "move"
         return ROUTE_EVENTS[direction]
+
+    def _route_text(self):
+        """Press A to advance text, and make sure it is not read as a wall.
+
+        Text that does not clear looks exactly like a wall from the outside:
+        the position stops changing either way. Attributing it to the last
+        direction walled in the starter table at Oak's lab — every tile in
+        front of the balls ended up with all four sides blocked, in shared
+        knowledge, for every trainer at once.
+        """
+        self.route_last_issue = "text"
+        return WindowEvent.PRESS_BUTTON_A
 
     def _get_typing_sequence(self, name):
         """

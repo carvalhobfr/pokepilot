@@ -46,6 +46,7 @@ class CollisionMemory:
     def _load(self):
         for edge in self._read_file():
             self.blocked.add(edge)
+        self.sanitize()
 
     def _read_file(self):
         """Edges currently on disk, so concurrent trainers pool instead of
@@ -101,6 +102,13 @@ class CollisionMemory:
         edge = (int(map_id), int(x), int(y), direction)
         if edge in self.blocked:
             return False
+        # A tile with no way out cannot be true: the bot is standing on it, so
+        # it walked in through one of these sides. Believing it is fatal — the
+        # search finds no path, and since a blocked edge is only forgotten by
+        # crossing it, the trainer can never prove it wrong. Oak's lab walled
+        # itself in exactly like this, in knowledge shared by everyone.
+        if self._would_seal_tile(int(map_id), int(x), int(y), direction):
+            return False
         self.blocked.add(edge)
         self.cleared.discard(edge)
         self.save()
@@ -121,7 +129,36 @@ class CollisionMemory:
         self.save()
         return True
 
-    def find_path(self, map_id, start, goal, margin=15, node_limit=6000):
+    def _would_seal_tile(self, map_id, x, y, direction):
+        exits = {
+            label for label in DIRECTIONS
+            if (map_id, x, y, label) not in self.blocked
+        }
+        return exits == {direction}
+
+    def sanitize(self):
+        """Drop edges that leave a tile with no way out.
+
+        Older files were written before the rule existed, and a sealed tile in
+        shared knowledge strands every trainer that steps on it.
+        """
+        removed = set()
+        tiles = {(map_id, x, y) for map_id, x, y, _ in self.blocked}
+        for map_id, x, y in tiles:
+            sides = {
+                label for label in DIRECTIONS
+                if (map_id, x, y, label) in self.blocked
+            }
+            if len(sides) == len(DIRECTIONS):
+                for label in sides:
+                    removed.add((map_id, x, y, label))
+        if removed:
+            self.blocked -= removed
+            self.cleared |= removed
+            self.save()
+        return removed
+
+    def find_path(self, map_id, start, goal, margin=15, node_limit=6000, avoid=()):
         """Shortest known-free path from ``start`` to ``goal`` as direction labels.
 
         Unknown edges count as free, so the first plan on a fresh map is the
@@ -147,7 +184,11 @@ class CollisionMemory:
             if current == goal:
                 return self._reconstruct(came_from, goal)
             for direction in EXPANSION_ORDER:
-                if (map_id, current[0], current[1], direction) in self.blocked:
+                edge = (map_id, current[0], current[1], direction)
+                # `avoid` holds edges that failed under ambiguous conditions —
+                # a text box eats the D-pad exactly like a wall does. Those are
+                # worth stepping around right now and never worth writing down.
+                if edge in self.blocked or edge in avoid:
                     continue
                 delta = DIRECTIONS[direction]
                 candidate = (current[0] + delta[0], current[1] + delta[1])
