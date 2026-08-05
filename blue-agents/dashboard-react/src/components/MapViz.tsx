@@ -14,6 +14,12 @@ const DEFAULT_SCALE = 0.5;
 // Following a sprite at the same scale as the whole-region view is useless;
 // this is close enough to read the tiles the bot is standing on.
 const FOLLOW_SCALE = 2;
+// A sprite that stops receiving coordinates is not "standing there" — the
+// stream broke, usually because the supervisor rolled over to the next chunk.
+// Showing it as if it were live made a healed bot look like a corpse left
+// behind in Viridian.
+const STALE_AFTER_MS = 25000;
+const DROP_AFTER_MS = 150000;
 
 interface SpriteEntry {
   container: PIXI.Container;
@@ -182,6 +188,29 @@ const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
           obj.animating = false;
           obj.path = [obj.path[obj.path.length - 1]];
         }
+      });
+
+      // Fade sprites whose stream went quiet, and drop the ones long gone.
+      spritesRef.current.forEach((obj, key) => {
+        if (!obj.lastUpdateAt) return;
+        const silence = now - obj.lastUpdateAt;
+        if (silence > DROP_AFTER_MS) {
+          mapContainerRef.current?.removeChild(obj.container);
+          obj.container.destroy({ children: true });
+          spritesRef.current.delete(key);
+          setAgentNames(names => names.filter(name => name !== key));
+          if (followRef.current === key) {
+            followRef.current = null;
+            setFollowTarget(null);
+          }
+          return;
+        }
+        const stale = silence > STALE_AFTER_MS;
+        const inBattle = Boolean(
+          obj.meta?.status === 'battle' || obj.meta?.battle_info?.is_battle,
+        );
+        obj.container.alpha = stale ? 0.35 : inBattle ? 0.85 : 1;
+        obj.label.style.fill = stale ? '#8a8a8a' : obj.meta?.color || 'white';
       });
 
       // Camera lock. Runs after sprite movement so the followed bot never
@@ -385,6 +414,8 @@ const MapViz: React.FC<MapVizProps> = ({ ws, connected, onAgentClick }) => {
       const inBattle = Boolean(meta.status === 'battle' || meta?.battle_info?.is_battle);
       entry.badge.visible = inBattle;
       entry.container.alpha = inBattle ? 0.85 : 1;
+      // Any message counts as a heartbeat, even one without new coordinates.
+      entry.lastUpdateAt = Date.now();
 
       if (path && path.length > 0) {
         const now = Date.now();
