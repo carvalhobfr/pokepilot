@@ -9,13 +9,16 @@ from src.llm_agent import LLMAgent
 
 from src.navigation import Navigation
 from src.exploration_tracker import ExplorationTracker
-from src.collision_memory import DIRECTIONS, CollisionMemory
 from src.warp_memory import WarpMemory
 from src.tile_collision import TileCollision
 
 # How many A presses a route spends on a dialogue before it walks anyway. The
 # menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
 MENU_PRESS_LIMIT = 12
+
+# Steps spent waiting for a person to move before walking around them. People
+# in Gen I pace on their own; walls do not.
+SPRITE_PATIENCE_STEPS = 6
 
 # How far south to aim when leaving a map whose door was never observed. Kanto
 # interiors are small; this clears any of them.
@@ -31,11 +34,6 @@ ROUTE_HISTORY_LENGTH = 6
 
 # Learned walls live with the rest of the map knowledge, not inside a trainer:
 # geometry is the same for everyone who walks it.
-SHARED_COLLISION_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "blue-agents" / "knowledge" / "maps" / "collision.json"
-)
-
 # Doors already had a home in the knowledge directory; only free exploration
 # ever wrote to it, and the scripted journey never read it.
 SHARED_WARP_PATH = (
@@ -1644,211 +1642,59 @@ class ScriptedAgent(BaseAgent):
         return 0
 
     def _follow_route(self, route_id, waypoints):
-        """Follow collision-safe waypoints and tolerate transition input lock."""
+        """Walk the route using what the cartridge says about the tiles.
+
+        This used to be a pile of guesses stacked on one another: learn a wall
+        from a failed step, forget it when the tile contradicted itself, doubt
+        it while a text box was open, avoid going back to break the pacing the
+        forgetting caused. Every layer fixed the layer below and added a new
+        way to get stuck, because all of them were compensating for one missing
+        fact — which tiles are actually walkable.
+
+        The cartridge answers that directly (`src/tile_collision.py`), so the
+        guessing is gone. What is left is a step chooser: head toward the
+        waypoint, and when that side is blocked, take the other axis.
+        """
         if not waypoints:
             return None
 
-        # Trainer victory lines, signs and story speech can remain open after
-        # the battle flag clears. Advance them before issuing movement; waiting
-        # for the stuck watchdog can otherwise re-talk to the same NPC.
-        #
-        # But the flag is not always telling the truth. On Route 2 north a bot
-        # sat on (3,11) for hundreds of steps pressing A while the probe showed
-        # the tile above was walkable: 0xCFC4 stayed at 1 and nothing ever
-        # cleared it. Obeying it forever is a livelock with no learning at all,
-        # because the bot never even tries to walk. Give the dialogue a bounded
-        # number of presses and then move regardless.
-        # The budget is only refilled by real movement, never by the flag going
-        # quiet for a frame. A defeated Route 3 trainer stays on its tile: the
-        # blocked-route A press re-opened its line, that reset a
-        # flag-based counter, and the pair froze for thousands of steps in front
-        # of an NPC they had already beaten. Once the budget is spent the flag
-        # is ignored for everything, learning included — the wall in front is
-        # what has to be written down.
-        menu_open = self._menu_is_open()
-        if menu_open:
+        # Dialogue and menus eat the D-pad. B closes a menu and also advances
+        # text; A gets its turn for prompts that need a confirmation.
+        if self._menu_is_open():
             self.route_menu_presses = getattr(self, "route_menu_presses", 0) + 1
             if self.route_menu_presses <= MENU_PRESS_LIMIT:
                 return self._route_text()
+        else:
+            self.route_menu_presses = 0
 
         current_x, current_y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
 
-        # A warp is invisible to collision learning: stepping onto a door works,
-        # so nothing ever looks blocked. Walking out of Brock's gym landed the
-        # bot on the door tile in Pewter, the plan to the next anchor crossed
-        # that same tile, and the pair bounced gym → city → gym forever.
-        #
-        # Only unintended transitions are learned. Routes deliberately end on a
-        # warp — the last waypoint is often one tile past the map border — so a
-        # transition while chasing the final waypoint is how a route is supposed
-        # to finish, and must stay free. This runs before the route switch below
-        # resets the bookkeeping it depends on.
-        entry_position = getattr(self, "route_last_position", None)
-        entry_direction = getattr(self, "route_last_direction", None)
-        changed_map = (
-            entry_position is not None
-            and entry_direction is not None
-            and entry_position[0] != map_id
-        )
-        if changed_map:
-            # The tile we land on is the door back out. Without it, a map with
-            # no route is a room with no handle on the inside.
-            if not hasattr(self, "map_entry_tiles"):
-                self.map_entry_tiles = {}
-            self.map_entry_tiles[map_id] = (current_x, current_y, entry_direction)
-            # And the tile we left is the door itself, seen from the other side.
-            # Doors are the cheapest fact here to collect and the one every
-            # executor was carrying by hand.
-            self._warp_memory().record(
-                entry_position[0], entry_position[1], entry_position[2], map_id
-            )
-        if changed_map and not getattr(self, "route_target_was_final", True):
-            self._collision_memory().mark_warp(
-                entry_position[0], entry_position[1], entry_position[2],
-                entry_direction,
-            )
-            self.route_plan = None
-
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
-
             # A resumed save or a whiteout can enter a route in its middle.
-            # Begin at the closest collision-safe waypoint instead of blindly
-            # walking toward waypoint zero through walls. If standing exactly
-            # on a waypoint, continue to the next one in route order.
-            closest_index = min(
+            # Start from the closest waypoint instead of walking back to the
+            # first one through everything in between.
+            closest = min(
                 range(len(waypoints)),
                 key=lambda index: (
                     abs(current_x - int(waypoints[index][0]))
                     + abs(current_y - int(waypoints[index][1]))
                 ),
             )
-            on_waypoint = (current_x, current_y) == tuple(waypoints[closest_index])
+            on_waypoint = (current_x, current_y) == tuple(waypoints[closest])
             self.route_index = (
-                min(closest_index + 1, len(waypoints) - 1)
-                if on_waypoint
-                else closest_index
+                min(closest + 1, len(waypoints) - 1) if on_waypoint else closest
             )
-            self.route_last_position = None
-            self.route_last_direction = None
-            self.route_plan = None
-            self.route_suspect = set()
-            self.route_previous_tile = None
-            self.route_recent_tiles = []
-            self.route_stuck_steps = 0
+            self.route_blocked_steps = 0
 
-        current_position = (map_id, current_x, current_y)
-        previous_position = getattr(self, "route_last_position", None)
-        last_direction = getattr(self, "route_last_direction", None)
-        if current_position == previous_position:
-            self.route_stuck_steps += 1
-        else:
-            # The step that just landed proves the edge behind us is walkable.
-            # An NPC standing on the path is indistinguishable from a wall while
-            # it is there, so a learned block has to expire when it is crossed.
-            if previous_position is not None and last_direction is not None:
-                delta = DIRECTIONS[last_direction]
-                expected = (
-                    previous_position[1] + delta[0],
-                    previous_position[2] + delta[1],
-                )
-                if previous_position[0] == map_id:
-                    if expected == (current_x, current_y):
-                        self._collision_memory().mark_open(
-                            map_id, previous_position[1], previous_position[2],
-                            last_direction,
-                        )
-                    else:
-                        # Landed somewhere else entirely: a Route 3 ledge jumps
-                        # two tiles down and cannot be climbed back. The step
-                        # "worked", so nothing looked blocked, and the pair
-                        # paced in front of the same ledge. The planner only
-                        # models single steps, so an edge that does not behave
-                        # like one is not an edge it may use.
-                        self._collision_memory().mark_blocked(
-                            map_id, previous_position[1], previous_position[2],
-                            last_direction,
-                        )
-                        self.route_plan = None
-            if previous_position is not None and previous_position[0] == map_id:
-                self.route_previous_tile = (previous_position[1], previous_position[2])
-            history = list(getattr(self, "route_recent_tiles", []))
-            history.append((current_x, current_y))
-            self.route_recent_tiles = history[-ROUTE_HISTORY_LENGTH:]
-            self.route_stuck_steps = 0
-            self.route_stuck_cycles = 0
-            self.route_menu_presses = 0
-            # Real movement clears every suspicion: whatever was in the way,
-            # the bot is somewhere else now.
-            self.route_suspect = set()
-        self.route_last_position = current_position
-
-        # What the cartridge says about this tile, right now. Terrain is real
-        # geometry and worth sharing with every trainer; a sprite is a person
-        # who will walk away, so it only steers this route and teaches nobody.
-        # With truth available there is nothing left to guess from failures.
-        truth = self._tile_truth()
-        for direction, reason in truth.items():
-            if reason == "terrain":
-                self._collision_memory().mark_blocked(
-                    map_id, current_x, current_y, direction
-                )
-            else:
-                self.route_suspect.add((map_id, current_x, current_y, direction))
-
-        # Two different reasons make a step produce no movement, and they need
-        # different answers. Dialogue and map transitions ignore input, so A
-        # clears them. A wall or an NPC never clears: that edge is recorded as
-        # blocked and the search below plans around it on the very next call.
-        if self.route_stuck_steps >= 4:
-            self.route_stuck_steps = 0
-            self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
-
-            # Last resort, and the only rule that does not depend on guessing
-            # the cause right. Every freeze this project has had looked the
-            # same from here — a bot on one tile, pressing something, forever —
-            # and each had a different explanation: a text box, a warp, a
-            # ledge, an NPC, a wall learned wrong. So after enough failed
-            # cycles on the same tile, stop trusting anything about it: drop
-            # what was learned around it, drop the suspicions, and walk through
-            # every direction in turn. Being wrong for four steps beats being
-            # stuck for a night.
-            if self.route_stuck_cycles >= STUCK_TILE_AMNESTY_CYCLES:
-                self._collision_memory().forget_tile(map_id, current_x, current_y)
-                self.route_suspect = set()
-                self.route_plan = None
-                order = ("U", "R", "L", "D")
-                direction = order[
-                    (self.route_stuck_cycles - STUCK_TILE_AMNESTY_CYCLES) % len(order)
-                ]
-                return self._route_move(direction)
-
-            if self.route_stuck_cycles == 1:
-                return self._route_text()
-            if last_direction is not None:
-                clean = (
-                    not menu_open
-                    and getattr(self, "route_last_issue", "move") == "move"
-                    # With the cartridge readable there is no reason to guess:
-                    # a failure the tile data does not explain was a person, a
-                    # script or a text box, never geometry. Where it cannot be
-                    # read at all, the old learning by bumping still applies.
-                    and (not truth or truth.get(last_direction) == "terrain")
-                )
-                if clean:
-                    self._collision_memory().mark_blocked(
-                        map_id, current_x, current_y, last_direction
-                    )
-                else:
-                    # Ambiguous: a text box eats the D-pad exactly like a wall
-                    # does, and guessing wrong writes a permanent lie into
-                    # knowledge every trainer shares. Step around it now and
-                    # teach nobody — the suspicion dies with the next real move.
-                    self.route_suspect.add(
-                        (map_id, current_x, current_y, last_direction)
-                    )
-                self.route_plan = None
+        # Record doors as they are crossed: the tile the bot stood on when the
+        # map changed is a fact every trainer can use.
+        previous = getattr(self, "route_last_position", None)
+        direction = getattr(self, "route_last_direction", None)
+        if previous is not None and direction is not None and previous[0] != map_id:
+            self._warp_memory().record(previous[0], previous[1], previous[2], map_id)
+        self.route_last_position = (map_id, current_x, current_y)
 
         while (
             self.route_index < len(waypoints) - 1
@@ -1858,55 +1704,48 @@ class ScriptedAgent(BaseAgent):
 
         index = min(self.route_index, len(waypoints) - 1)
         target_x, target_y = waypoints[index]
-        self.route_target_was_final = index == len(waypoints) - 1
+        blocked = self._tile_truth()
 
-        # Waypoints are route anchors, not the only way to travel. Search the
-        # walkable tiles from wherever the bot actually stands, so leaving the
-        # straight line stops being a state with no way back.
-        #
-        # The plan is kept and followed tile by tile instead of being recomputed
-        # every step. Two equally short detours around a half-known wall make a
-        # per-step search flip between them, and the bot paces between two free
-        # tiles forever without ever colliding — so without ever learning
-        # anything. Replanning happens on a new collision, on a new goal, or
-        # when the bot is somewhere the plan does not pass through.
-        goal = (target_x, target_y)
-        plan = getattr(self, "route_plan", None)
-        if not (
-            plan
-            and plan["map"] == map_id
-            and plan["goal"] == goal
-            and (current_x, current_y) in plan["index"]
-        ):
-            plan = self._plan_route(map_id, (current_x, current_y), goal)
-            self.route_plan = plan
-        if plan:
-            step = plan["index"][(current_x, current_y)]
-            if step < len(plan["directions"]):
-                return self._route_move(plan["directions"][step])
-
-        if current_x < target_x:
-            return self._route_move("R")
-        if current_x > target_x:
-            return self._route_move("L")
-        if current_y < target_y:
-            return self._route_move("D")
-        if current_y > target_y:
-            return self._route_move("U")
-
-        # The final waypoint may be one tile beyond the visible map boundary;
-        # repeat the last direction until the map transition is observable.
-        if len(waypoints) >= 2:
+        # Directions that close the distance, longer axis first, then the two
+        # sidesteps as a way around whatever is in the way.
+        wanted = []
+        if abs(target_x - current_x) >= abs(target_y - current_y):
+            wanted += self._axis_steps(current_x, target_x, "R", "L")
+            wanted += self._axis_steps(current_y, target_y, "D", "U")
+        else:
+            wanted += self._axis_steps(current_y, target_y, "D", "U")
+            wanted += self._axis_steps(current_x, target_x, "R", "L")
+        if not wanted and len(waypoints) >= 2:
+            # The last waypoint can sit one tile past the map border: keep
+            # going the way the route was heading until the map changes.
             previous_x, previous_y = waypoints[-2]
-            if target_x > previous_x:
-                return self._route_move("R")
-            if target_x < previous_x:
-                return self._route_move("L")
-            if target_y > previous_y:
-                return self._route_move("D")
-            if target_y < previous_y:
-                return self._route_move("U")
+            wanted += self._axis_steps(previous_x, target_x, "R", "L")
+            wanted += self._axis_steps(previous_y, target_y, "D", "U")
+        for direction in wanted:
+            if direction not in blocked:
+                self.route_blocked_steps = 0
+                return self._route_move(direction)
+
+        # Every useful direction is taken. A person will move on their own, so
+        # waiting a moment is cheaper than walking away; a wall will not, so
+        # after a few tries step aside and approach from somewhere else.
+        self.route_blocked_steps = getattr(self, "route_blocked_steps", 0) + 1
+        if all(blocked.get(direction) == "sprite" for direction in wanted) and (
+            self.route_blocked_steps <= SPRITE_PATIENCE_STEPS
+        ):
+            return None
+        for direction in ("U", "D", "L", "R"):
+            if direction not in blocked and direction not in wanted:
+                return self._route_move(direction)
         return None
+
+    @staticmethod
+    def _axis_steps(current, target, positive, negative):
+        if target > current:
+            return [positive]
+        if target < current:
+            return [negative]
+        return []
 
     def _leave_unknown_map(self):
         """Walk back out of a map no executor has a route for.
@@ -1973,69 +1812,7 @@ class ScriptedAgent(BaseAgent):
             self.warp_memory = memory
         return memory
 
-    def _collision_memory(self):
-        """Collision memory shared by every trainer.
 
-        Where the walls are does not depend on who walks into them, so making
-        each bot rediscover the same map is pure waste — and it is the honest
-        version of "let one bot guide the others": they share the map, not a
-        command channel. Writes merge with the file, so two journeys running at
-        once pool what they learn instead of overwriting each other.
-        """
-        memory = getattr(self, "collision_memory", None)
-        if memory is None:
-            path = SHARED_COLLISION_PATH
-            if path is None:
-                save_dir = getattr(self, "save_dir", None)
-                path = Path(save_dir) / "collision.json" if save_dir else None
-            memory = CollisionMemory(path)
-            self.collision_memory = memory
-        return memory
-
-    def _plan_route(self, map_id, start, goal):
-        """Breadth-first plan plus the tile → step index it passes through."""
-        memory = self._collision_memory()
-        suspect = set(getattr(self, "route_suspect", set()))
-
-        # Forbid going straight back only when the bot is actually pacing.
-        # Forbidding it always is far worse than the disease: most of Kanto is
-        # one-tile corridors, where retracing a step is the only way out of a
-        # dead end, and the four runs stalled everywhere at once.
-        previous = getattr(self, "route_previous_tile", None)
-        recent = getattr(self, "route_recent_tiles", ())
-        pacing = previous is not None and list(recent).count(tuple(previous)) >= 2
-        if pacing and previous != goal:
-            back = (previous[0] - start[0], previous[1] - start[1])
-            for label, delta in DIRECTIONS.items():
-                if delta == back:
-                    suspect.add((map_id, start[0], start[1], label))
-
-        directions = memory.find_path(map_id, start, goal, avoid=suspect)
-
-        # Unreachable according to what we believe — so stop believing it, in
-        # order of how little each belief is worth.
-        #
-        # A wrong wall is invisible: the search never goes there again, and an
-        # edge is only forgiven by being crossed, which is exactly what became
-        # impossible. Both kinds of belief have sealed a run: suspicions kept
-        # four bots standing on Route 2 with the only way out marked doubtful,
-        # and learned walls made a bot walk every corner of Pewter Gym except
-        # the one that was the door.
-        if directions is None and suspect:
-            self.route_suspect = set()
-            suspect = self.route_suspect
-            directions = memory.find_path(map_id, start, goal)
-        if directions is None:
-            directions = memory.find_path(map_id, start, goal, relax=True)
-        if not directions:
-            return None
-        index = {start: 0}
-        tile = start
-        for step, direction in enumerate(directions, start=1):
-            delta = DIRECTIONS[direction]
-            tile = (tile[0] + delta[0], tile[1] + delta[1])
-            index[tile] = step
-        return {"map": map_id, "goal": goal, "directions": directions, "index": index}
 
     def _route_move(self, direction):
         """Issue a D-pad press and remember it, so a failure can be attributed."""

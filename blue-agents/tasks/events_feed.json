@@ -1,158 +1,1568 @@
 [
   {
-    "id": "AARON-1785965888:127:map_transition:1785965943738888000",
-    "agent": "AARON",
-    "run_id": "AARON-1785965888",
-    "type": "map_transition",
+    "id": "BARON-1785968204:7811:switch_intent:1785968273798044000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
     },
-    "timestamp": 1785965943.7388911,
-    "step": 127,
-    "journey_step": 127,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968273.798045,
+    "step": 7811,
+    "journey_step": 7812,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
       4,
-      7
+      2
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
   },
   {
-    "id": "DARON-1785965888:127:map_transition:1785965944055485000",
-    "agent": "DARON",
-    "run_id": "DARON-1785965888",
-    "type": "map_transition",
+    "id": "BARON-1785968204:7826:switch_intent:1785968273916581000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
     },
-    "timestamp": 1785965944.055486,
-    "step": 127,
-    "journey_step": 127,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968273.9165819,
+    "step": 7826,
+    "journey_step": 7827,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
       4,
-      7
+      2
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
   },
   {
-    "id": "AARON-1785965888:168:map_transition:1785965961341692000",
-    "agent": "AARON",
-    "run_id": "AARON-1785965888",
-    "type": "map_transition",
+    "id": "BARON-1785968204:7841:switch_intent:1785968274057095000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
     "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
     },
-    "timestamp": 1785965961.3416939,
-    "step": 168,
-    "journey_step": 168,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785965888:168:map_transition:1785965961662392000",
-    "agent": "DARON",
-    "run_id": "DARON-1785965888",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965961.6623948,
-    "step": 168,
-    "journey_step": 168,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785965888:173:map_transition:1785965963472224000",
-    "agent": "AARON",
-    "run_id": "AARON-1785965888",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965963.472225,
-    "step": 173,
-    "journey_step": 173,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968274.0570948,
+    "step": 7841,
+    "journey_step": 7842,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
       4,
-      7
+      2
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
   },
   {
-    "id": "DARON-1785965888:173:map_transition:1785965963788122000",
-    "agent": "DARON",
-    "run_id": "DARON-1785965888",
-    "type": "map_transition",
+    "id": "BARON-1785968204:7856:switch_intent:1785968274187548000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
     },
-    "timestamp": 1785965963.788125,
-    "step": 173,
-    "journey_step": 173,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968274.1875489,
+    "step": 7856,
+    "journey_step": 7857,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
       4,
-      7
+      2
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
   },
   {
-    "id": "AARON-1785966299:0:quest_advanced:1785966299556217000",
+    "id": "BARON-1785968204:7871:switch_intent:1785968274308428000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968274.308429,
+    "step": 7871,
+    "journey_step": 7872,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7886:switch_intent:1785968274424340000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968274.42434,
+    "step": 7886,
+    "journey_step": 7887,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7901:switch_intent:1785968274558599000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968274.5586,
+    "step": 7901,
+    "journey_step": 7902,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7916:switch_intent:1785968274703998000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968274.703999,
+    "step": 7916,
+    "journey_step": 7917,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7931:switch_intent:1785968274836257000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968274.836258,
+    "step": 7931,
+    "journey_step": 7932,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7946:switch_intent:1785968274960659000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968274.96066,
+    "step": 7946,
+    "journey_step": 7947,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7961:switch_intent:1785968275091363000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.091363,
+    "step": 7961,
+    "journey_step": 7962,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7976:switch_intent:1785968275207160000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.2071612,
+    "step": 7976,
+    "journey_step": 7977,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:7991:switch_intent:1785968275327036000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.327036,
+    "step": 7991,
+    "journey_step": 7992,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8006:switch_intent:1785968275454658000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.454658,
+    "step": 8006,
+    "journey_step": 8007,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8021:switch_intent:1785968275574081000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.574081,
+    "step": 8021,
+    "journey_step": 8022,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8036:switch_intent:1785968275691851000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.691852,
+    "step": 8036,
+    "journey_step": 8037,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8051:switch_intent:1785968275824539000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.82454,
+    "step": 8051,
+    "journey_step": 8052,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8066:switch_intent:1785968275943387000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968275.943388,
+    "step": 8066,
+    "journey_step": 8067,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8081:switch_intent:1785968276065987000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.065988,
+    "step": 8081,
+    "journey_step": 8082,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8096:switch_intent:1785968276194008000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.194008,
+    "step": 8096,
+    "journey_step": 8097,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8111:switch_intent:1785968276335794000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.335795,
+    "step": 8111,
+    "journey_step": 8112,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8126:switch_intent:1785968276455426000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.4554272,
+    "step": 8126,
+    "journey_step": 8127,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8141:switch_intent:1785968276585610000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.58561,
+    "step": 8141,
+    "journey_step": 8142,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8156:switch_intent:1785968276718613000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.718614,
+    "step": 8156,
+    "journey_step": 8157,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8171:switch_intent:1785968276891399000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968276.8913999,
+    "step": 8171,
+    "journey_step": 8172,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968204:8186:switch_intent:1785968277050645000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968204",
+    "type": "switch_intent",
+    "data": {
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": 1785968277.050646,
+    "step": 8186,
+    "journey_step": 8187,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
+    "coords": [
+      4,
+      2
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "AARON-1785968280:0:quest_advanced:1785968280533479000",
     "agent": "AARON",
-    "run_id": "AARON-1785966299",
+    "run_id": "AARON-1785968280",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -170,23 +1580,23 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785966299.5562181,
+    "timestamp": 1785968280.53348,
     "step": 0,
     "journey_step": 0,
     "map_id": 2,
     "map_name": "Pewter City",
     "coords": [
       17,
-      18
+      19
     ],
     "task": "QUEST: MT_MOON_NAV",
     "milestone": "mt_moon_nav",
     "live": true
   },
   {
-    "id": "BARON-1785966299:0:quest_advanced:1785966299602165000",
+    "id": "BARON-1785968280:0:quest_advanced:1785968280578696000",
     "agent": "BARON",
-    "run_id": "BARON-1785966299",
+    "run_id": "BARON-1785968280",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -203,23 +1613,23 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785966299.6021671,
+    "timestamp": 1785968280.578697,
     "step": 0,
     "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
-      16,
-      13
+      4,
+      2
     ],
     "task": "QUEST: BROCK_QUEST",
     "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "CARON-1785966299:0:quest_advanced:1785966299648629000",
+    "id": "CARON-1785968280:0:quest_advanced:1785968280625563000",
     "agent": "CARON",
-    "run_id": "CARON-1785966299",
+    "run_id": "CARON-1785968280",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -237,23 +1647,23 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785966299.64863,
+    "timestamp": 1785968280.625563,
     "step": 0,
     "journey_step": 0,
     "map_id": 14,
     "map_name": "Route 3",
     "coords": [
-      19,
-      4
+      21,
+      8
     ],
     "task": "QUEST: MT_MOON_NAV",
     "milestone": "mt_moon_nav",
     "live": true
   },
   {
-    "id": "DARON-1785966299:0:quest_advanced:1785966299690909000",
+    "id": "DARON-1785968280:0:quest_advanced:1785968280673201000",
     "agent": "DARON",
-    "run_id": "DARON-1785966299",
+    "run_id": "DARON-1785968280",
     "type": "quest_advanced",
     "data": {
       "from_quest_id": null,
@@ -271,1192 +1681,824 @@
       ],
       "reason": "objetivo ativo calculado a partir do save real"
     },
-    "timestamp": 1785966299.6909099,
+    "timestamp": 1785968280.673202,
     "step": 0,
     "journey_step": 0,
     "map_id": 2,
     "map_name": "Pewter City",
     "coords": [
       17,
-      18
+      19
     ],
     "task": "QUEST: MT_MOON_NAV",
     "milestone": "mt_moon_nav",
     "live": true
   },
   {
-    "id": "AARON-1785966299:52:map_transition:1785966322675618000",
-    "agent": "AARON",
-    "run_id": "AARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966322.67562,
-    "step": 52,
-    "journey_step": 52,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785966299:52:map_transition:1785966322987991000",
-    "agent": "DARON",
-    "run_id": "DARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966322.987993,
-    "step": 52,
-    "journey_step": 52,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785966299:57:map_transition:1785966324800041000",
-    "agent": "AARON",
-    "run_id": "AARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966324.800043,
-    "step": 57,
-    "journey_step": 57,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      4,
-      7
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785966299:57:map_transition:1785966325118388000",
-    "agent": "DARON",
-    "run_id": "DARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966325.11839,
-    "step": 57,
-    "journey_step": 57,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      4,
-      7
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785966299:60:map_transition:1785966326081771000",
-    "agent": "AARON",
-    "run_id": "AARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966326.081772,
-    "step": 60,
-    "journey_step": 60,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785966299:60:map_transition:1785966326397807000",
-    "agent": "DARON",
-    "run_id": "DARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966326.3978088,
-    "step": 60,
-    "journey_step": 60,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785966299:65:map_transition:1785966328185576000",
-    "agent": "AARON",
-    "run_id": "AARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966328.1855779,
-    "step": 65,
-    "journey_step": 65,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      4,
-      7
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785966299:65:map_transition:1785966328502533000",
-    "agent": "DARON",
-    "run_id": "DARON-1785966299",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785966328.5025349,
-    "step": 65,
-    "journey_step": 65,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      4,
-      7
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785966693:0:quest_advanced:1785966693141262000",
-    "agent": "AARON",
-    "run_id": "AARON-1785966693",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785966693.141263,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      16,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "BARON-1785966693:0:quest_advanced:1785966693182182000",
+    "id": "BARON-1785968280:0:battle_started:1785968281845508000",
     "agent": "BARON",
-    "run_id": "BARON-1785966693",
-    "type": "quest_advanced",
+    "run_id": "BARON-1785968280",
+    "type": "battle_started",
     "data": {
-      "from_quest_id": null,
-      "to_quest_id": "brock_quest",
-      "title": "Derrotar Brock",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
+      "battle": "trainer",
+      "enemy_id": 169,
+      "enemy_species_id": 74,
+      "enemy_level": 12,
+      "encounter_type": "gym",
+      "encounter_label": "Desafio de gin\u00e1sio",
+      "map_name": "Pewter Gym",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 0,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 6,
+      "shiny_candidate": false
     },
-    "timestamp": 1785966693.182183,
+    "timestamp": 1785968281.845509,
     "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "journey_step": 1,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
-      16,
-      13
+      4,
+      2
     ],
     "task": "QUEST: BROCK_QUEST",
     "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "CARON-1785966693:0:quest_advanced:1785966693225268000",
-    "agent": "CARON",
-    "run_id": "CARON-1785966693",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785966693.225269,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 14,
-    "map_name": "Route 3",
-    "coords": [
-      19,
-      4
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "DARON-1785966693:0:quest_advanced:1785966693267549000",
-    "agent": "DARON",
-    "run_id": "DARON-1785966693",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785966693.26755,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      16,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "AARON-1785967095:0:quest_advanced:1785967095802118000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967095",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967095.80212,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "BARON-1785967095:0:quest_advanced:1785967095846095000",
+    "id": "BARON-1785968280:0:training_target:1785968281849056000",
     "agent": "BARON",
-    "run_id": "BARON-1785967095",
-    "type": "quest_advanced",
+    "run_id": "BARON-1785968280",
+    "type": "training_target",
     "data": {
-      "from_quest_id": null,
-      "to_quest_id": "brock_quest",
-      "title": "Derrotar Brock",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 0,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 16,
+        "internal_id": 36,
+        "id": 16,
+        "level": 3,
+        "hp": 16,
+        "max_hp": 16,
+        "moves": [
+          {
+            "id": 16,
+            "pp": 35
+          }
+        ]
+      },
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
     },
-    "timestamp": 1785967095.8460958,
+    "timestamp": 1785968281.849057,
     "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "journey_step": 1,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
-      16,
-      13
+      4,
+      2
     ],
     "task": "QUEST: BROCK_QUEST",
     "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "CARON-1785967095:0:quest_advanced:1785967095888656000",
-    "agent": "CARON",
-    "run_id": "CARON-1785967095",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967095.8886569,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 14,
-    "map_name": "Route 3",
-    "coords": [
-      19,
-      4
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "DARON-1785967095:0:quest_advanced:1785967095942131000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967095",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967095.942132,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "AARON-1785967095:42:map_transition:1785967114743365000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967095",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785967114.743368,
-    "step": 42,
-    "journey_step": 42,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785967095:42:map_transition:1785967115054816000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967095",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785967115.054819,
-    "step": 42,
-    "journey_step": 42,
-    "map_id": 56,
-    "map_name": "Pokemart",
-    "coords": [
-      23,
-      17
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785967095:47:map_transition:1785967116854144000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967095",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785967116.854145,
-    "step": 47,
-    "journey_step": 47,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      4,
-      7
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "DARON-1785967095:47:map_transition:1785967117177670000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967095",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785967117.177672,
-    "step": 47,
-    "journey_step": 47,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      4,
-      7
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": false
-  },
-  {
-    "id": "AARON-1785967366:0:quest_advanced:1785967366099530000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967366",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967366.099531,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "BARON-1785967366:0:quest_advanced:1785967366141715000",
+    "id": "BARON-1785968280:0:switch_intent:1785968281853575000",
     "agent": "BARON",
-    "run_id": "BARON-1785967366",
-    "type": "quest_advanced",
+    "run_id": "BARON-1785968280",
+    "type": "switch_intent",
     "data": {
-      "from_quest_id": null,
-      "to_quest_id": "brock_quest",
-      "title": "Derrotar Brock",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
+      "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+      "target_slot": 1,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 0,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 19
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ]
     },
-    "timestamp": 1785967366.141716,
+    "timestamp": 1785968281.853576,
     "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "journey_step": 1,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
-      17,
-      13
+      4,
+      2
     ],
     "task": "QUEST: BROCK_QUEST",
     "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "CARON-1785967366:0:quest_advanced:1785967366187575000",
-    "agent": "CARON",
-    "run_id": "CARON-1785967366",
-    "type": "quest_advanced",
+    "id": "BARON-1785968280:0:battle_decision:1785968281856655000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_decision",
     "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
+      "battle": "trainer",
+      "enemy_id": 169,
+      "enemy_species_id": 74,
+      "enemy_level": 12,
+      "encounter_type": "gym",
+      "encounter_label": "Desafio de gin\u00e1sio",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 0,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
+      "reason_code": "trainer_battle",
+      "motivation": "story_battle",
+      "battle_action_reason": "battle controller has not observed a turn yet",
+      "action": "RIGHT",
+      "move": {},
+      "pokeballs": 6,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": true,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
     },
-    "timestamp": 1785967366.187577,
+    "timestamp": 1785968281.8566558,
     "step": 0,
-    "journey_step": 0,
-    "map_id": 14,
-    "map_name": "Route 3",
+    "journey_step": 1,
+    "map_id": 54,
+    "map_name": "Pewter Gym",
     "coords": [
-      19,
-      4
+      4,
+      2
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "DARON-1785967366:0:quest_advanced:1785967366233017000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967366",
-    "type": "quest_advanced",
+    "id": "BARON-1785968280:73:battle_end:1785968282618680000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_end",
     "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
+      "type": "trainer",
+      "result": "loss",
+      "enemy_id": 169,
+      "active_pokemon": 153,
+      "player_hp_at_end": 0,
+      "battle_map_id": 54,
+      "end_map_id": 0
     },
-    "timestamp": 1785967366.2330182,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968282.6186812,
+    "step": 73,
+    "journey_step": 73,
+    "map_id": 0,
+    "map_name": "Pallet Town",
     "coords": [
-      17,
-      18
+      5,
+      6
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "BARON-1785968280:73:battle_loss:1785968282624957000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_loss",
+    "data": {
+      "type": "trainer",
+      "enemy_id": 169,
+      "optional": false,
+      "reason": "todos os Pok\u00e9mon da party estavam sem HP"
+    },
+    "timestamp": 1785968282.624958,
+    "step": 73,
+    "journey_step": 73,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      5,
+      6
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": true
   },
   {
-    "id": "AARON-1785967366:64:map_transition:1785967368388179000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967366",
+    "id": "BARON-1785968280:73:death:1785968282627885000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "death",
+    "data": {
+      "total_deaths": 1,
+      "location": 0,
+      "battle_location": 54,
+      "reason": "whiteout confirmado pela transi\u00e7\u00e3o de mapa e cura autom\u00e1tica"
+    },
+    "timestamp": 1785968282.627885,
+    "step": 73,
+    "journey_step": 73,
+    "map_id": 0,
+    "map_name": "Pallet Town",
+    "coords": [
+      5,
+      6
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968280:73:map_transition:1785968282630621000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
     "type": "map_transition",
     "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
+      "from_map_id": 54,
+      "from_map_name": "Pewter Gym",
+      "to_map_id": 0,
+      "to_map_name": "Pallet Town",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785967368.388181,
-    "step": 64,
-    "journey_step": 64,
-    "map_id": 56,
-    "map_name": "Pokemart",
+    "timestamp": 1785968282.630621,
+    "step": 73,
+    "journey_step": 73,
+    "map_id": 0,
+    "map_name": "Pallet Town",
     "coords": [
-      23,
-      17
+      5,
+      6
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "DARON-1785967366:64:map_transition:1785967368398713000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967366",
+    "id": "BARON-1785968280:86:map_transition:1785968282748845000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
     "type": "map_transition",
     "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
+      "from_map_id": 0,
+      "from_map_name": "Pallet Town",
+      "to_map_id": 12,
+      "to_map_name": "Route 1",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785967368.3987148,
-    "step": 64,
-    "journey_step": 64,
-    "map_id": 56,
-    "map_name": "Pokemart",
+    "timestamp": 1785968282.748846,
+    "step": 86,
+    "journey_step": 86,
+    "map_id": 12,
+    "map_name": "Route 1",
     "coords": [
-      23,
-      17
+      10,
+      35
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "AARON-1785967366:69:map_transition:1785967368477016000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967366",
-    "type": "map_transition",
+    "id": "BARON-1785968280:105:battle_started:1785968282925124000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_started",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "battle": "wild",
+      "enemy_id": 165,
+      "enemy_species_id": 19,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Route 1",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 3,
+        "hp": 0,
+        "max_hp": 16,
+        "moves": [
+          {
+            "id": 16,
+            "pp": 33
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 6,
+      "shiny_candidate": false
     },
-    "timestamp": 1785967368.4770172,
-    "step": 69,
-    "journey_step": 69,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968282.9251251,
+    "step": 105,
+    "journey_step": 105,
+    "map_id": 12,
+    "map_name": "Route 1",
     "coords": [
-      4,
-      7
+      12,
+      22
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "DARON-1785967366:69:map_transition:1785967368483906000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967366",
-    "type": "map_transition",
+    "id": "BARON-1785968280:105:capture_decision:1785968282927985000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "capture_decision",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "enemy_id": 165,
+      "enemy_species_id": 19,
+      "enemy_level": 4,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 55,
+      "weakest_party_level": 3,
+      "strongest_party_level": 11,
+      "level_advantage": 1,
+      "party_size": 2,
+      "party_has_room": true,
+      "party_slots_free": 4,
+      "already_in_party": false,
+      "enemy_hp_fraction": 1.0,
+      "own_hp_fraction": 0.0,
+      "active_level": 3,
+      "overkill_risk": false,
+      "enemy_impaired": false,
+      "has_damage_left": false,
+      "pokeballs": 6,
+      "collector": 15,
+      "meta_score": 55,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "defeat",
+      "reason_code": "self_preservation",
+      "motivation": "survival",
+      "reason": "Pok\u00e9mon ativo com 0% de HP; vencer a batalha vem antes de tentar capturar"
     },
-    "timestamp": 1785967368.483907,
-    "step": 69,
-    "journey_step": 69,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968282.927986,
+    "step": 105,
+    "journey_step": 105,
+    "map_id": 12,
+    "map_name": "Route 1",
     "coords": [
-      4,
-      7
+      12,
+      22
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968280:105:battle_decision:1785968282937598000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 165,
+      "enemy_species_id": 19,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 3,
+        "hp": 0,
+        "max_hp": 16,
+        "moves": [
+          {
+            "id": 16,
+            "pp": 33
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "menu_navigation",
+      "execution_status": "executed",
+      "reason": "Pok\u00e9mon ativo com 0% de HP; vencer a batalha vem antes de tentar capturar",
+      "reason_code": "self_preservation",
+      "motivation": "survival",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "B",
+      "move": {},
+      "pokeballs": 6,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785968282.937599,
+    "step": 105,
+    "journey_step": 106,
+    "map_id": 12,
+    "map_name": "Route 1",
+    "coords": [
+      12,
+      22
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968280:122:battle_decision:1785968283059952000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 165,
+      "enemy_species_id": 19,
+      "enemy_level": 4,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 33,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 35
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "defeat",
+      "executed_choice": "defeat",
+      "execution_status": "executed",
+      "reason": "corrida focada na hist\u00f3ria: com reserva no time, um Pok\u00e9mon comum n\u00e3o paga os turnos da captura",
+      "reason_code": "rush_skips_capture",
+      "motivation": "story_progression",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 35,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 6,
+      "collector": 15,
+      "meta_score": 55,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785968283.059953,
+    "step": 122,
+    "journey_step": 123,
+    "map_id": 12,
+    "map_name": "Route 1",
+    "coords": [
+      12,
+      22
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "BARON-1785968280:164:battle_end:1785968283394526000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_end",
+    "data": {
+      "type": "wild",
+      "result": "win",
+      "enemy_id": 165,
+      "active_pokemon": 153,
+      "player_hp_at_end": 30,
+      "battle_map_id": 12,
+      "end_map_id": 12
+    },
+    "timestamp": 1785968283.394527,
+    "step": 164,
+    "journey_step": 164,
+    "map_id": 12,
+    "map_name": "Route 1",
+    "coords": [
+      12,
+      22
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "AARON-1785967366:72:map_transition:1785967368526270000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967366",
-    "type": "map_transition",
+    "id": "BARON-1785968280:164:battle_win:1785968283397558000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "battle_win",
     "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "type": "wild",
+      "enemy_id": 165,
+      "total_trainer_wins": 0,
+      "total_wild_wins": 1
     },
-    "timestamp": 1785967368.5262709,
-    "step": 72,
-    "journey_step": 72,
-    "map_id": 56,
-    "map_name": "Pokemart",
+    "timestamp": 1785968283.397559,
+    "step": 164,
+    "journey_step": 164,
+    "map_id": 12,
+    "map_name": "Route 1",
     "coords": [
-      23,
-      17
+      12,
+      22
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "DARON-1785967366:72:map_transition:1785967368537336000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967366",
-    "type": "map_transition",
+    "id": "BARON-1785968280:164:capture_outcome:1785968283400583000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "capture_outcome",
     "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 56,
-      "to_map_name": "Pokemart",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+      "intent": "defeat",
+      "reason_code": "self_preservation",
+      "reason": "Pok\u00e9mon ativo com 0% de HP; vencer a batalha vem antes de tentar capturar",
+      "outcome": "defeated",
+      "enemy_species_id": 19,
+      "enemy_level": 4,
+      "balls_thrown": 0,
+      "pokeballs": 6,
+      "shiny_candidate": false,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 30,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 33
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        },
+        {
+          "species_id": 16,
+          "internal_id": 36,
+          "id": 16,
+          "level": 3,
+          "hp": 16,
+          "max_hp": 16,
+          "moves": [
+            {
+              "id": 16,
+              "pp": 35
+            }
+          ]
+        }
+      ],
+      "party_size": 2
     },
-    "timestamp": 1785967368.537337,
-    "step": 72,
-    "journey_step": 72,
-    "map_id": 56,
-    "map_name": "Pokemart",
+    "timestamp": 1785968283.400583,
+    "step": 164,
+    "journey_step": 164,
+    "map_id": 12,
+    "map_name": "Route 1",
     "coords": [
-      23,
-      17
+      12,
+      22
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "AARON-1785967366:76:map_transition:1785967368575178000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967366",
+    "id": "BARON-1785968280:213:map_transition:1785968283831189000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
     "type": "map_transition",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
+      "from_map_id": 12,
+      "from_map_name": "Route 1",
+      "to_map_id": 1,
+      "to_map_name": "Viridian City",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785967368.57518,
-    "step": 76,
-    "journey_step": 76,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968283.83119,
+    "step": 213,
+    "journey_step": 213,
+    "map_id": 1,
+    "map_name": "Viridian City",
+    "coords": [
+      20,
+      35
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "BARON-1785968280:256:map_transition:1785968284199708000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 1,
+      "from_map_name": "Viridian City",
+      "to_map_id": 13,
+      "to_map_name": "Route 2",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785968284.199709,
+    "step": 256,
+    "journey_step": 256,
+    "map_id": 13,
+    "map_name": "Route 2",
+    "coords": [
+      7,
+      71
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": false
+  },
+  {
+    "id": "BARON-1785968280:300:map_transition:1785968284571753000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 13,
+      "from_map_name": "Route 2",
+      "to_map_id": 50,
+      "to_map_name": "Route 2 Gate Viridian",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785968284.571754,
+    "step": 300,
+    "journey_step": 300,
+    "map_id": 50,
+    "map_name": "Route 2 Gate Viridian",
     "coords": [
       3,
-      7
+      43
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
   },
   {
-    "id": "DARON-1785967366:76:map_transition:1785967368584274000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967366",
+    "id": "BARON-1785968280:311:map_transition:1785968284682693000",
+    "agent": "BARON",
+    "run_id": "BARON-1785968280",
     "type": "map_transition",
     "data": {
-      "from_map_id": 56,
-      "from_map_name": "Pokemart",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
+      "from_map_id": 50,
+      "from_map_name": "Route 2 Gate Viridian",
+      "to_map_id": 51,
+      "to_map_name": "Viridian Forest",
       "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
     },
-    "timestamp": 1785967368.5842738,
-    "step": 76,
-    "journey_step": 76,
-    "map_id": 2,
-    "map_name": "Pewter City",
+    "timestamp": 1785968284.682694,
+    "step": 311,
+    "journey_step": 311,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
     "coords": [
-      3,
-      7
+      5,
+      0
     ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
     "live": false
-  },
-  {
-    "id": "AARON-1785967393:0:quest_advanced:1785967393246215000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967393",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967393.246217,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "BARON-1785967393:0:quest_advanced:1785967393293389000",
-    "agent": "BARON",
-    "run_id": "BARON-1785967393",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "brock_quest",
-      "title": "Derrotar Brock",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967393.29339,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      13
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "CARON-1785967393:0:quest_advanced:1785967393333851000",
-    "agent": "CARON",
-    "run_id": "CARON-1785967393",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967393.3338518,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 14,
-    "map_name": "Route 3",
-    "coords": [
-      19,
-      4
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "DARON-1785967393:0:quest_advanced:1785967393375646000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967393",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967393.375647,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "AARON-1785967535:0:quest_advanced:1785967535391559000",
-    "agent": "AARON",
-    "run_id": "AARON-1785967535",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967535.3915598,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "BARON-1785967535:0:quest_advanced:1785967535435505000",
-    "agent": "BARON",
-    "run_id": "BARON-1785967535",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "brock_quest",
-      "title": "Derrotar Brock",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967535.435507,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      13
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "CARON-1785967535:0:quest_advanced:1785967535477601000",
-    "agent": "CARON",
-    "run_id": "CARON-1785967535",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967535.477602,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 14,
-    "map_name": "Route 3",
-    "coords": [
-      19,
-      4
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
-    "id": "DARON-1785967535:0:quest_advanced:1785967535521248000",
-    "agent": "DARON",
-    "run_id": "DARON-1785967535",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": null,
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785967535.521249,
-    "step": 0,
-    "journey_step": 0,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      17,
-      18
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
   }
 ]
