@@ -77,6 +77,11 @@ ACTIVE_PARTY_SLOT_ADDRESS = 0xCC2F
 # A switch that takes longer than this is not happening; back out instead of
 # mashing inputs into a menu that is not the one we think it is.
 SWITCH_MENU_STEP_LIMIT = 12
+
+# Steps on the same tile, out of battle, before the mission is restarted from
+# where the bot actually is. Long enough that a slow dialogue is not a restart,
+# short enough that nobody spends a night on one square.
+MISSION_RESTART_STEPS = 300
 MAJOR_LOCATION_IDS = set(range(0, 11))
 BATTLE_MENU_SAVED_ITEM_ADDRESS = 0xCC2D
 CAPTURE_RESULT_ADVANCE_STEPS = 18
@@ -426,6 +431,8 @@ class HybridGymEnv(RedGymEnv):
         self.last_active_internal_id = None
         self.last_battle_decision_key = None
         self.battle_sequence = 0
+        self.stagnant_position = None
+        self.stagnant_steps = 0
         self.capture_count = 0
         self.capture_enabled = bool(config.get("capture_enabled", True))
         self.capture_plan = []
@@ -1083,6 +1090,7 @@ class HybridGymEnv(RedGymEnv):
         # 6. Track Battles, Deaths, and Party Changes
         self._track_battles_and_deaths()
         self._track_party_changes()
+        self._watch_for_stagnation()
         self._track_journey()
         
         # 7. Check and save progress checkpoints
@@ -2597,6 +2605,54 @@ class HybridGymEnv(RedGymEnv):
         if not self.switch_plan and action == "A":
             self.switch_menu_open = True
         return action
+
+    def _restart_mission(self, reason):
+        """Throw away the route state and let the quest plan again from here.
+
+        Every freeze so far had its own cause, and each fix removed one. This
+        removes the class: whatever traps a bot on a single tile, the mission
+        starts over from where it actually stands. Route state is a cache of
+        intentions, not progress — dropping it costs a few steps and never
+        touches the save.
+        """
+        agent = getattr(self, "scripted_agent", None)
+        for attribute in (
+            "route_id", "route_index", "route_plan", "route_suspect",
+            "route_last_position", "route_last_direction", "route_stuck_steps",
+            "route_stuck_cycles", "route_menu_presses", "route_previous_tile",
+            "route_target_was_final", "current_task_name",
+        ):
+            if agent is not None and hasattr(agent, attribute):
+                delattr(agent, attribute)
+        self.stagnant_position = None
+        self.stagnant_steps = 0
+        self._log_event("mission_restarted", {
+            "reason": reason,
+            "task": getattr(self, "current_task", ""),
+            "map_id": int(self.read_m(0xD35E)),
+            "coords": [int(self.read_m(0xD362)), int(self.read_m(0xD361))],
+        })
+
+    def _watch_for_stagnation(self):
+        """A bot that has not moved for this long is not making progress."""
+        if self.read_m(0xD057) != 0:
+            self.stagnant_steps = 0
+            return
+        position = (
+            int(self.read_m(0xD35E)),
+            int(self.read_m(0xD362)),
+            int(self.read_m(0xD361)),
+        )
+        if position != getattr(self, "stagnant_position", None):
+            self.stagnant_position = position
+            self.stagnant_steps = 0
+            return
+        self.stagnant_steps = getattr(self, "stagnant_steps", 0) + 1
+        if self.stagnant_steps >= MISSION_RESTART_STEPS:
+            self._restart_mission(
+                f"parado em {position[1]},{position[2]} do mapa {position[0]} "
+                f"por {self.stagnant_steps} passos"
+            )
 
     def _battle_prompt_open(self):
         """Whether a text box or prompt is currently taking the input."""

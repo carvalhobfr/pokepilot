@@ -1,716 +1,5 @@
 [
   {
-    "id": "AARON-1785964862:3408:capture_attempt:1785965189317930000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "capture_attempt",
-    "data": {
-      "result": "failed_or_not_confirmed",
-      "enemy_id": 124,
-      "enemy_species_id": 11,
-      "reason": "menu n\u00e3o confirmou o uso da Pok\u00e9 Bola; fallback seguro para ataque",
-      "pokeballs": 7,
-      "motivation": "collector",
-      "shiny_candidate": false
-    },
-    "timestamp": 1785965189.317931,
-    "step": 3408,
-    "journey_step": 3409,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      1,
-      20
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3464:battle_end:1785965189908051000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_end",
-    "data": {
-      "type": "wild",
-      "result": "win",
-      "enemy_id": 124,
-      "active_pokemon": 153,
-      "player_hp_at_end": 33,
-      "battle_map_id": 51,
-      "end_map_id": 51
-    },
-    "timestamp": 1785965189.908052,
-    "step": 3464,
-    "journey_step": 3464,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      1,
-      20
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3464:battle_win:1785965189910398000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_win",
-    "data": {
-      "type": "wild",
-      "enemy_id": 124,
-      "total_trainer_wins": 0,
-      "total_wild_wins": 13
-    },
-    "timestamp": 1785965189.910399,
-    "step": 3464,
-    "journey_step": 3464,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      1,
-      20
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3464:capture_outcome:1785965189912673000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "capture_outcome",
-    "data": {
-      "intent": "capture",
-      "reason_code": "completionist_new_species",
-      "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time",
-      "outcome": "defeated",
-      "enemy_species_id": 11,
-      "enemy_level": 5,
-      "balls_thrown": 0,
-      "pokeballs": 7,
-      "shiny_candidate": false,
-      "party": [
-        {
-          "species_id": 1,
-          "internal_id": 153,
-          "id": 1,
-          "level": 13,
-          "hp": 33,
-          "max_hp": 37,
-          "moves": [
-            {
-              "id": 33,
-              "pp": 24
-            },
-            {
-              "id": 45,
-              "pp": 40
-            },
-            {
-              "id": 73,
-              "pp": 10
-            },
-            {
-              "id": 22,
-              "pp": 10
-            }
-          ]
-        }
-      ],
-      "party_size": 1
-    },
-    "timestamp": 1785965189.912674,
-    "step": 3464,
-    "journey_step": 3464,
-    "map_id": 51,
-    "map_name": "Viridian Forest",
-    "coords": [
-      1,
-      20
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3486:map_transition:1785965190146151000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 51,
-      "from_map_name": "Viridian Forest",
-      "to_map_id": 47,
-      "to_map_name": "Route 2 Gate Pewter",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965190.146153,
-    "step": 3486,
-    "journey_step": 3486,
-    "map_id": 47,
-    "map_name": "Route 2 Gate Pewter",
-    "coords": [
-      1,
-      0
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3496:map_transition:1785965190244147000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 47,
-      "from_map_name": "Route 2 Gate Pewter",
-      "to_map_id": 13,
-      "to_map_name": "Route 2",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965190.244148,
-    "step": 3496,
-    "journey_step": 3496,
-    "map_id": 13,
-    "map_name": "Route 2",
-    "coords": [
-      5,
-      0
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3563:map_transition:1785965190982812000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 13,
-      "from_map_name": "Route 2",
-      "to_map_id": 2,
-      "to_map_name": "Pewter City",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965190.982813,
-    "step": 3563,
-    "journey_step": 3563,
-    "map_id": 2,
-    "map_name": "Pewter City",
-    "coords": [
-      18,
-      35
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3607:map_transition:1785965191578046000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "map_transition",
-    "data": {
-      "from_map_id": 2,
-      "from_map_name": "Pewter City",
-      "to_map_id": 54,
-      "to_map_name": "Pewter Gym",
-      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
-    },
-    "timestamp": 1785965191.578047,
-    "step": 3607,
-    "journey_step": 3607,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      16,
-      17
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3661:battle_started:1785965192761730000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_started",
-    "data": {
-      "battle": "trainer",
-      "enemy_id": 124,
-      "enemy_species_id": 11,
-      "enemy_level": 5,
-      "encounter_type": "gym",
-      "encounter_label": "Desafio de gin\u00e1sio",
-      "map_name": "Pewter Gym",
-      "active_pokemon": {
-        "species_id": 1,
-        "internal_id": 153,
-        "level": 13,
-        "hp": 33,
-        "max_hp": 37,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 24
-          },
-          {
-            "id": 45,
-            "pp": 40
-          },
-          {
-            "id": 73,
-            "pp": 10
-          },
-          {
-            "id": 22,
-            "pp": 10
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "pokeballs": 7,
-      "shiny_candidate": false
-    },
-    "timestamp": 1785965192.7617311,
-    "step": 3661,
-    "journey_step": 3661,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3661:battle_decision:1785965192780403000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_decision",
-    "data": {
-      "battle": "trainer",
-      "enemy_id": 124,
-      "enemy_species_id": 11,
-      "enemy_level": 5,
-      "encounter_type": "gym",
-      "encounter_label": "Desafio de gin\u00e1sio",
-      "active_pokemon": {
-        "species_id": 1,
-        "internal_id": 153,
-        "level": 13,
-        "hp": 33,
-        "max_hp": 37,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 24
-          },
-          {
-            "id": 45,
-            "pp": 40
-          },
-          {
-            "id": 73,
-            "pp": 10
-          },
-          {
-            "id": 22,
-            "pp": 10
-          }
-        ],
-        "selected_move_slot": 0
-      },
-      "policy_choice": "defeat",
-      "executed_choice": "menu_navigation",
-      "execution_status": "executed",
-      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
-      "reason_code": "trainer_battle",
-      "motivation": "story_battle",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 0,
-        "move_id": 33,
-        "pp": 24,
-        "type": "NORMAL",
-        "power": 35,
-        "effectiveness": 1.0,
-        "stab": 1.0,
-        "score": 35.0
-      },
-      "pokeballs": 7,
-      "collector": 95,
-      "meta_score": 60,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": true,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785965192.7804039,
-    "step": 3661,
-    "journey_step": 3662,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3671:battle_decision:1785965192880948000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_decision",
-    "data": {
-      "battle": "trainer",
-      "enemy_id": 169,
-      "enemy_species_id": 74,
-      "enemy_level": 12,
-      "encounter_type": "gym",
-      "encounter_label": "Desafio de gin\u00e1sio",
-      "active_pokemon": {
-        "species_id": 1,
-        "internal_id": 153,
-        "level": 13,
-        "hp": 33,
-        "max_hp": 37,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 24
-          },
-          {
-            "id": 45,
-            "pp": 40
-          },
-          {
-            "id": 73,
-            "pp": 10
-          },
-          {
-            "id": 22,
-            "pp": 10
-          }
-        ],
-        "selected_move_slot": 3
-      },
-      "policy_choice": "defeat",
-      "executed_choice": "menu_navigation",
-      "execution_status": "executed",
-      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
-      "reason_code": "trainer_battle",
-      "motivation": "story_battle",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 3,
-        "move_id": 22,
-        "pp": 10,
-        "type": "GRASS",
-        "power": 35,
-        "effectiveness": 4.0,
-        "stab": 1.5,
-        "score": 210.0
-      },
-      "pokeballs": 7,
-      "collector": 95,
-      "meta_score": 60,
-      "new_species": true,
-      "upgrade_candidate": false,
-      "shiny_candidate": false,
-      "capture_unlocked": true,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785965192.880949,
-    "step": 3671,
-    "journey_step": 3672,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3716:battle_decision:1785965193364036000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_decision",
-    "data": {
-      "battle": "trainer",
-      "enemy_id": 34,
-      "enemy_species_id": 95,
-      "enemy_level": 14,
-      "encounter_type": "gym",
-      "encounter_label": "Desafio de gin\u00e1sio",
-      "active_pokemon": {
-        "species_id": 1,
-        "internal_id": 153,
-        "level": 13,
-        "hp": 33,
-        "max_hp": 37,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 24
-          },
-          {
-            "id": 45,
-            "pp": 40
-          },
-          {
-            "id": 73,
-            "pp": 10
-          },
-          {
-            "id": 22,
-            "pp": 9
-          }
-        ],
-        "selected_move_slot": 3
-      },
-      "policy_choice": "defeat",
-      "executed_choice": "menu_navigation",
-      "execution_status": "executed",
-      "reason": "Pok\u00e9mon de treinador n\u00e3o pode ser capturado",
-      "reason_code": "trainer_battle",
-      "motivation": "story_battle",
-      "battle_action_reason": "highest power \u00d7 type effectiveness",
-      "action": "B",
-      "move": {
-        "slot": 3,
-        "move_id": 22,
-        "pp": 9,
-        "type": "GRASS",
-        "power": 35,
-        "effectiveness": 4.0,
-        "stab": 1.5,
-        "score": 210.0
-      },
-      "pokeballs": 7,
-      "collector": 95,
-      "meta_score": 60,
-      "new_species": true,
-      "upgrade_candidate": true,
-      "shiny_candidate": false,
-      "capture_unlocked": true,
-      "controller": "SimpleBattleAgent",
-      "capture_controller": false
-    },
-    "timestamp": 1785965193.364037,
-    "step": 3716,
-    "journey_step": 3717,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3755:level_up:1785965193788755000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "level_up",
-    "data": {
-      "pokemon": {
-        "species_id": 1,
-        "internal_id": 153,
-        "id": 1,
-        "level": 14,
-        "hp": 30,
-        "max_hp": 40,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 24
-          },
-          {
-            "id": 45,
-            "pp": 40
-          },
-          {
-            "id": 73,
-            "pp": 10
-          },
-          {
-            "id": 22,
-            "pp": 8
-          }
-        ]
-      },
-      "old_level": 13,
-      "new_level": 14,
-      "training_target": {
-        "species_id": 1,
-        "internal_id": 153,
-        "id": 1,
-        "level": 14,
-        "hp": 30,
-        "max_hp": 40,
-        "moves": [
-          {
-            "id": 33,
-            "pp": 24
-          },
-          {
-            "id": 45,
-            "pp": 40
-          },
-          {
-            "id": 73,
-            "pp": 10
-          },
-          {
-            "id": 22,
-            "pp": 8
-          }
-        ]
-      },
-      "reason": "ganhou experi\u00eancia enquanto estava ativo"
-    },
-    "timestamp": 1785965193.788756,
-    "step": 3755,
-    "journey_step": 3755,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3808:battle_end:1785965194329240000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_end",
-    "data": {
-      "type": "trainer",
-      "result": "win",
-      "enemy_id": 34,
-      "active_pokemon": 153,
-      "player_hp_at_end": 30,
-      "battle_map_id": 54,
-      "end_map_id": 54
-    },
-    "timestamp": 1785965194.329241,
-    "step": 3808,
-    "journey_step": 3808,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": false
-  },
-  {
-    "id": "AARON-1785964862:3808:battle_win:1785965194332679000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "battle_win",
-    "data": {
-      "type": "trainer",
-      "enemy_id": 34,
-      "total_trainer_wins": 1,
-      "total_wild_wins": 13
-    },
-    "timestamp": 1785965194.332681,
-    "step": 3808,
-    "journey_step": 3808,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3851:badge:1785965194889108000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "badge",
-    "data": {
-      "count": 1,
-      "badge_index": 1,
-      "reason": "ins\u00edgnia confirmada diretamente pelos bits de progresso da RAM"
-    },
-    "timestamp": 1785965194.88911,
-    "step": 3851,
-    "journey_step": 3851,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: BROCK_QUEST",
-    "milestone": "brock_quest",
-    "live": true
-  },
-  {
-    "id": "AARON-1785964862:3851:quest_advanced:1785965194902612000",
-    "agent": "AARON",
-    "run_id": "AARON-1785964862",
-    "type": "quest_advanced",
-    "data": {
-      "from_quest_id": "brock_quest",
-      "to_quest_id": "mt_moon_nav",
-      "title": "Atravessar Mt. Moon e chegar a Cerulean",
-      "completed_nodes": [
-        "start",
-        "oak_event",
-        "parcel_event",
-        "buy_pokeballs",
-        "route_2_nav",
-        "viridian_forest_nav",
-        "pewter_city_nav",
-        "brock_quest"
-      ],
-      "reason": "objetivo ativo calculado a partir do save real"
-    },
-    "timestamp": 1785965194.902613,
-    "step": 3851,
-    "journey_step": 3852,
-    "map_id": 54,
-    "map_name": "Pewter Gym",
-    "coords": [
-      4,
-      2
-    ],
-    "task": "QUEST: MT_MOON_NAV",
-    "milestone": "mt_moon_nav",
-    "live": true
-  },
-  {
     "id": "AARON-1785964862:3852:objective_changed:1785965194907024000",
     "agent": "AARON",
     "run_id": "AARON-1785964862",
@@ -2403,5 +1692,718 @@
     "task": "QUEST: MT_MOON_NAV",
     "milestone": "mt_moon_nav",
     "live": true
+  },
+  {
+    "id": "AARON-1785965221:0:quest_advanced:1785965221267325000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav",
+        "brock_quest"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785965221.2673259,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "BARON-1785965221:0:quest_advanced:1785965221310892000",
+    "agent": "BARON",
+    "run_id": "BARON-1785965221",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "brock_quest",
+      "title": "Derrotar Brock",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785965221.310893,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 2,
+    "map_name": "Pewter City",
+    "coords": [
+      16,
+      13
+    ],
+    "task": "QUEST: BROCK_QUEST",
+    "milestone": "brock_quest",
+    "live": true
+  },
+  {
+    "id": "CARON-1785965221:0:quest_advanced:1785965221357396000",
+    "agent": "CARON",
+    "run_id": "CARON-1785965221",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav",
+        "brock_quest"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785965221.357397,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 14,
+    "map_name": "Route 3",
+    "coords": [
+      19,
+      4
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "DARON-1785965221:0:quest_advanced:1785965221401449000",
+    "agent": "DARON",
+    "run_id": "DARON-1785965221",
+    "type": "quest_advanced",
+    "data": {
+      "from_quest_id": null,
+      "to_quest_id": "mt_moon_nav",
+      "title": "Atravessar Mt. Moon e chegar a Cerulean",
+      "completed_nodes": [
+        "start",
+        "oak_event",
+        "parcel_event",
+        "buy_pokeballs",
+        "route_2_nav",
+        "viridian_forest_nav",
+        "pewter_city_nav",
+        "brock_quest"
+      ],
+      "reason": "objetivo ativo calculado a partir do save real"
+    },
+    "timestamp": 1785965221.40145,
+    "step": 0,
+    "journey_step": 0,
+    "map_id": 2,
+    "map_name": "Pewter City",
+    "coords": [
+      11,
+      18
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:0:battle_started:1785965222666052000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "battle_started",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "map_name": "Viridian Forest",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 22,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "pokeballs": 7,
+      "shiny_candidate": false
+    },
+    "timestamp": 1785965222.666053,
+    "step": 0,
+    "journey_step": 1,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785965221:0:capture_decision:1785965222671943000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "capture_decision",
+    "data": {
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "strategic_value": 70,
+      "weakest_party_level": 11,
+      "strongest_party_level": 11,
+      "level_advantage": -6,
+      "party_size": 1,
+      "party_has_room": true,
+      "party_slots_free": 5,
+      "already_in_party": false,
+      "enemy_hp_fraction": 0.095,
+      "own_hp_fraction": 0.667,
+      "active_level": 11,
+      "overkill_risk": true,
+      "enemy_impaired": false,
+      "has_damage_left": true,
+      "pokeballs": 7,
+      "collector": 95,
+      "meta_score": 60,
+      "story_complete": true,
+      "capture_unlocked": true,
+      "shiny_candidate": false,
+      "ball_item_id": 4,
+      "ball_slot": 0,
+      "choice": "capture",
+      "reason_code": "completionist_new_species",
+      "motivation": "collector",
+      "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time"
+    },
+    "timestamp": 1785965222.671944,
+    "step": 0,
+    "journey_step": 1,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:0:training_target:1785965222674581000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "training_target",
+    "data": {
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 22,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "active_receives_xp": true,
+      "recommended_lowest_level": {
+        "species_id": 1,
+        "internal_id": 153,
+        "id": 1,
+        "level": 11,
+        "hp": 22,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ]
+      },
+      "choice": "keep_active",
+      "reason": "XP da Gen I vai para o Pok\u00e9mon ativo; o controlador ainda n\u00e3o troca Pok\u00e9mon automaticamente"
+    },
+    "timestamp": 1785965222.674582,
+    "step": 0,
+    "journey_step": 1,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:0:capture_intent:1785965222677030000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "capture_intent",
+    "data": {
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "policy": {
+        "new_species": true,
+        "upgrade_candidate": false,
+        "strategic_value": 70,
+        "enemy_level": 5,
+        "weakest_party_level": 11,
+        "strongest_party_level": 11,
+        "level_advantage": -6,
+        "party_size": 1,
+        "party_has_room": true,
+        "party_slots_free": 5,
+        "already_in_party": false,
+        "enemy_hp_fraction": 0.095,
+        "own_hp_fraction": 0.667,
+        "active_level": 11,
+        "overkill_risk": true,
+        "enemy_impaired": false,
+        "has_damage_left": true,
+        "pokeballs": 7,
+        "collector": 95,
+        "meta_score": 60,
+        "story_complete": true,
+        "capture_unlocked": true,
+        "shiny_candidate": false,
+        "ball_item_id": 4,
+        "ball_slot": 0,
+        "choice": "capture",
+        "reason_code": "completionist_new_species",
+        "motivation": "collector",
+        "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time"
+      },
+      "attempt": 1,
+      "max_attempts": 1,
+      "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time",
+      "reason_code": "completionist_new_species",
+      "motivation": "collector",
+      "shiny_candidate": false,
+      "ball_item_id": 4
+    },
+    "timestamp": 1785965222.6770298,
+    "step": 0,
+    "journey_step": 1,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:0:battle_decision:1785965222679488000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 22,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "capture",
+      "executed_choice": "capture_attempt",
+      "execution_status": "executing_real_menu_sequence",
+      "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time",
+      "reason_code": "completionist_new_species",
+      "motivation": "collector",
+      "battle_action_reason": "battle controller has not observed a turn yet",
+      "action": "DOWN",
+      "move": {},
+      "pokeballs": 7,
+      "collector": 95,
+      "meta_score": 60,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": true
+    },
+    "timestamp": 1785965222.679488,
+    "step": 0,
+    "journey_step": 1,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:21:capture_attempt:1785965231784992000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "capture_attempt",
+    "data": {
+      "result": "failed_or_not_confirmed",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "reason": "menu n\u00e3o confirmou o uso da Pok\u00e9 Bola; fallback seguro para ataque",
+      "pokeballs": 7,
+      "motivation": "collector",
+      "shiny_candidate": false
+    },
+    "timestamp": 1785965231.7849941,
+    "step": 21,
+    "journey_step": 22,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:22:battle_decision:1785965232206791000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "battle_decision",
+    "data": {
+      "battle": "wild",
+      "enemy_id": 124,
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "encounter_type": "wild_grass",
+      "encounter_label": "Encontro no mato",
+      "active_pokemon": {
+        "species_id": 1,
+        "internal_id": 153,
+        "level": 11,
+        "hp": 22,
+        "max_hp": 33,
+        "moves": [
+          {
+            "id": 33,
+            "pp": 19
+          },
+          {
+            "id": 45,
+            "pp": 40
+          },
+          {
+            "id": 73,
+            "pp": 10
+          }
+        ],
+        "selected_move_slot": 0
+      },
+      "policy_choice": "capture",
+      "executed_choice": "defeat",
+      "execution_status": "capture_fallback_to_attack",
+      "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time",
+      "reason_code": "completionist_new_species",
+      "motivation": "collector",
+      "battle_action_reason": "highest power \u00d7 type effectiveness",
+      "action": "A",
+      "move": {
+        "slot": 0,
+        "move_id": 33,
+        "pp": 19,
+        "type": "NORMAL",
+        "power": 35,
+        "effectiveness": 1.0,
+        "stab": 1.0,
+        "score": 35.0
+      },
+      "pokeballs": 7,
+      "collector": 95,
+      "meta_score": 60,
+      "new_species": true,
+      "upgrade_candidate": false,
+      "shiny_candidate": false,
+      "capture_unlocked": true,
+      "controller": "SimpleBattleAgent",
+      "capture_controller": false
+    },
+    "timestamp": 1785965232.206793,
+    "step": 22,
+    "journey_step": 23,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:38:battle_end:1785965238622821000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "battle_end",
+    "data": {
+      "type": "wild",
+      "result": "win",
+      "enemy_id": 124,
+      "active_pokemon": 153,
+      "player_hp_at_end": 22,
+      "battle_map_id": 51,
+      "end_map_id": 51
+    },
+    "timestamp": 1785965238.622824,
+    "step": 38,
+    "journey_step": 38,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785965221:38:battle_win:1785965238627289000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "battle_win",
+    "data": {
+      "type": "wild",
+      "enemy_id": 124,
+      "total_trainer_wins": 0,
+      "total_wild_wins": 1
+    },
+    "timestamp": 1785965238.627291,
+    "step": 38,
+    "journey_step": 38,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785965221:38:capture_outcome:1785965238633394000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "capture_outcome",
+    "data": {
+      "intent": "capture",
+      "reason_code": "completionist_new_species",
+      "reason": "completista: 0/5 desta \u00e1rea alcan\u00e7\u00e1veis; esp\u00e9cie nova entra no registro mesmo sem vaga no time",
+      "outcome": "defeated",
+      "enemy_species_id": 11,
+      "enemy_level": 5,
+      "balls_thrown": 0,
+      "pokeballs": 7,
+      "shiny_candidate": false,
+      "party": [
+        {
+          "species_id": 1,
+          "internal_id": 153,
+          "id": 1,
+          "level": 11,
+          "hp": 22,
+          "max_hp": 33,
+          "moves": [
+            {
+              "id": 33,
+              "pp": 18
+            },
+            {
+              "id": 45,
+              "pp": 40
+            },
+            {
+              "id": 73,
+              "pp": 10
+            }
+          ]
+        }
+      ],
+      "party_size": 1
+    },
+    "timestamp": 1785965238.633396,
+    "step": 38,
+    "journey_step": 38,
+    "map_id": 51,
+    "map_name": "Viridian Forest",
+    "coords": [
+      16,
+      12
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": true
+  },
+  {
+    "id": "AARON-1785965221:121:map_transition:1785965273972221000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 51,
+      "from_map_name": "Viridian Forest",
+      "to_map_id": 47,
+      "to_map_name": "Route 2 Gate Pewter",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785965273.972223,
+    "step": 121,
+    "journey_step": 121,
+    "map_id": 47,
+    "map_name": "Route 2 Gate Pewter",
+    "coords": [
+      1,
+      0
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785965221:131:map_transition:1785965278297011000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 47,
+      "from_map_name": "Route 2 Gate Pewter",
+      "to_map_id": 13,
+      "to_map_name": "Route 2",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785965278.297014,
+    "step": 131,
+    "journey_step": 131,
+    "map_id": 13,
+    "map_name": "Route 2",
+    "coords": [
+      5,
+      0
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": false
+  },
+  {
+    "id": "AARON-1785965221:198:map_transition:1785965306894944000",
+    "agent": "AARON",
+    "run_id": "AARON-1785965221",
+    "type": "map_transition",
+    "data": {
+      "from_map_id": 13,
+      "from_map_name": "Route 2",
+      "to_map_id": 2,
+      "to_map_name": "Pewter City",
+      "reason": "transi\u00e7\u00e3o detectada na RAM do emulador"
+    },
+    "timestamp": 1785965306.894946,
+    "step": 198,
+    "journey_step": 198,
+    "map_id": 2,
+    "map_name": "Pewter City",
+    "coords": [
+      18,
+      35
+    ],
+    "task": "QUEST: MT_MOON_NAV",
+    "milestone": "mt_moon_nav",
+    "live": false
   }
 ]

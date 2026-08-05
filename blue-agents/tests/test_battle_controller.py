@@ -281,6 +281,58 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
         self.assertIn("B", actions, "sai do menu em vez de martelar botão")
 
 
+class MissionRestartTests(unittest.TestCase):
+    """Whatever traps a bot on one tile, the mission starts over from there.
+
+    Every freeze in this project had its own cause and its own fix. This one
+    removes the class instead of another instance.
+    """
+
+    def make_env(self, position, *, in_battle=False):
+        from hybrid_agent import HybridGymEnv, MISSION_RESTART_STEPS
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        env.logged = []
+        env._log_event = lambda kind, data, live=True: env.logged.append((kind, data))
+        env.current_task = "QUEST: MT_MOON_NAV"
+        env.stagnant_position = None
+        env.stagnant_steps = 0
+        state = {0xD35E: position[0], 0xD362: position[1], 0xD361: position[2],
+                 0xD057: 1 if in_battle else 0}
+        env.read_m = lambda address: state.get(address, 0)
+        env.state = state
+        env.limit = MISSION_RESTART_STEPS
+        agent = type("FakeScripted", (), {})()
+        agent.route_id = "mt-moon-14"
+        agent.route_plan = {"directions": ["R"]}
+        agent.current_task_name = "mt_moon_nav"
+        env.scripted_agent = agent
+        return env
+
+    def test_standing_still_long_enough_restarts_the_mission(self):
+        env = self.make_env((14, 19, 4))
+        for _ in range(env.limit + 1):
+            env._watch_for_stagnation()
+        self.assertIn("mission_restarted", [kind for kind, _ in env.logged])
+        self.assertFalse(hasattr(env.scripted_agent, "route_id"), "rota é descartada")
+        self.assertFalse(hasattr(env.scripted_agent, "current_task_name"))
+
+    def test_moving_resets_the_count(self):
+        env = self.make_env((14, 19, 4))
+        for _ in range(env.limit - 1):
+            env._watch_for_stagnation()
+        env.state[0xD362] = 18
+        env._watch_for_stagnation()
+        for _ in range(env.limit - 1):
+            env._watch_for_stagnation()
+        self.assertEqual([], env.logged, "quem anda não precisa de reinício")
+
+    def test_a_long_battle_is_not_a_freeze(self):
+        env = self.make_env((14, 19, 4), in_battle=True)
+        for _ in range(env.limit * 2):
+            env._watch_for_stagnation()
+        self.assertEqual([], env.logged)
+
+
 class ExhaustedPPTests(unittest.TestCase):
     """Damage moves at 0 PP must not deadlock the move menu."""
 
