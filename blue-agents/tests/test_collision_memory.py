@@ -214,15 +214,19 @@ class RouteReplanningTests(unittest.TestCase):
         self.assertEqual(WindowEvent.PRESS_BUTTON_A, actions[0])
         self.assertIn(WindowEvent.PRESS_ARROW_UP, actions)
 
-    def test_a_route_walking_through_dialogue_records_no_walls(self):
-        # While the menu flag is up the bot cannot tell a wall from a text box.
-        # A wrong edge would outlive the conversation, so it walks but writes
-        # nothing down.
-        agent = self.make_agent((3, 11), map_id=13, walls={(3, 10)})
+    def test_a_defeated_trainer_reopening_its_line_is_still_learned(self):
+        # A beaten Route 3 trainer stays on its tile. The blocked-route A press
+        # reopens its line, and a menu counter reset by the flag alone let the
+        # pair freeze for thousands of steps in front of an NPC they had already
+        # won against. The press budget is refilled by movement, not by silence.
+        agent = self.make_agent((14, 9), map_id=14, walls={(13, 9)})
         agent.memory_probe.read_byte = lambda address: 1 if address == 0xCFC4 else 0
-        for _ in range(60):
-            agent._follow_route("mt-moon-recovery-13", [(3, 8)])
-        self.assertEqual(set(), agent._collision_memory().blocked)
+        for _ in range(120):
+            agent._follow_route("mt-moon-14", [(11, 9)])
+        self.assertTrue(
+            agent._collision_memory().is_blocked(14, 14, 9, "L"),
+            "com o flag preso, a parede à frente ainda precisa ser aprendida",
+        )
 
     def test_an_unintended_warp_is_learned_like_a_wall(self):
         # Leaving Brock's gym lands the bot on the Pewter door tile. The plan to

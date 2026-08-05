@@ -1620,13 +1620,18 @@ class ScriptedAgent(BaseAgent):
         # cleared it. Obeying it forever is a livelock with no learning at all,
         # because the bot never even tries to walk. Give the dialogue a bounded
         # number of presses and then move regardless.
+        # The budget is only refilled by real movement, never by the flag going
+        # quiet for a frame. A defeated Route 3 trainer stays on its tile: the
+        # blocked-route A press re-opened its line, that reset a
+        # flag-based counter, and the pair froze for thousands of steps in front
+        # of an NPC they had already beaten. Once the budget is spent the flag
+        # is ignored for everything, learning included — the wall in front is
+        # what has to be written down.
         menu_open = self._menu_is_open()
         if menu_open:
             self.route_menu_presses = getattr(self, "route_menu_presses", 0) + 1
             if self.route_menu_presses <= MENU_PRESS_LIMIT:
                 return WindowEvent.PRESS_BUTTON_A
-        else:
-            self.route_menu_presses = 0
 
         current_x, current_y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
@@ -1715,6 +1720,7 @@ class ScriptedAgent(BaseAgent):
                         self.route_plan = None
             self.route_stuck_steps = 0
             self.route_stuck_cycles = 0
+            self.route_menu_presses = 0
         self.route_last_position = current_position
 
         # Two different reasons make a step produce no movement, and they need
@@ -1726,11 +1732,6 @@ class ScriptedAgent(BaseAgent):
             self.route_stuck_cycles = getattr(self, "route_stuck_cycles", 0) + 1
             if self.route_stuck_cycles == 1:
                 return WindowEvent.PRESS_BUTTON_A
-            # Real dialogue also eats the D-pad. While the menu flag is up the
-            # bot cannot tell a wall from a text box, so it walks but refuses to
-            # write anything down: a wrong edge would outlive the conversation.
-            if menu_open:
-                last_direction = None
             if last_direction is not None:
                 self._collision_memory().mark_blocked(
                     map_id, current_x, current_y, last_direction
