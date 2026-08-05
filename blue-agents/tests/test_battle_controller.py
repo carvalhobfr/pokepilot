@@ -200,6 +200,79 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class SwitchWhenOutOfPPTests(unittest.TestCase):
+    """With every attack at zero PP the game forces Struggle, and Gen I Struggle
+    recoils for half the damage dealt: the active Pokémon grinds itself down
+    fighting something it cannot hurt. A teammate with PP costs nothing.
+    """
+
+    def make_env(self, party, active_slot=0):
+        from hybrid_agent import HybridGymEnv
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        env.get_party_info = lambda: list(party)
+        env.read_m = lambda address: active_slot if address == 0xCC2F else 0
+        env.capture_in_flight = False
+        env.capture_plan = []
+        env.capture_bag_open = False
+        env.switch_plan = []
+        env.switch_menu_open = False
+        env.switch_steps = 0
+        env.logged = []
+        env._log_event = lambda kind, data, live=True: env.logged.append((kind, data))
+        return env
+
+    @staticmethod
+    def mon(pp, hp=20, species=1):
+        return {
+            "species_id": species, "level": 12, "hp": hp, "max_hp": 20,
+            "moves": [{"id": 33, "pp": pp}, {"id": 45, "pp": 30}],  # Tackle, Growl
+        }
+
+    def test_a_teammate_with_pp_is_chosen(self):
+        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        self.assertEqual(1, env._switch_target_slot())
+
+    def test_nobody_is_swapped_while_the_active_can_still_attack(self):
+        env = self.make_env([self.mon(pp=10), self.mon(pp=15)])
+        self.assertIsNone(env._switch_target_slot())
+        self.assertIsNone(env._next_switch_action())
+
+    def test_a_fainted_teammate_is_not_a_target(self):
+        env = self.make_env([self.mon(pp=0), self.mon(pp=15, hp=0)])
+        self.assertIsNone(env._switch_target_slot())
+
+    def test_a_fainted_lead_is_replaced_by_whoever_is_standing(self):
+        # The game will not continue until someone is sent out, so here the
+        # choice is not about damage — it is about the battle ending at all.
+        env = self.make_env([self.mon(pp=10, hp=0), self.mon(pp=0, hp=18)])
+        self.assertEqual(1, env._switch_target_slot())
+
+    def test_a_lone_pokemon_has_nobody_to_switch_to(self):
+        env = self.make_env([self.mon(pp=0)])
+        self.assertIsNone(env._switch_target_slot())
+
+    def test_the_menu_is_driven_by_the_highlighted_row(self):
+        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        first = env._next_switch_action()
+        self.assertEqual("RIGHT", first, "do FIGHT para o PKMN")
+        self.assertEqual("A", env._next_switch_action(), "abre a lista da equipe")
+        self.assertTrue(env.switch_menu_open)
+        self.assertIn("switch_intent", [kind for kind, _ in env.logged])
+
+        env.read_m = lambda address: 0  # cursor na linha 0, alvo é a 1
+        self.assertEqual("DOWN", env._next_switch_action())
+        env.read_m = lambda address: 1 if address == 0xCC26 else 0
+        self.assertEqual("A", env._next_switch_action(), "escolhe o Pokémon")
+        self.assertEqual("A", env._next_switch_action(), "confirma SWITCH")
+
+    def test_a_menu_that_does_not_behave_is_abandoned_not_mashed(self):
+        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        env.switch_menu_open = True
+        env.read_m = lambda address: 0  # cursor nunca chega no alvo
+        actions = [env._next_switch_action() for _ in range(14)]
+        self.assertIn("B", actions, "sai do menu em vez de martelar botão")
+
+
 class ExhaustedPPTests(unittest.TestCase):
     """Damage moves at 0 PP must not deadlock the move menu."""
 

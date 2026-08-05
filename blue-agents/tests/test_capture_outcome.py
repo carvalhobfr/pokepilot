@@ -95,5 +95,77 @@ class CaptureOutcomeTests(unittest.TestCase):
         self.assertEqual(0, data["balls_thrown"])
 
 
+class CaptureExecutionTests(unittest.TestCase):
+    """Deciding to capture is not throwing a ball.
+
+    The four trainers decided to capture 83 times and threw zero balls: the
+    battle-start bookkeeping marked every fight as already planned, so the menu
+    controller never built the plan that opens the bag.
+    """
+
+    def make_env(self, *, in_battle=True, plan_battle=None):
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        env.logged = []
+        env._log_event = lambda kind, data, live=True: env.logged.append((kind, data))
+        env.in_battle = in_battle
+        env.battle_sequence = 4
+        env.capture_plan = []
+        env.capture_plan_battle = plan_battle
+        env.capture_in_flight = False
+        env.capture_attempts = 0
+        env.capture_result_steps = 0
+        env.capture_balls_before_attempt = None
+        env.battle_action_mode = "attack"
+        env._poke_ball_count = lambda: 5
+        env._battle_menu_path_to_item = lambda: ["RIGHT", "DOWN"]
+        env._get_battle_info = lambda: {
+            "is_battle": True, "enemy_id": 41, "enemy_species_id": 41,
+            "enemy_level": 8,
+        }
+        env._capture_policy = lambda info: {
+            "choice": "capture", "reason": "espécie nova", "reason_code": "party_slot_new_species",
+            "motivation": "team_building", "shiny_candidate": False,
+            "ball_item_id": 4, "ball_slot": 0,
+        }
+        return env
+
+    def test_a_fresh_battle_builds_the_plan_that_opens_the_bag(self):
+        env = self.make_env()
+        action = env._next_capture_action()
+        self.assertIsNotNone(action, "a captura precisa produzir entrada de menu")
+        self.assertEqual("capture", env.battle_action_mode)
+        self.assertIn(
+            "capture_intent", [kind for kind, _ in env.logged],
+            "a intenção de captura tem que ficar registrada",
+        )
+
+    def test_the_cursor_walks_to_the_ball_and_only_then_confirms(self):
+        # Blind presses reported "menu não confirmou o uso da Poké Bola" over
+        # and over: the ball count never dropped because the cursor was never
+        # where the script assumed. The bag row is readable, so read it.
+        env = self.make_env(plan_battle=4)
+        env.capture_bag_open = True
+        env.read_m = lambda address: {0xCC26: 0, 0xCC36: 0}.get(address, 0)
+        env._capture_policy = lambda info: {
+            "choice": "capture", "reason": "espécie nova", "reason_code": "x",
+            "motivation": "team_building", "shiny_candidate": False,
+            "ball_item_id": 4, "ball_slot": 2,
+        }
+        self.assertEqual("DOWN", env._next_capture_action(), "linha 0, bola no índice 2")
+
+        env.read_m = lambda address: {0xCC26: 3, 0xCC36: 0}.get(address, 0)
+        self.assertEqual("UP", env._next_capture_action(), "passou da bola")
+
+        env.read_m = lambda address: {0xCC26: 1, 0xCC36: 1}.get(address, 0)
+        self.assertEqual("A", env._next_capture_action(), "em cima da bola: usar")
+        self.assertTrue(env.capture_in_flight)
+        self.assertFalse(env.capture_bag_open)
+
+    def test_a_battle_already_planned_does_not_plan_again(self):
+        env = self.make_env(plan_battle=4)
+        env._next_capture_action()
+        self.assertEqual([], env.logged, "um plano por batalha, não um por passo")
+
+
 if __name__ == "__main__":
     unittest.main()

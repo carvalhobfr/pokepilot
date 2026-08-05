@@ -66,6 +66,17 @@ POKEDEX_BYTES = 19
 GOT_POKEDEX_ADDRESS = 0xD74B
 GOT_POKEDEX_MASK = 1 << 5
 CAPTURE_BALL_IDS = (1, 2, 3, 4)  # Master, Ultra, Great, Poké Ball
+
+# Gen I menu state: the bag index under the cursor is the list scroll offset
+# plus the highlighted row. The shop controller already drives menus with the
+# cursor address, so these are addresses this project has verified in game.
+MENU_CURSOR_ADDRESS = 0xCC26
+MENU_SCROLL_OFFSET_ADDRESS = 0xCC36
+# Which party slot is currently out on the field.
+ACTIVE_PARTY_SLOT_ADDRESS = 0xCC2F
+# A switch that takes longer than this is not happening; back out instead of
+# mashing inputs into a menu that is not the one we think it is.
+SWITCH_MENU_STEP_LIMIT = 12
 MAJOR_LOCATION_IDS = set(range(0, 11))
 BATTLE_MENU_SAVED_ITEM_ADDRESS = 0xCC2D
 CAPTURE_RESULT_ADVANCE_STEPS = 18
@@ -852,6 +863,10 @@ class HybridGymEnv(RedGymEnv):
             # Use the real capture controller for eligible wild encounters;
             # otherwise fall back to the move-selection battle controller.
             battle_action_str = self._next_capture_action()
+            if battle_action_str is None:
+                battle_action_str = self._next_switch_action()
+                if battle_action_str is not None:
+                    self.battle_action_mode = "switch"
             if battle_action_str is None:
                 self.battle_action_mode = "attack"
                 battle_action_str = self.battle_agent.get_action(self.emulator_adapter)
@@ -2410,6 +2425,31 @@ class HybridGymEnv(RedGymEnv):
         if policy["choice"] != "capture":
             return None
 
+        # Once the bag is open the plan stops being a script and starts being a
+        # loop with eyes: the highlighted row is readable in RAM, so the cursor
+        # is moved until it is actually on the ball. Blind presses reported
+        # "menu não confirmou o uso da Poké Bola" over and over — the ball
+        # count never dropped, because the cursor was never where the script
+        # assumed it was.
+        if getattr(self, "capture_bag_open", False):
+            self.battle_action_mode = "capture"
+            ball_slot = policy.get("ball_slot")
+            if ball_slot is None:
+                return "B"
+            highlighted = self.bag_highlighted_slot()
+            if highlighted is None:
+                return "B"
+            if highlighted < ball_slot:
+                return "DOWN"
+            if highlighted > ball_slot:
+                return "UP"
+            self.capture_plan = []
+            self.capture_bag_open = False
+            self.capture_in_flight = True
+            self.capture_result_steps = CAPTURE_RESULT_ADVANCE_STEPS
+            self.capture_balls_before_attempt = self._poke_ball_count()
+            return "A"
+
         if self.capture_plan_battle != self.battle_sequence:
             ball_slot = policy.get("ball_slot")
             if ball_slot is None:
@@ -2417,13 +2457,10 @@ class HybridGymEnv(RedGymEnv):
             # Reach ITEM from whichever battle-menu option is remembered,
             # open the Bag, clamp its cursor to the top, then select the real
             # inventory slot. This remains correct across shiny retries.
-            self.capture_plan = (
-                self._battle_menu_path_to_item()
-                + ["A"]
-                + (["UP"] * 20)
-                + (["DOWN"] * ball_slot)
-                + ["A"]
-            )
+            # Only up to opening the bag; from there the RAM branch above
+            # drives, because that is the part that kept missing.
+            self.capture_plan = self._battle_menu_path_to_item() + ["A"]
+            self.capture_bag_open = False
             self.capture_plan_battle = self.battle_sequence
             self.capture_attempts += 1
             self._log_event("capture_intent", {
@@ -2441,15 +2478,132 @@ class HybridGymEnv(RedGymEnv):
             })
 
         if self.capture_plan:
-            action = self.capture_plan.pop(0)
             self.battle_action_mode = "capture"
+            action = self.capture_plan.pop(0)
             if not self.capture_plan:
-                self.capture_in_flight = True
-                self.capture_result_steps = CAPTURE_RESULT_ADVANCE_STEPS
-                self.capture_balls_before_attempt = self._poke_ball_count()
+                # That last A opened the bag; the cursor loop takes over.
+                self.capture_bag_open = True
             return action
 
         return None
+
+    def _has_damaging_pp(self, pokemon):
+        return any(
+            MOVE_POWER.get(int(move.get("id") or 0), 0) > 0
+            and int(move.get("pp") or 0) > 0
+            for move in pokemon.get("moves") or []
+        )
+
+    def _switch_target_slot(self):
+        """Party slot of someone who can still deal damage, or None.
+
+        With every attack at zero PP the game forces Struggle, which in Gen I
+        recoils for half the damage dealt: the active Pokémon grinds itself
+        down fighting something it cannot hurt. A teammate who still has PP is
+        the cheapest answer available, and it needs no walking.
+        """
+        party = self.get_party_info()
+        if len(party) < 2:
+            return None
+        try:
+            active_slot = int(self.read_m(ACTIVE_PARTY_SLOT_ADDRESS))
+        except Exception:
+            active_slot = 0
+        active = party[active_slot] if 0 <= active_slot < len(party) else None
+        fainted = active is not None and int(active.get("hp") or 0) <= 0
+        if active is not None and not fainted and self._has_damaging_pp(active):
+            return None
+
+        # A fainted lead has to be replaced by whoever is still standing, with
+        # or without PP: the game will not continue until someone is sent out.
+        # With PP left the choice is about damage; without it, it is about the
+        # battle ending at all.
+        alive = [
+            slot for slot, pokemon in enumerate(party)
+            if slot != active_slot and int(pokemon.get("hp") or 0) > 0
+        ]
+        with_damage = [slot for slot in alive if self._has_damaging_pp(party[slot])]
+        if with_damage:
+            return with_damage[0]
+        if fainted and alive:
+            return alive[0]
+        return None
+
+    def _next_switch_action(self):
+        """Send out a teammate that still has PP, driving the real menus."""
+        if self.capture_in_flight or self.capture_plan or getattr(
+            self, "capture_bag_open", False
+        ):
+            return None
+        target = self._switch_target_slot()
+        if target is None:
+            self.switch_menu_open = False
+            self.switch_plan = []
+            return None
+
+        if getattr(self, "switch_menu_open", False):
+            self.switch_steps = getattr(self, "switch_steps", 0) + 1
+            if self.switch_steps > SWITCH_MENU_STEP_LIMIT:
+                # The party menu is not where it was expected. Back out and let
+                # the battle controller fight rather than mash inputs blindly.
+                self.switch_menu_open = False
+                self.switch_steps = 0
+                return "B"
+            highlighted = self.bag_highlighted_slot()
+            if highlighted is None:
+                self.switch_menu_open = False
+                return "B"
+            if highlighted < target:
+                return "DOWN"
+            if highlighted > target:
+                return "UP"
+            self.switch_menu_open = False
+            self.switch_steps = 0
+            # A on the chosen Pokémon, then A again on SWITCH, the first option
+            # of the little menu that opens.
+            self.switch_plan = ["A", "A"]
+            return self.switch_plan.pop(0)
+
+        if getattr(self, "switch_plan", None):
+            action = self.switch_plan.pop(0)
+            if not self.switch_plan and action == "A":
+                # That A opened the party list; the cursor loop takes over.
+                self.switch_menu_open = True
+            return action
+
+        self._log_event("switch_intent", {
+            "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
+            "target_slot": target,
+            "party": self.get_party_info(),
+        })
+        self.switch_plan = self._battle_menu_path_to_pokemon() + ["A"]
+        self.switch_steps = 0
+        action = self.switch_plan.pop(0)
+        if not self.switch_plan and action == "A":
+            self.switch_menu_open = True
+        return action
+
+    def _battle_menu_path_to_pokemon(self):
+        """Move the remembered 2x2 battle cursor to PKMN."""
+        try:
+            saved_item = int(self.read_m(BATTLE_MENU_SAVED_ITEM_ADDRESS))
+        except Exception:
+            saved_item = 0
+        return {
+            0: ["RIGHT"],          # FIGHT -> PKMN
+            1: [],                 # already on PKMN
+            2: ["UP", "RIGHT"],    # ITEM -> FIGHT -> PKMN
+            3: ["UP"],             # RUN -> PKMN
+        }.get(saved_item, ["RIGHT"])
+
+    def bag_highlighted_slot(self):
+        """Bag index under the cursor: scroll offset plus the highlighted row."""
+        try:
+            return int(self.read_m(MENU_SCROLL_OFFSET_ADDRESS)) + int(
+                self.read_m(MENU_CURSOR_ADDRESS)
+            )
+        except Exception:
+            return None
 
     def _log_battle_decision(self, action):
         """Log the real battle controller's choice without duplicating turns."""
@@ -2792,7 +2946,13 @@ class HybridGymEnv(RedGymEnv):
                 self.battle_sequence += 1
                 self.last_battle_decision_key = None
                 self.capture_plan = []
-                self.capture_plan_battle = self.battle_sequence
+                self.capture_bag_open = False
+                # None means "this battle still needs a plan". Setting it to the
+                # sequence number marked every fight as already planned, so the
+                # menu controller never built one: four trainers decided to
+                # capture 83 times between them, threw zero balls, and the
+                # feed showed only decisions and knockouts.
+                self.capture_plan_battle = None
                 self.capture_in_flight = False
                 self.capture_attempts = 0
                 self.capture_result_steps = 0
