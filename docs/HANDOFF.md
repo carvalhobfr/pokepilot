@@ -144,6 +144,31 @@ nó — mas só faça isso se o executor conseguir chegar lá a partir da posiç
 atual, senão o bot fica girando. Foi exatamente o que aconteceu ao reabrir
 `buy_pokeballs` de um treinador que já estava na Route 2 norte.
 
+## Travamento por PP zerado (corrigido)
+
+Registrado e corrigido em 2026-08-05. Foi o que prendeu BARON e CARON na
+Floresta de Viridian por horas, e a causa não era navegação:
+
+```
+BARON | Tackle PP 0 | Growl 40 | Leech Seed 10
+CARON | Tackle PP 0 | Tail Whip 30 | Bubble PP 0
+```
+
+Os golpes de dano zeraram. `simple_battle.py` filtra golpes sem PP ao montar
+`candidates`, mas quando a lista ficava vazia `best_move_idx` permanecia em
+**0** — exatamente o golpe exausto. O jogo reabria a caixa "no PP" a cada
+confirmação, para sempre.
+
+A Geração I só substitui por Struggle quando **todos** os golpes acabam. Com um
+golpe de status ainda com PP, o menu continua aberto esperando uma escolha
+válida. Agora, sem candidato ofensivo, o controlador cai para qualquer golpe que
+ainda tenha PP; se nenhum tiver, confirma o menu e deixa o cartucho aplicar
+Struggle.
+
+Consequência para a jornada: PP só se recupera em Centro Pokémon. Sem a rotina
+de cura (tarefas #2 e #4), um bot fica sem dano e depende de desmaiar para
+restaurar — o whiteout é hoje o único mecanismo de recuperação de PP.
+
 ## BUG ABERTO: `_follow_route` não replaneja — a causa raiz
 
 Registrado em 2026-08-05. **Bloqueia BARON e CARON.**

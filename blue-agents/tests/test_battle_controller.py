@@ -198,3 +198,34 @@ class BattleControllerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExhaustedPPTests(unittest.TestCase):
+    """Damage moves at 0 PP must not deadlock the move menu."""
+
+    def test_falls_back_to_a_move_that_still_has_pp(self):
+        # CARON's real state in Viridian Forest: Tackle and Bubble spent,
+        # only Tail Whip left. Selecting slot 0 reopened the "no PP" textbox
+        # forever instead of taking a turn.
+        memory = {
+            0xD057: 1,
+            0xCFE5: 11,
+            0xD014: 11,
+            0xD01C: 33, 0xD01D: 39, 0xD01E: 145, 0xD01F: 0,
+            0xD02D: 0, 0xD02E: 30, 0xD02F: 0, 0xD030: 0,
+            0xCCEE: 0,
+        }
+        agent = SimpleBattleAgent()
+        emulator = FakeMemory(memory)
+        decision = None
+        for _ in range(60):
+            agent.get_action(emulator)
+            candidate = getattr(agent, "last_decision", None)
+            if candidate and candidate.get("selected_move_slot") is not None:
+                decision = candidate
+                break
+        self.assertIsNotNone(decision, "o controlador precisa escolher algum golpe")
+        self.assertEqual(
+            1, decision["selected_move_slot"],
+            "só o slot 1 (Tail Whip) ainda tem PP; slot 0 trava o menu",
+        )

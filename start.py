@@ -179,6 +179,11 @@ def main() -> int:
         "supervisor de jornadas",
     )
 
+    # The relay pauses and saves by signalling this pid; without the file its
+    # buttons fail silently.
+    pid_file = AGENTS / "tasks" / "training.pid"
+    pid_file.write_text(str(journeys.pid), encoding="utf-8")
+
     try:
         journeys.wait()
     except KeyboardInterrupt:
@@ -190,6 +195,7 @@ def main() -> int:
         except subprocess.TimeoutExpired:
             journeys.kill()
     finally:
+        pid_file.unlink(missing_ok=True)
         for process in processes:
             if process.poll() is None:
                 process.terminate()

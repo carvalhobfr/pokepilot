@@ -403,6 +403,24 @@ class SimpleBattleAgent:
                     best_score = score
                     best_move_idx = slot
 
+            # Gen I only forces Struggle when *every* move is exhausted. With
+            # damage moves at 0 PP but a status move still available, the game
+            # keeps the menu open — and the old fallback of "slot 0" selected an
+            # exhausted move, reopening the "no PP" textbox forever. Two bots sat
+            # in Viridian Forest doing exactly that.
+            if not candidates:
+                fallback = next(
+                    (
+                        slot
+                        for slot, move_id, pp in player_moves
+                        if pp > 0 and move_id != disabled_move_id
+                    ),
+                    None,
+                )
+                # None means every move is spent: the cartridge substitutes
+                # Struggle on its own, so confirming the menu is correct.
+                best_move_idx = fallback if fallback is not None else best_move_idx
+
             selected_move_id = next(
                 (
                     move_id

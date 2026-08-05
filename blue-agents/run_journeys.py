@@ -4,7 +4,10 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
+import json
 from pathlib import Path
+import shutil
 import signal
 import subprocess
 import sys
@@ -99,10 +102,37 @@ def main() -> int:
     # after persisting the final Mewtwo event but before rotating the slot.
     rotate_if_ready()
 
+    def apply_reset_requests() -> None:
+        """Archive trainers the dashboard asked to reset, between chunks.
+
+        Doing it here rather than mid-run is what makes it safe: the emulator
+        holds its state in memory and would simply rewrite the files. Nothing is
+        deleted — the trainer is moved aside and can be restored by hand.
+        """
+        request_path = agent_root / "tasks" / "reset_request.json"
+        if not request_path.exists():
+            return
+        try:
+            names = json.loads(request_path.read_text(encoding="utf-8")).get("agents", [])
+        except (OSError, ValueError):
+            request_path.unlink(missing_ok=True)
+            return
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        for name in names:
+            trainer_dir = project_root / "trainers" / str(name)
+            if not trainer_dir.is_dir():
+                continue
+            destination = project_root / "trainers" / ".reset" / f"{name}-{stamp}"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(trainer_dir), str(destination))
+            print(f"🗑️  {name} reiniciado; anterior preservado em {destination}", flush=True)
+        request_path.unlink(missing_ok=True)
+
     chunks_finished = 0
     while not stop_requested and (
         args.max_chunks == 0 or chunks_finished < args.max_chunks
     ):
+        apply_reset_requests()
         roster = load_or_create_roster(roster_path, slot_count)
         active = ", ".join(
             f"slot {slot['slot']}={slot['agent_name']}"
