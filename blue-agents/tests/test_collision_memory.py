@@ -469,9 +469,20 @@ class RouteReplanningTests(unittest.TestCase):
         agent.memory_probe.map_id = 54
         agent.memory_probe.position = (4, 13)
         agent._follow_route("mt-moon-2-gym", [(16, 18), (10, 18), (10, 13)])
-        self.assertTrue(
-            agent._collision_memory().is_blocked(2, 16, 18, "U"),
-            "a porta atravessada sem querer precisa virar aresta bloqueada",
+        memory = agent._collision_memory()
+        self.assertIn(
+            (2, 16, 18, "U"), memory.warps,
+            "a porta atravessada sem querer precisa ficar registrada",
+        )
+        path = memory.find_path(2, (16, 18), (16, 17))
+        self.assertNotEqual(
+            "U", (path or ["U"])[0],
+            "o planejador contorna a porta em vez de entrar nela de novo",
+        )
+        memory.forget_tile(2, 16, 18)
+        self.assertIn(
+            (2, 16, 18, "U"), memory.warps,
+            "porta não é parede: as regras de contradição não a apagam",
         )
 
     def test_the_warp_that_ends_a_route_stays_free(self):

@@ -38,30 +38,45 @@ class CollisionMemory:
     def __init__(self, path=None):
         self.path = Path(path) if path else None
         self.blocked = set()
+        # Doors crossed by accident. Kept apart from walls on purpose: the
+        # rules that forget a contradictory tile exist because a wall can be
+        # learned wrong, but a door is not a wall — it is a hazard that keeps
+        # working. Mixing them let two bots bounce in and out of a Pewter
+        # building forever, relearning and forgetting the same doorway.
+        self.warps = set()
         # Edges this session proved walkable. Kept so a merge with the file on
         # disk cannot resurrect a wall that turned out to be an NPC.
         self.cleared = set()
         self._load()
 
     def _load(self):
-        for edge in self._read_file():
-            self.blocked.add(edge)
+        blocked, warps = self._read_file(with_warps=True)
+        self.blocked |= blocked
+        self.warps |= warps
         self.sanitize()
 
-    def _read_file(self):
+    def _read_file(self, with_warps=False):
         """Edges currently on disk, so concurrent trainers pool instead of
         overwriting each other. Map geometry does not depend on who walks it."""
+        empty = (set(), set()) if with_warps else set()
         if self.path is None or not self.path.exists():
-            return set()
+            return empty
         try:
             with self.path.open("r") as handle:
                 payload = json.load(handle)
         except (OSError, ValueError):
             # A truncated file is not worth crashing a journey over; the agent
             # relearns the edges as it walks.
-            return set()
+            return empty
+        edges = self._parse_edges(payload.get("blocked") or {})
+        if with_warps:
+            return edges, self._parse_edges(payload.get("warps") or {})
+        return edges
+
+    @staticmethod
+    def _parse_edges(grouped):
         edges = set()
-        for map_key, entries in (payload.get("blocked") or {}).items():
+        for map_key, entries in grouped.items():
             try:
                 map_id = int(map_key)
             except (TypeError, ValueError):
@@ -82,16 +97,23 @@ class CollisionMemory:
             return
         # Read-modify-write: two trainers walk at the same time and a plain
         # overwrite would throw away whatever the other one just learned.
-        self.blocked |= self._read_file() - self.cleared
+        stored_blocked, stored_warps = self._read_file(with_warps=True)
+        self.blocked |= stored_blocked - self.cleared
+        self.warps |= stored_warps
         grouped = {}
         for map_id, x, y, direction in sorted(self.blocked):
             grouped.setdefault(str(map_id), []).append(f"{x},{y},{direction}")
+        warps = {}
+        for map_id, x, y, direction in sorted(self.warps):
+            warps.setdefault(str(map_id), []).append(f"{x},{y},{direction}")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         # Atomic write: the supervisor can be killed between blocks, and a
         # half-written file would be dropped on the next load.
         temporary = self.path.with_suffix(self.path.suffix + ".tmp")
         with temporary.open("w") as handle:
-            json.dump({"version": 1, "blocked": grouped}, handle, indent=2)
+            json.dump(
+                {"version": 1, "blocked": grouped, "warps": warps}, handle, indent=2
+            )
         os.replace(temporary, self.path)
 
     def is_blocked(self, map_id, x, y, direction):
@@ -116,6 +138,20 @@ class CollisionMemory:
             return False
         self.blocked.add(edge)
         self.cleared.discard(edge)
+        self.save()
+        return True
+
+    def mark_warp(self, map_id, x, y, direction):
+        """Record a doorway crossed by accident, never to be planned through.
+
+        Unlike a wall, this is never forgotten by the contradiction rules: a
+        door that took the bot somewhere it did not mean to go will do it again
+        every single time.
+        """
+        edge = (int(map_id), int(x), int(y), direction)
+        if edge in self.warps:
+            return False
+        self.warps.add(edge)
         self.save()
         return True
 
@@ -210,7 +246,7 @@ class CollisionMemory:
                 # `avoid` holds edges that failed under ambiguous conditions —
                 # a text box eats the D-pad exactly like a wall does. Those are
                 # worth stepping around right now and never worth writing down.
-                if edge in avoid:
+                if edge in avoid or edge in self.warps:
                     continue
                 if edge in self.blocked and not relax:
                     continue

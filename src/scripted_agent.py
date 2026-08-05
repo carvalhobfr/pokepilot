@@ -1703,7 +1703,7 @@ class ScriptedAgent(BaseAgent):
                 entry_position[0], entry_position[1], entry_position[2], map_id
             )
         if changed_map and not getattr(self, "route_target_was_final", True):
-            self._collision_memory().mark_blocked(
+            self._collision_memory().mark_warp(
                 entry_position[0], entry_position[1], entry_position[2],
                 entry_direction,
             )
@@ -1901,17 +1901,22 @@ class ScriptedAgent(BaseAgent):
         map_id = int(self.emulator.memory.get_map_id())
         position = self.emulator.memory.get_player_pos()
 
-        # A door already walked through, by anyone, beats every guess below.
-        known = self._warp_memory().doors_from(map_id)
-        if known:
-            door = min(
-                known,
-                key=lambda tile: abs(tile[0] - position[0]) + abs(tile[1] - position[1]),
-            )
-            if tuple(position) != door:
-                return self._follow_route(f"door-{map_id}", [door])
-
         entry = getattr(self, "map_entry_tiles", {}).get(map_id)
+        if entry is None:
+            # No transition seen this session, so fall back to a door somebody
+            # has already walked through. Ranked below the entry tile on
+            # purpose: the nearest door may well be the one just entered, and
+            # aiming at it walks the bot straight back where it came from.
+            known = self._warp_memory().doors_from(map_id)
+            if known:
+                door = min(
+                    known,
+                    key=lambda tile: (
+                        abs(tile[0] - position[0]) + abs(tile[1] - position[1])
+                    ),
+                )
+                if tuple(position) != door:
+                    return self._follow_route(f"door-{map_id}", [door])
         if entry is None:
             # Never saw the transition — a resumed save, or the whiteout warp
             # that drops a run at its mother's house. Head for the south edge,
