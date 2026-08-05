@@ -26,15 +26,20 @@ class CapturePolicyTests(unittest.TestCase):
 
     @staticmethod
     def encounter(species=25, level=5, shiny=False, enemy_hp=1, enemy_max_hp=10,
-                  own_hp=10, own_max_hp=10, own_level=0):
+                  own_hp=10, own_max_hp=10, own_level=0,
+                  enemy_status=0, moves=None):
         return {
             "enemy_species_id": species,
             "enemy_level": level,
             "shiny_candidate": shiny,
             "enemy_hp": enemy_hp,
             "enemy_max_hp": enemy_max_hp,
+            "enemy_status": enemy_status,
             "active_pokemon": {
                 "hp": own_hp, "max_hp": own_max_hp, "level": own_level,
+                # Tackle com PP: o caso normal. Sem golpe de dano, "enfraquecer
+                # primeiro" nunca termina.
+                "moves": moves if moves is not None else [{"id": 33, "pp": 20}],
             },
         }
 
@@ -78,6 +83,35 @@ class CapturePolicyTests(unittest.TestCase):
             )
         )
         self.assertEqual("soften_before_capture", decision["reason_code"])
+
+    def test_a_sleeping_target_is_thrown_at_immediately(self):
+        # In Gen I a status condition already multiplies the catch rate, so
+        # waiting to chip HP afterwards is backwards.
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 9}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(species=14, enemy_hp=17, enemy_max_hp=17, enemy_status=1)
+        )
+        self.assertEqual("capture", decision["choice"])
+
+    def test_without_damaging_pp_the_ball_goes_now(self):
+        # A bot spent a night throwing Sleep Powder at a Metapod with seven
+        # Poké Balls in the bag: no damaging PP left, so the HP would never
+        # drop and "soften first" meant "never".
+        env, _ = self.make_env(
+            party=[{"species_id": 7, "level": 9}],
+            memory={GOT_POKEDEX_ADDRESS: GOT_POKEDEX_MASK},
+        )
+        decision = env._capture_policy(
+            self.encounter(
+                species=14, enemy_hp=17, enemy_max_hp=17,
+                moves=[{"id": 79, "pp": 15}, {"id": 33, "pp": 0}],  # só Sleep Powder
+            )
+        )
+        self.assertEqual("capture", decision["choice"])
+        self.assertNotEqual("soften_before_capture", decision["reason_code"])
 
     def test_weakened_target_is_captured(self):
         env, _ = self.make_env(

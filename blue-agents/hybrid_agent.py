@@ -35,6 +35,7 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
+from src.simple_battle import MOVE_POWER
 from area_knowledge import (
     area_coverage,
     area_target,
@@ -1689,6 +1690,17 @@ class HybridGymEnv(RedGymEnv):
         # the hit would end the battle, a throw at full health — poor odds and
         # all — is the only throw that will ever happen.
         active_level = int(active.get("level") or 0)
+
+        # Two ways "soften first" becomes a trap. A status condition already
+        # multiplies the catch rate, so waiting to chip HP afterwards is
+        # backwards. And with no damaging PP left the HP will simply never
+        # drop: a bot spent a night throwing Sleep Powder at a Metapod with
+        # seven Poké Balls in the bag, because the rule kept saying "later".
+        enemy_impaired = int(battle_info.get("enemy_status") or 0) != 0
+        has_damage_left = any(
+            MOVE_POWER.get(int(move.get("id") or 0), 0) > 0 and int(move.get("pp") or 0) > 0
+            for move in active.get("moves") or []
+        )
         overkill_risk = bool(enemy_level) and active_level >= max(
             enemy_level + OVERKILL_LEVEL_GAP, int(enemy_level * OVERKILL_LEVEL_RATIO)
         )
@@ -1716,6 +1728,8 @@ class HybridGymEnv(RedGymEnv):
             "own_hp_fraction": round(own_hp_fraction, 3),
             "active_level": active_level,
             "overkill_risk": overkill_risk,
+            "enemy_impaired": enemy_impaired,
+            "has_damage_left": has_damage_left,
         }
 
     def get_journey_snapshot(self):
@@ -1918,6 +1932,9 @@ class HybridGymEnv(RedGymEnv):
         enemy_level = self.read_m(0xCFF3)
         # Enemy HP (0xCFE6, 2 bytes)
         enemy_hp = (self.read_m(0xCFE6) << 8) + self.read_m(0xCFE7)
+        # Sleep, freeze, paralysis: in Gen I a status condition is the real
+        # setup for a capture, worth more than chipping HP.
+        enemy_status = int(self.read_m(0xCFE9))
         # Max HP follows the enemy level at 0xCFF3.
         enemy_max_hp = (self.read_m(0xCFF4) << 8) + self.read_m(0xCFF5)
         active_internal_id = self.read_m(0xD014)
@@ -1965,6 +1982,7 @@ class HybridGymEnv(RedGymEnv):
             "enemy_level": enemy_level,
             "enemy_hp": enemy_hp,
             "enemy_max_hp": enemy_max_hp,
+            "enemy_status": enemy_status,
             "active_pokemon": active_pokemon,
             "battle_status": battle_status,
             "is_trainer": (battle_status & 0b10) != 0,
@@ -2099,9 +2117,12 @@ class HybridGymEnv(RedGymEnv):
 
         # Gen I catch rates scale with missing HP. Throwing at full health is
         # close to a wasted ball and gives the wild Pokémon a free turn.
-        if quality["enemy_hp_fraction"] > CAPTURE_HP_THRESHOLD and not quality[
-            "overkill_risk"
-        ]:
+        if (
+            quality["enemy_hp_fraction"] > CAPTURE_HP_THRESHOLD
+            and not quality["overkill_risk"]
+            and not quality["enemy_impaired"]
+            and quality["has_damage_left"]
+        ):
             return decision(
                 "defeat", "soften_before_capture", "capture_setup",
                 (
