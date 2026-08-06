@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 from pyboy.utils import WindowEvent
 from src.agent import BaseAgent
@@ -89,9 +90,23 @@ NO_PROGRESS_STEPS = 15
 # bot está, e mirar numa porta do mapa em vez de insistir.
 STUCK_GIVE_UP_STEPS = 40
 
+# Passos que uma parede descoberta na marra vale. Curto de propósito: gente
+# some, e a leitura do cartucho continua sendo a fonte principal.
+BUMP_MEMORY_STEPS = 8
+
+# Passos parado no mesmo tile antes de gravar um relatório de travamento. O
+# segundo relatório do mesmo tile sai no dobro, o terceiro no triplo: quem trava
+# de verdade fica registrado, e quem só esperou um NPC não polui o arquivo.
+STUCK_REPORT_STEPS = 30
+
+# Janela olhada para decidir se ele está preso, e quantos lugares diferentes
+# dentro dela ainda contam como parado. Dois tiles alternados são parados.
+STUCK_WINDOW_TILES = 12
+STUCK_DISTINCT_TILES = 3
+
 # Mapas onde um Centro fica no caminho e a próxima etapa não tem nenhum.
 # Viridian antes da Floresta, Pewter antes da Rota 3.
-CENTER_ON_THE_WAY = {1, 2}
+CENTER_ON_THE_WAY = {1, 2, 15}
 
 # Abaixo disso vale parar no Centro que já está no caminho. Bem acima do
 # limite de emergência: entrar na Floresta pela metade é morrer no meio dela.
@@ -1622,22 +1637,18 @@ class ScriptedAgent(BaseAgent):
             # Register and use the Route 4 Center. The open->closed textbox
             # edge confirms the Nurse interaction without relying on a timer.
             position = self.emulator.memory.get_player_pos()
-            if not getattr(self, "mt_moon_center_healed", False):
+            if self._party_needs_healing():
                 if position != (3, 3):
                     return self._follow_route(
                         "mt-moon-center-nurse", [(3, 7), (3, 3)]
                     )
-                menu_open = self._menu_is_open()
-                if menu_open:
-                    self.mt_moon_heal_dialog_opened = True
-                    return WindowEvent.PRESS_BUTTON_A
-                if getattr(self, "mt_moon_heal_dialog_opened", False):
-                    self.mt_moon_center_healed = True
-                else:
-                    if int(self.emulator.memory.read_byte(0xD52A)) != 8:
-                        self.last_action_was_move = True
-                        return WindowEvent.PRESS_ARROW_UP
-                    return WindowEvent.PRESS_BUTTON_A
+                if int(self.emulator.memory.read_byte(0xD52A)) != 8:
+                    self.last_action_was_move = True
+                    return WindowEvent.PRESS_ARROW_UP
+                # Falar, confirmar e atravessar a animação são todos A; o fim
+                # é o time inteiro de volta, não uma caixa fechando.
+                return WindowEvent.PRESS_BUTTON_A
+            self.mt_moon_center_healed = True
             return self._follow_route(
                 "mt-moon-center-exit", [(3, 3), (3, 7), (3, 8)]
             )
@@ -1653,7 +1664,12 @@ class ScriptedAgent(BaseAgent):
 
         if map_id == 15:
             x, _ = self.emulator.memory.get_player_pos()
-            if x < 20 and not getattr(self, "mt_moon_center_healed", False):
+            # "Já curei aqui" era mais um trinco de processo: reiniciado, ele
+            # voltava ao Centro da Rota 4 com o time inteiro e ficava indo e
+            # vindo entre (12,6) e (13,6). Quem responde é a party na RAM.
+            if x < 20 and (
+                self._party_needs_healing() or self._should_top_up_before(map_id)
+            ):
                 return self._follow_route(
                     "mt-moon-to-center",
                     [(9, 16), (12, 16), (12, 6), (11, 6), (11, 5)],
@@ -2008,6 +2024,29 @@ class ScriptedAgent(BaseAgent):
             )
         self.route_last_position = (map_id, x, y)
 
+        # Bumping into something the tileset called walkable. In Mt. Moon the
+        # screen stores metatiles and the cave misreads: from (21,25) the game
+        # refuses DOWN, the reading calls it free, and the bot pressed into the
+        # rock 1813 times. A press that produced no movement is a wall right
+        # now — remembered for a handful of steps, never written down. People
+        # move away, and so does whatever this was.
+        bumped = getattr(self, "route_bumped", {})
+        for key in [key for key, age in bumped.items() if age <= 0]:
+            del bumped[key]
+        for key in list(bumped):
+            bumped[key] -= 1
+        last_move = getattr(self, "route_last_issue", None) == "move"
+        last_direction_taken = getattr(self, "route_last_direction", None)
+        if (
+            last_move
+            and last_direction_taken
+            and previous is not None
+            and previous == (map_id, x, y)
+            and not self._menu_is_open()
+        ):
+            bumped[(map_id, x, y, last_direction_taken)] = BUMP_MEMORY_STEPS
+        self.route_bumped = bumped
+
         entry_block = getattr(self, "route_entry_block", None)
         blocked_entry = None
         if entry_block:
@@ -2088,6 +2127,9 @@ class ScriptedAgent(BaseAgent):
         self.route_index = min(self.route_index, len(waypoints) - 1)
         target_x, target_y = waypoints[self.route_index]
         blocked = self._tile_truth()
+        for (bumped_map, bumped_x, bumped_y, direction) in getattr(self, "route_bumped", {}):
+            if (bumped_map, bumped_x, bumped_y) == (map_id, x, y):
+                blocked.setdefault(direction, "bumped")
         if blocked_entry:
             blocked[blocked_entry] = "map_edge"
         # Collision calls a doorway walkable, which is true and useless: with
@@ -2146,6 +2188,13 @@ class ScriptedAgent(BaseAgent):
             self.route_no_progress = 0
         else:
             self.route_no_progress = getattr(self, "route_no_progress", 0) + 1
+
+        # A freeze has to leave a trace. Without one, every investigation
+        # starts over: load the save, reproduce, guess. This writes down what
+        # was decided and why, at the moment the walking stopped.
+        self._report_if_stuck(
+            map_id, x, y, target_x, target_y, blocked, waypoints, route_id
+        )
 
         # What the screen has already shown of this map, kept. A screenful is
         # enough to step around a tree and nowhere near enough to leave a
@@ -2252,6 +2301,94 @@ class ScriptedAgent(BaseAgent):
                 stale.add(direction)
         return stale
 
+    def _report_if_stuck(self, map_id, x, y, target_x, target_y, blocked,
+                         waypoints, route_id):
+        """Write one line explaining a freeze, the moment it becomes one.
+
+        Everything here is read, never inferred: where the bot is, where the
+        route wants it, which directions the cartridge refuses and for what
+        reason, what the accumulated map thinks, and how long it has been
+        getting no closer. Read it later with `tools/stuck_report.py`.
+        """
+        # Travar nem sempre é ficar no mesmo tile: dois tiles alternados são
+        # igualmente parados, e foi assim que a Rota 4 escapou do primeiro
+        # gatilho. O que conta é quantos lugares diferentes ele viu por último.
+        window = (getattr(self, "stuck_report_window", []) + [(map_id, x, y)])[-STUCK_WINDOW_TILES:]
+        self.stuck_report_window = window
+        if len(window) < STUCK_WINDOW_TILES or len(set(window)) > STUCK_DISTINCT_TILES:
+            self.stuck_report_steps = 0
+            self.stuck_report_written = 0
+            return
+        self.stuck_report_steps = getattr(self, "stuck_report_steps", 0) + 1
+        written = getattr(self, "stuck_report_written", 0)
+        if self.stuck_report_steps < STUCK_REPORT_STEPS * (written + 1):
+            return
+        self.stuck_report_written = written + 1
+
+        memory = self._map_memory()
+        try:
+            reachable = memory.find_path(map_id, (x, y), (target_x, target_y))
+        except Exception:
+            reachable = None
+        try:
+            frontier = memory.nearest_frontier(map_id, (x, y))
+        except Exception:
+            frontier = None
+        try:
+            warps = sorted(self._tile_reader().warp_tiles())
+        except Exception:
+            warps = []
+        party = []
+        try:
+            for index in range(min(int(self.emulator.memory.get_party_count()), 6)):
+                start = 0xD16B + index * 44
+                read = self.emulator.memory.read_byte
+                party.append({
+                    "species": int(read(start)),
+                    "hp": (int(read(start + 1)) << 8) + int(read(start + 2)),
+                    "max_hp": (int(read(start + 34)) << 8) + int(read(start + 35)),
+                    "pp": [int(read(start + 29 + slot)) & 0x3F for slot in range(4)],
+                })
+        except Exception:
+            pass
+
+        report = {
+            "at": time.time(),
+            "agent": getattr(self, "player_name", "?"),
+            "quest": getattr(self, "current_task_name", None),
+            "map": map_id,
+            "position": [x, y],
+            "target": [target_x, target_y],
+            "route_id": route_id,
+            "route_index": getattr(self, "route_index", None),
+            "waypoints": [list(point) for point in waypoints[:8]],
+            "blocked": dict(blocked),
+            "bumped": [
+                list(key) for key in getattr(self, "route_bumped", {})
+                if key[:3] == (map_id, x, y)
+            ],
+            "steps_on_this_tile": self.stuck_report_steps,
+            "steps_without_progress": getattr(self, "route_no_progress", 0),
+            "closest_it_got": getattr(self, "route_best_distance", None),
+            "path_to_target": "".join(reachable) if reachable else None,
+            "nearest_unexplored": list(frontier) if frontier else None,
+            "map_warps": [list(warp) for warp in warps],
+            "terrain_known": {
+                "walkable": len(memory.walkable.get(int(map_id), ())),
+                "solid": len(memory.solid.get(int(map_id), ())),
+            },
+            "in_battle": int(self.emulator.memory.read_byte(0xD057)),
+            "textbox": int(self.emulator.memory.read_byte(0xCFC4)),
+            "party": party,
+        }
+        try:
+            path = Path(self.save_dir) / "logs" / "stuck.jsonl"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(report, ensure_ascii=False) + "\n")
+        except OSError:
+            pass
+
     def _nearest_useful_warp(self, x, y):
         """Closest door on this map that is not the one just used."""
         reader = self._tile_reader()
@@ -2341,6 +2478,16 @@ class ScriptedAgent(BaseAgent):
             occupied |= {
                 tile for tile in reader.warp_tiles()
                 if tile != goal and tile != (x, y)
+            }
+            # Walls found by bumping belong in the plan, not only in the last
+            # choice of step. Without this the planner kept proposing the same
+            # impossible first move: the report read "caminho até o alvo:
+            # DRRRUU" while D was the very wall the bot had just hit.
+            occupied |= {
+                (key[1] + dx, key[2] + dy)
+                for key in getattr(self, "route_bumped", {})
+                if key[0] == map_id
+                for dx, dy in [ROUTE_STEP_OFFSETS[key[3]]]
             }
         except Exception:
             return None

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -126,6 +127,25 @@ def free_port(port: int) -> None:
         pass
 
 
+def open_dashboard_if_nobody_is_watching() -> None:
+    """Abre o painel só quando não há ninguém já olhando.
+
+    Uma aba aberta reconecta ao relay novo sozinha e se anuncia como
+    espectadora. Abrir mais uma por cima disso é ganhar uma aba duplicada a
+    cada reinício — e reiniciar é a coisa que mais se faz por aqui.
+    """
+    controls = AGENTS / "tasks" / "runtime_controls.json"
+    try:
+        with open(controls, "r", encoding="utf-8") as handle:
+            viewers = int(json.load(handle).get("global", {}).get("viewers", 0) or 0)
+    except (OSError, ValueError, TypeError):
+        viewers = 0
+    if viewers > 0:
+        say(f"Painel já aberto em {viewers} aba(s); não vou abrir outra")
+        return
+    webbrowser.open(DASHBOARD_URL)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--no-browser", action="store_true")
@@ -164,7 +184,7 @@ def main() -> int:
     spawn([npm, "run", "dev", "--", "--host", "127.0.0.1"], DASHBOARD, "dashboard")
 
     if not args.no_browser:
-        threading.Timer(8.0, lambda: webbrowser.open(DASHBOARD_URL)).start()
+        threading.Timer(8.0, open_dashboard_if_nobody_is_watching).start()
 
     print(f"\n  Dashboard: {DASHBOARD_URL}")
     print("  Ctrl+C encerra e salva o progresso dos bots.")
