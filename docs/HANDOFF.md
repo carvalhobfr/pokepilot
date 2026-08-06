@@ -5,6 +5,27 @@
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
 
+## Marco validado: Viridian passada
+
+Definido em 2026-08-06. É o ponto a partir do qual a jornada anda sozinha, do
+jogo novo até dentro da Floresta de Viridian, sem intervenção:
+
+| Etapa | Confirmação |
+|---|---|
+| sair de casa, laboratório, escolher Bulbasaur | `start`, `oak_event` |
+| encomenda entregue ao Oak | `parcel_event` |
+| Poké Bolas compradas no Mart | `buy_pokeballs` |
+| atravessar Viridian e entrar na Floresta | `route_2_nav` |
+
+Estado guardado em `states/viridian-passed-AARON.state` e
+`states/viridian-passed-BARON.state` — AARON com quatro Pokémon dentro da
+Floresta em `(31,24)`, BARON com dois em `(25,25)`. São referência para testar
+o trecho seguinte sem replayar uma hora de jogo: carregue um deles em vez de
+começar do zero.
+
+O que ainda não é marco: a travessia da Floresta até Pewter
+(`viridian_forest_nav`).
+
 ## A regra que explica quase todos os travamentos
 
 Todo congelamento desta jornada teve a mesma forma: **algo guardado na memória

@@ -1,0 +1,29 @@
+{
+  "quest": "oak_event",
+  "recorded_by": "AARON",
+  "recorded_at": 1786036198.248447,
+  "waypoints": 4,
+  "legs": [
+    {
+      "map": 40,
+      "points": [
+        [
+          8,
+          4
+        ],
+        [
+          8,
+          5
+        ],
+        [
+          5,
+          5
+        ],
+        [
+          5,
+          6
+        ]
+      ]
+    }
+  ]
+}
