@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "slot_count": 4,
-  "next_agent_index": 4,
+  "slot_count": 2,
+  "next_agent_index": 2,
   "slots": [
     {
       "slot": 0,
@@ -10,7 +10,8 @@
       "profile_index": 0,
       "generation": 1,
       "status": "active",
-      "archetype": "completionist"
+      "archetype": "completionist",
+      "route_role": "guide"
     },
     {
       "slot": 1,
@@ -19,26 +20,31 @@
       "profile_index": 1,
       "generation": 1,
       "status": "active",
-      "archetype": "speedrunner"
-    },
-    {
-      "slot": 2,
-      "agent_name": "CARON",
-      "identity_index": 2,
-      "profile_index": 2,
-      "generation": 1,
-      "status": "active",
-      "archetype": "team_builder"
-    },
-    {
-      "slot": 3,
-      "agent_name": "DARON",
-      "identity_index": 3,
-      "profile_index": 3,
-      "generation": 1,
-      "status": "active",
-      "archetype": "fire_dragon"
+      "archetype": "speedrunner",
+      "route_role": "follower"
     }
   ],
-  "completed_runs": []
+  "completed_runs": [],
+  "retired_slots": [
+    {
+      "agent_name": "CARON",
+      "reason": "fora do roster; jornada preservada em trainers/"
+    },
+    {
+      "agent_name": "DARON",
+      "reason": "fora do roster; jornada preservada em trainers/"
+    },
+    {
+      "agent_name": "EARON",
+      "reason": "fora do roster; jornada preservada em trainers/"
+    },
+    {
+      "agent_name": "FARON",
+      "reason": "fora do roster; jornada preservada em trainers/"
+    },
+    {
+      "agent_name": "GARON",
+      "reason": "fora do roster; jornada preservada em trainers/"
+    }
+  ]
 }

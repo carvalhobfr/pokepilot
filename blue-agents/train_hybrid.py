@@ -124,6 +124,7 @@ def make_hybrid_env(rank, env_conf, seed=0):
         local_conf['personality'] = archetype["label"]
         local_conf['archetype'] = archetype_name
         local_conf['capture_stance'] = archetype["capture_stance"]
+        local_conf['route_role'] = str(slot.get("route_role", "follower"))
         trainer_dir = Path(env_conf["trainer_root"]) / agent_name
         local_conf['trainer_dir'] = str(trainer_dir)
         local_conf['ram_path'] = str(trainer_dir / "current.sav")
@@ -163,6 +164,7 @@ def make_hybrid_env(rank, env_conf, seed=0):
                 "collector": collector,
                 "mission_focus": mission_focus,
                 "personality": archetype["label"],
+                "route_role": local_conf['route_role'],
                 "guide": "Pokemon Blue: QuestGraph real até Mewtwo",
                 "guide_path": "knowledge/quests/main_quest_graph.json",
                 "mode": "real_emulator",
@@ -287,11 +289,16 @@ if __name__ == "__main__":
         if requested_roster.is_absolute()
         else agent_root / requested_roster
     )
-    # The requested agent count defines the roster size. Pinning it to two
-    # silently resized a three-slot roster back down and then refused to run
-    # with "only 2 thermal-safe slots" — a rule that contradicted the file it
-    # had just rewritten.
-    roster = load_or_create_roster(roster_path, slot_count=num_cpu)
+    # Running fewer agents than the roster has is a smaller run, not a smaller
+    # roster. Resizing here retired three trainers and handed their slots to
+    # freshly named ones — the short validation command in the handoff quietly
+    # replaced BARON, CARON and DARON with EARON, FARON and GARON. Growing the
+    # roster stays an explicit act (`run_journeys.py --slots`).
+    roster = load_or_create_roster(
+        roster_path, slot_count=None if roster_path.exists() else num_cpu
+    )
+    if num_cpu > len(roster["slots"]):
+        roster = load_or_create_roster(roster_path, slot_count=num_cpu)
     if num_cpu > len(roster["slots"]):
         raise ValueError(
             f"Requested {num_cpu} agents, but the roster only produced "

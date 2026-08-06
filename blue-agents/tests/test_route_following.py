@@ -107,6 +107,28 @@ class RouteFollowingTests(unittest.TestCase):
         agent._follow_route("f", [(4, 1)])
         self.assertEqual((3, 11), agent.warp_memory.door_to(13, 47))
 
+    def test_viridian_resume_approaches_the_old_man_before_heading_north(self):
+        agent = self.make_agent((17, 3), map_id=1)
+        self.assertEqual(
+            WindowEvent.PRESS_ARROW_DOWN,
+            agent._run_route_2_nav(),
+        )
+
+    def test_viridian_old_man_dialog_is_confirmed_before_exit(self):
+        agent = self.make_agent((17, 4), map_id=1)
+        live_blocked = {"D": "sprite"}
+        agent._tile_truth = lambda: dict(live_blocked)
+
+        # Face the live sprite, open its text, then confirm until the cartridge
+        # reports the text closed and the blocker is no longer in front.
+        self.assertEqual(WindowEvent.PRESS_ARROW_DOWN, agent._run_route_2_nav())
+        self.assertEqual(WindowEvent.PRESS_BUTTON_A, agent._run_route_2_nav())
+        agent.memory_probe.menu = 1
+        self.assertEqual(WindowEvent.PRESS_BUTTON_A, agent._run_route_2_nav())
+        agent.memory_probe.menu = 0
+        live_blocked.clear()
+        self.assertEqual(WindowEvent.PRESS_ARROW_UP, agent._run_route_2_nav())
+
 
 if __name__ == "__main__":
     unittest.main()

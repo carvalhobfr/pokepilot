@@ -90,12 +90,32 @@ MOVE_POWER = {
 # the "HM can't be deleted" loop.
 HM_MOVE_IDS = {15, 19, 57, 70, 148}
 
+LEECH_SEED_MOVE_ID = 73
+
+# Ordem de preferência quando nenhum golpe de dano tem PP. Menor é melhor.
+# Leech Seed drena todo turno depois de plantada — vale uma vez. Sono e
+# paralisia valem uma. Rebaixar atributo já no mínimo não vale nenhuma.
+STATUS_MOVE_PRIORITY = {
+    73: 0,    # Leech Seed
+    79: 1,    # Sleep Powder
+    147: 1,   # Spore
+    95: 1,    # Hypnosis
+    78: 2,    # Stun Spore
+    86: 2,    # Thunder Wave
+    77: 3,    # Poison Powder
+    45: 9,    # Growl
+    39: 9,    # Tail Whip
+    106: 9,   # Harden
+    43: 9,    # Leer
+}
+
 class SimpleBattleAgent:
     def __init__(self):
         self.move_selection = 0  # Currently selected move (0-3)
         self.last_move_used = -1
         self.text_advance_with_a = False
         self.move_learning = None
+        self.leech_seed_used = False
         self.last_decision = {
             "kind": "uninitialized",
             "reason": "battle controller has not observed a turn yet",
@@ -107,6 +127,7 @@ class SimpleBattleAgent:
         self.last_move_used = -1
         self.text_advance_with_a = False
         self.move_learning = None
+        self.leech_seed_used = False
 
     def _advance_text(self):
         """Alternate B/A like the cartridge-aware PokeBot text handler.
@@ -409,14 +430,27 @@ class SimpleBattleAgent:
             # exhausted move, reopening the "no PP" textbox forever. Two bots sat
             # in Viridian Forest doing exactly that.
             if not candidates:
-                fallback = next(
-                    (
-                        slot
-                        for slot, move_id, pp in player_moves
-                        if pp > 0 and move_id != disabled_move_id
-                    ),
-                    None,
-                )
+                # Not every status move is worth the same turn. Leech Seed
+                # keeps draining after it lands, so it is worth exactly one
+                # cast; a sleep or a paralysis is worth one too. Growl and Tail
+                # Whip do nothing at all once the stage is already at the
+                # bottom, and repeating them is how a trainer spent an
+                # afternoon lowering an Attack that could not go lower.
+                usable = [
+                    (slot, move_id)
+                    for slot, move_id, pp in player_moves
+                    if pp > 0 and move_id != disabled_move_id
+                    and not (
+                        move_id == LEECH_SEED_MOVE_ID
+                        and (self.leech_seed_used or "GRASS" in opponent_types)
+                    )
+                ]
+                fallback = None
+                if usable:
+                    fallback = min(
+                        usable,
+                        key=lambda entry: STATUS_MOVE_PRIORITY.get(entry[1], 50),
+                    )[0]
                 # None means every move is spent: the cartridge substitutes
                 # Struggle on its own, so confirming the menu is correct.
                 best_move_idx = fallback if fallback is not None else best_move_idx
@@ -429,6 +463,10 @@ class SimpleBattleAgent:
                 ),
                 0,
             )
+            if selected_move_id == LEECH_SEED_MOVE_ID:
+                # Planted once, it drains every turn on its own. A second cast
+                # replaces nothing and costs the turn.
+                self.leech_seed_used = True
             selected_candidate = next(
                 (candidate for candidate in candidates if candidate["slot"] == best_move_idx),
                 None,

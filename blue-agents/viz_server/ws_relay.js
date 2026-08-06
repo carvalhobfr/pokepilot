@@ -96,13 +96,23 @@ function readTrainingPid() {
 }
 
 function signalTraining(signal) {
+  // The pid file holds the supervisor, and the supervisor does not run a
+  // single emulator: `run_journeys.py` spawns `train_hybrid.py`, and that is
+  // where the Game Boys live. Stopping only the parent left every bot playing
+  // while the dashboard showed "paused". Signal the whole process group, and
+  // fall back to the single pid when the group is not available.
   const pid = readTrainingPid();
   if (!pid) return { ok: false, error: 'training process not available' };
   try {
-    process.kill(pid, signal);
-    return { ok: true, pid };
-  } catch (error) {
-    return { ok: false, error: error.message };
+    process.kill(-pid, signal);
+    return { ok: true, pid, scope: 'group' };
+  } catch (groupError) {
+    try {
+      process.kill(pid, signal);
+      return { ok: true, pid, scope: 'process' };
+    } catch (error) {
+      return { ok: false, error: error.message };
+    }
   }
 }
 
@@ -184,10 +194,22 @@ function handleDashboardCommand(ws, rawMessage) {
 
   if (command.scope === 'global' && ['pause', 'play'].includes(command.action)) {
     const paused = command.action === 'pause';
+    // Pausing every agent through the control file is the portable half of
+    // this: the trainers read it themselves, it works when the signal lands on
+    // the wrong process, and it works on Windows, where SIGSTOP does not
+    // exist. The signal stays as the instant half.
+    for (const name of Object.keys(controls.agents || {})) {
+      controls.agents[name] = { ...(controls.agents[name] || {}), paused };
+    }
+    for (const agent of agents) {
+      const name = String(agent?.metadata?.user || '').toUpperCase();
+      if (name) {
+        controls.agents[name] = { ...(controls.agents[name] || {}), paused };
+      }
+    }
     const signalResult = signalTraining(paused ? 'SIGSTOP' : 'SIGCONT');
     if (!signalResult.ok) {
-      sendJson(ws, { type: 'command_result', ok: false, error: signalResult.error });
-      return;
+      console.warn('pause signal failed, control file still applies:', signalResult.error);
     }
     controls.global.paused = paused;
     writeControls();
@@ -205,6 +227,27 @@ function handleDashboardCommand(ws, rawMessage) {
     controls.agents[agentName] = {
       ...(controls.agents[agentName] || {}),
       paused: command.action === 'pause',
+    };
+    writeControls();
+    broadcastControlState();
+    sendJson(ws, { type: 'command_result', ok: true, action: command.action, agent: agentName });
+    return;
+  }
+
+  if (command.scope === 'agent' && command.action === 'replan') {
+    const agentName = String(command.agent || '').toUpperCase();
+    if (!/^[A-Z0-9_-]{1,24}$/.test(agentName)) {
+      sendJson(ws, { type: 'command_result', ok: false, error: 'invalid agent' });
+      return;
+    }
+    controls.agents[agentName] = {
+      ...(controls.agents[agentName] || {}),
+      replan: {
+        id: String(command.request_id || `${agentName}-${Date.now()}`),
+        reason: String(command.reason || 'loop detectado pelo worker'),
+        signature: String(command.signature || ''),
+        requested_at: Date.now(),
+      },
     };
     writeControls();
     broadcastControlState();

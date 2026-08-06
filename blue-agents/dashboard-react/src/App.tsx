@@ -24,6 +24,7 @@ function App() {
 
   const { stats, ws, connected } = useAgentStream("ws://localhost:3344/receive");
   const agentUpdateBatchRef = useRef<Record<string, any>>({});
+  const loopWorkerRef = useRef<Worker | null>(null);
 
   // Memoize agent click handler
   const handleAgentClick = useCallback((agent: any) => {
@@ -47,6 +48,38 @@ function App() {
     ws.current.send(JSON.stringify({ type: 'control', ...command }));
     return true;
   }, [ws]);
+
+  useEffect(() => {
+    const worker = new Worker(
+      new URL('./workers/loopDetector.worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    loopWorkerRef.current = worker;
+    worker.onmessage = (event: MessageEvent) => {
+      const loop = event.data;
+      if (!loop || loop.type !== 'loop_detected') return;
+      setAllAgents(prev => ({
+        ...prev,
+        [loop.agent]: {
+          ...prev[loop.agent],
+          loop_detection: loop,
+        },
+      }));
+      sendRuntimeControl({
+        scope: 'agent',
+        agent: loop.agent,
+        action: 'replan',
+        request_id: `${loop.agent}-${Date.now()}`,
+        reason: loop.reason,
+        signature: loop.signature,
+      });
+    };
+    worker.onerror = error => console.error('[LoopDetector]', error);
+    return () => {
+      worker.terminate();
+      loopWorkerRef.current = null;
+    };
+  }, [sendRuntimeControl]);
 
   const handleToggleGlobal = useCallback(() => {
     sendRuntimeControl({
@@ -158,6 +191,14 @@ function App() {
       
       // Batch agent updates
       if (!data.stats && data.metadata) {
+        loopWorkerRef.current?.postMessage({
+          agent: data.metadata.user,
+          map: Number(data.metadata.map_id),
+          x: Number(data.metadata.coords_current?.[0]),
+          y: Number(data.metadata.coords_current?.[1]),
+          task: String(data.metadata.current_task || ''),
+          battle: data.metadata.status === 'battle',
+        });
         const now = Date.now();
         agentUpdateBatchRef.current[data.metadata.user] = {
           ...data.metadata,

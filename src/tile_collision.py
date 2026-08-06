@@ -39,6 +39,15 @@ SPRITE_TABLE_ADDRESS = 0xC100
 SPRITE_ENTRY_SIZE = 0x10
 SPRITE_SLOTS = 16
 
+# Warps are invisible to the tileset: a door tile is not in the walkable list,
+# yet stepping onto (or off of) it is exactly how you leave the building. The
+# map's own warp table says where they are.
+PLAYER_X_ADDRESS = 0xD362
+PLAYER_Y_ADDRESS = 0xD361
+WARP_COUNT_ADDRESS = 0xD3AE
+WARP_TABLE_ADDRESS = 0xD3AF
+WARP_ENTRY_SIZE = 4
+
 DIRECTION_STEPS = {"U": (0, -1), "D": (0, 1), "L": (-1, 0), "R": (1, 0)}
 
 
@@ -86,17 +95,37 @@ class TileCollision:
             occupied.add((dx, dy))
         return occupied
 
-    def local_grid(self):
-        """Walkability of every tile visible on screen, relative to the player.
+    def warp_offsets(self):
+        """Tile offsets, relative to the player, that hold a warp."""
+        offsets = set()
+        player_x = self._byte(PLAYER_X_ADDRESS)
+        player_y = self._byte(PLAYER_Y_ADDRESS)
+        for slot in range(self._byte(WARP_COUNT_ADDRESS)):
+            base = WARP_TABLE_ADDRESS + slot * WARP_ENTRY_SIZE
+            offsets.add((self._byte(base + 1) - player_x, self._byte(base) - player_y))
+        return offsets
 
-        The four adjacent tiles are enough to avoid walking into a wall, and
-        not enough to walk *around* one: a bot whose waypoint sat north of a
-        cliff paced between two tiles forever, because each single step looked
-        equally good. The screen shows about ten by nine map tiles — enough to
-        find the way around what is in front.
+    def warp_tiles(self):
+        """Every warp on this map, in map coordinates."""
+        tiles = set()
+        for slot in range(self._byte(WARP_COUNT_ADDRESS)):
+            base = WARP_TABLE_ADDRESS + slot * WARP_ENTRY_SIZE
+            tiles.add((self._byte(base + 1), self._byte(base)))
+        return tiles
+
+    def on_warp(self):
+        """True when the player is standing on a warp tile."""
+        return (0, 0) in self.warp_offsets()
+
+    def terrain_grid(self):
+        """Walkability of the visible tiles, ignoring who is standing on them.
+
+        This is the version worth remembering. People move, so recording them
+        would rebuild the exact disease this module was written to cure: an NPC
+        turned into permanent geometry.
         """
         walkable = self.walkable_tiles()
-        occupied = self.occupied_offsets()
+        warps = self.warp_offsets()
         grid = {}
         for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
             for dx in range(
@@ -108,7 +137,35 @@ class TileCollision:
                 if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
                     continue
                 tile = self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column)
-                grid[(dx, dy)] = tile in walkable and (dx, dy) not in occupied
+                grid[(dx, dy)] = tile in walkable or (dx, dy) in warps
+        grid[(0, 0)] = True
+        return grid
+
+    def local_grid(self):
+        """Walkability of every tile visible on screen, relative to the player.
+
+        The four adjacent tiles are enough to avoid walking into a wall, and
+        not enough to walk *around* one: a bot whose waypoint sat north of a
+        cliff paced between two tiles forever, because each single step looked
+        equally good. The screen shows about ten by nine map tiles — enough to
+        find the way around what is in front.
+        """
+        walkable = self.walkable_tiles()
+        occupied = self.occupied_offsets()
+        warps = self.warp_offsets()
+        grid = {}
+        for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
+            for dx in range(
+                -(PLAYER_TILEMAP_COLUMN // 2),
+                (TILEMAP_COLUMNS - PLAYER_TILEMAP_COLUMN) // 2,
+            ):
+                column = PLAYER_TILEMAP_COLUMN + dx * 2
+                row = PLAYER_TILEMAP_ROW + dy * 2
+                if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
+                    continue
+                tile = self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column)
+                walkable_here = tile in walkable or (dx, dy) in warps
+                grid[(dx, dy)] = walkable_here and (dx, dy) not in occupied
         grid[(0, 0)] = True
         return grid
 
@@ -141,17 +198,17 @@ class TileCollision:
         reachable = [tile for tile in came if tile != (0, 0)]
         if not reachable:
             return None
-        goal = min(
-            reachable,
-            key=lambda tile: (
+
+        def rank(tile):
+            return (
                 abs(tile[0] - target_dx) + abs(tile[1] - target_dy),
                 abs(tile[0]) + abs(tile[1]),
-            ),
-        )
-        if abs(goal[0] - target_dx) + abs(goal[1] - target_dy) >= (
-            abs(target_dx) + abs(target_dy)
-        ):
-            # Nothing visible gets closer; let the caller decide.
+            )
+
+        goal = min(reachable, key=rank)
+        if rank(goal)[0] >= abs(target_dx) + abs(target_dy):
+            # Nothing visible gets closer and nowhere new to try; let the
+            # caller decide.
             return None
         node = goal
         while came[node][0] != (0, 0):
@@ -163,14 +220,21 @@ class TileCollision:
         try:
             walkable = self.walkable_tiles()
             occupied = self.occupied_offsets()
+            warps = self.warp_offsets()
         except Exception:
             # Anything unreadable means "no opinion"; the caller keeps its own
             # learned map rather than inventing walls.
             return {}
+        # Standing on a door, the way out is the step the tileset calls a wall:
+        # the lab exit reads as blocked terrain and four trainers sat on it.
+        # On a warp tile, terrain has no say — only people can still be in front.
+        on_warp = (0, 0) in warps
         blocked = {}
         for direction, (dx, dy) in DIRECTION_STEPS.items():
             if (dx, dy) in occupied:
                 blocked[direction] = "sprite"
+                continue
+            if on_warp or (dx, dy) in warps:
                 continue
             column = PLAYER_TILEMAP_COLUMN + dx * 2
             row = PLAYER_TILEMAP_ROW + dy * 2

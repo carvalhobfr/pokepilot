@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+import tempfile
 
 from hybrid_agent import HybridGymEnv
 
@@ -56,6 +58,46 @@ class HealingEventTests(unittest.TestCase):
     def test_healing_outside_a_center_is_labelled_as_item_or_event(self):
         env = self.make_env([self.mon(3)], [self.mon(50)], map_id=59)
         self.assertEqual("item_or_event", env.logged[0][1]["source"])
+
+    def test_non_center_checkpoint_is_rejected(self):
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        self.assertFalse(env._save_checkpoint("brock_defeated"))
+
+    def test_orphan_current_state_falls_back_to_the_last_center(self):
+        # An orphan state is still refused. What replaces it is not a brand new
+        # game: a trainer with a level 18 Ivysaur woke up in Oak's lab choosing
+        # a starter again while journey.json still claimed five quests. A
+        # Center with a healed party is where a whiteout would have left the
+        # run anyway.
+        loaded = []
+
+        class RecordingPyBoy:
+            def load_state(self, state):
+                data = state.read() if hasattr(state, "read") else state
+                if data == b"old state":
+                    raise AssertionError("estado órfão não pode ser carregado")
+                loaded.append(data)
+
+        with tempfile.TemporaryDirectory() as directory:
+            env = HybridGymEnv.__new__(HybridGymEnv)
+            env.agent_name = "TESTE"
+            env.trainer_dir = Path(directory)
+            env.checkpoint_dir = env.trainer_dir / "checkpoints"
+            env.pyboy = RecordingPyBoy()
+            (env.trainer_dir / "current.state").write_bytes(b"old state")
+            env.checkpoint_dir.mkdir()
+            (env.checkpoint_dir / "center_41.state").write_bytes(b"center state")
+            self.assertTrue(env._load_current_checkpoint())
+            self.assertEqual([b"center state"], loaded)
+
+    def test_without_any_center_checkpoint_nothing_is_loaded(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = HybridGymEnv.__new__(HybridGymEnv)
+            env.agent_name = "TESTE"
+            env.trainer_dir = Path(directory)
+            env.checkpoint_dir = env.trainer_dir / "checkpoints"
+            env.checkpoint_dir.mkdir()
+            self.assertFalse(env._load_current_checkpoint())
 
 
 if __name__ == "__main__":

@@ -10,11 +10,25 @@ from src.llm_agent import LLMAgent
 from src.navigation import Navigation
 from src.exploration_tracker import ExplorationTracker
 from src.warp_memory import WarpMemory
+from src.map_memory import MapMemory
 from src.tile_collision import TileCollision
+from src.route_trails import TrailRecorder, TrailStore, waypoints_from
 
 # How many A presses a route spends on a dialogue before it walks anyway. The
 # menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
 MENU_PRESS_LIMIT = 12
+
+# Fração do HP total do time abaixo da qual a viagem até o Centro vale a pena.
+# Regra por Pokémon mandava voltar cedo demais: 29/30 atravessava a cidade.
+HEAL_HP_FRACTION = 0.20
+
+# The north street in Viridian has a scripted NPC on the approach tile. The
+# route must reach that tile before leaving so a blocking sprite can be talked
+# to instead of being treated as ordinary geometry.
+VIRIDIAN_CITY_MAP_ID = 1
+VIRIDIAN_OLD_MAN_APPROACH = (17, 4)
+VIRIDIAN_NORTH_EXIT = (17, 0)
+VIRIDIAN_OLD_MAN_DIALOG_LIMIT = 48
 
 # Steps spent waiting for a person to move before walking around them. People
 # in Gen I pace on their own; walls do not.
@@ -33,13 +47,39 @@ BLIND_EXIT_REACH = 10
 STUCK_TILE_AMNESTY_CYCLES = 6
 
 # Tiles remembered to notice pacing. Two visits to the same tile inside this
-# window is a bot going back and forth, not a bot walking a corridor.
-ROUTE_HISTORY_LENGTH = 6
+# window is a bot going back and forth, not a bot walking a corridor. Eight
+# covers the four-step cycle that kept a trainer between (6,30) and (8,30) in
+# the Forest; three would only have caught the two-tile version.
+ROUTE_MEMORY_TILES = 8
+
+ROUTE_STEP_OFFSETS = {"U": (0, -1), "D": (0, 1), "L": (-1, 0), "R": (1, 0)}
 
 # Learned walls live with the rest of the map knowledge, not inside a trainer:
 # geometry is the same for everyone who walks it.
 # Doors already had a home in the knowledge directory; only free exploration
 # ever wrote to it, and the scripted journey never read it.
+SHARED_TERRAIN_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "blue-agents" / "knowledge" / "maps" / "terrain.json"
+)
+
+# Writing a few thousand tiles every step is pointless; the map is only useful
+# across runs, and a crash costs at most this many steps of looking.
+TERRAIN_SAVE_INTERVAL = 200
+
+# How far from its own plan a trainer has to be before the trail is joined
+# again. Short enough to recover from a whiteout, long enough that a detour
+# around one tree is not a reason to start over.
+TRAIL_REJOIN_DISTANCE = 12
+
+# Passos em que a volta pela fronteira recém-atravessada fica retida. Só vale
+# parado no tile de chegada: sair dele e voltar continua permitido.
+ENTRY_BLOCK_STEPS = 4
+
+# Só vale procurar o desconhecido quando o alvo ainda está longe. Perto dele,
+# "explorar" é dar as costas para a porta em que já se está encostado.
+FRONTIER_MIN_DISTANCE = 3
+
 SHARED_WARP_PATH = (
     Path(__file__).resolve().parents[1]
     / "blue-agents" / "knowledge" / "maps" / "warps.json"
@@ -55,7 +95,7 @@ ROUTE_EVENTS = {
 }
 
 class ScriptedAgent(BaseAgent):
-    def __init__(self, walkthrough_path, emulator=None, player_name="AARON", save_dir=".", starter_choice=None):
+    def __init__(self, walkthrough_path, emulator=None, player_name="AARON", save_dir=".", starter_choice=None, route_role="follower"):
         with open(walkthrough_path, 'r') as f:
             self.walkthrough = json.load(f)
             
@@ -84,6 +124,12 @@ class ScriptedAgent(BaseAgent):
         self.player_name = player_name
         self.save_dir = save_dir
         self.starter_choice = starter_choice
+        # The guide walks the route as drawn and nothing else, so that getting
+        # stuck stays a readable verdict on the route instead of being papered
+        # over. The follower inherits whatever the guide has already proved.
+        self.route_role = route_role
+        self.trail_store = TrailStore()
+        self.trail_recorder = TrailRecorder()
         self.current_step = 0
         self.steps = self._flatten_actions(self.walkthrough)
         
@@ -123,7 +169,32 @@ class ScriptedAgent(BaseAgent):
                     # print(f"[{self.player_name}] Warning: Task '{task_name}' not found in walkthrough.")
                     pass
 
+        if getattr(self, "current_task_name", None) == "start" and self.emulator:
+            return self._run_start_deterministic()
         return self.get_action(None)
+
+    def _run_start_deterministic(self):
+        """Complete the opening walk without the legacy timed action list."""
+        map_id = int(self.emulator.memory.get_map_id())
+        position = self.emulator.memory.get_player_pos()
+        if map_id == 38:
+            return self._follow_route("start-bedroom", [(5, 6), (5, 1), (7, 1)])
+        if map_id == 37:
+            return self._follow_route("start-house-1f", [(7, 6), (3, 6), (3, 8)])
+        if map_id == 0:
+            oak_appeared = bool(self.emulator.memory.read_byte(0xD74B) & 0x80)
+            if oak_appeared or position[1] <= 1:
+                return WindowEvent.PRESS_BUTTON_A
+            return self._follow_route("start-pallet", [(10, 6), (10, 1)])
+        if map_id == 40:
+            if self._menu_is_open():
+                # Oak's starter description uses consecutive confirmations;
+                # alternating B here leaves CC50/CFC4 open forever.
+                return WindowEvent.PRESS_BUTTON_A
+            if self.emulator.memory.get_party_count() == 0:
+                return self._choose_starter_verified()
+            return self._complete_oak_rival_event()
+        return None
 
     def get_current_task_name(self):
         return getattr(self, 'current_task_name', 'start')
@@ -931,6 +1002,19 @@ class ScriptedAgent(BaseAgent):
                 return WindowEvent.PRESS_ARROW_DOWN
             return WindowEvent.PRESS_BUTTON_A
 
+        if map_id == 42 and not has_parcel:
+            # The parcel clerk is immediately left of the entrance tile. The
+            # flag at D74E is the only completion signal; keep confirming the
+            # real dialogue until the cartridge records the parcel.
+            if position != (2, 5):
+                return self._follow_route(
+                    "parcel-get-mart", [(3, 7), (3, 5), (2, 5)]
+                )
+            if self.emulator.memory.read_byte(0xD52A) != 2:
+                self.last_action_was_move = True
+                return WindowEvent.PRESS_ARROW_LEFT
+            return WindowEvent.PRESS_BUTTON_A
+
         if not has_parcel:
             routes = {
                 # Antes do primeiro Centro Pokémon, o whiteout devolve o bot
@@ -954,7 +1038,15 @@ class ScriptedAgent(BaseAgent):
                 38: [(7, 1), (7, 7), (2, 7), (2, 8)],
                 37: [(2, 7), (2, 8)],
                 42: [(3, 5), (3, 8)],
-                1: [(29, 21), (26, 21), (26, 30), (20, 30), (20, 36)],
+                # The intermediate waypoints at (26,21)/(26,30) create a
+                # false two-tile loop when resumed at the Viridian barrier.
+                # One real south-exit anchor lets collision-aware steering
+                # choose the currently open contour — but a single anchor is
+                # also a route with no next step: standing exactly on (20,35),
+                # a trainer had nothing left to want and sidestepped forever
+                # with Oak's parcel in the bag. The tile past the border is
+                # what turns "arrived" into "leave".
+                1: [(20, 35), (20, 36)],
                 12: [
                     (10, 3), (8, 3), (8, 18), (9, 18), (9, 21),
                     (12, 21), (12, 24), (10, 24), (10, 36),
@@ -1114,28 +1206,154 @@ class ScriptedAgent(BaseAgent):
         }
         if map_id == 1:
             _, y = self.emulator.memory.get_player_pos()
+            # A route resumed at (17,3) used to select (17,4) as its nearest
+            # point and walk back south forever. From the upper half of the
+            # city, the only useful objective is the north exit itself. Keep a
+            # separate route id so a stale index from the southern leg cannot
+            # be reused after a whiteout or process restart.
             routes[1] = (
                 [
                     (20, 35), (20, 28), (19, 28), (19, 20),
                     (16, 20), (16, 16), (18, 16), (18, 6),
-                    (17, 4), (17, -1),
+                    (17, 4), (17, 0), (17, -1),
                 ]
                 if y > 25
                 else [
-                    (29, 20), (19, 20), (16, 20), (16, 16),
-                    (18, 16), (18, 6), (17, 4), (17, -1),
+                    (17, 4), VIRIDIAN_NORTH_EXIT, (17, -1),
                 ]
             )
+            route_id_suffix = "-south" if y > 25 else "-north"
+        else:
+            route_id_suffix = ""
+        if map_id == VIRIDIAN_CITY_MAP_ID:
+            old_man_action = self._viridian_old_man_action()
+            if old_man_action is not None:
+                return old_man_action
         route = routes.get(map_id)
         if route:
-            return self._follow_route(f"route2-{map_id}", route)
+            return self._follow_route(f"route2-{map_id}{route_id_suffix}", route)
         return self._leave_unknown_map()
+
+    def _viridian_old_man_action(self):
+        """Talk to the north-exit NPC when the cartridge says he is in front.
+
+        A failed movement is not enough evidence to call a sprite the tutorial
+        NPC. The route only enables this small interaction state machine on the
+        measured approach tile and only when live collision identifies a
+        sprite. Dialog progress is observed through the menu flag; completion
+        is not declared from the number of button presses.
+        """
+        position = self.emulator.memory.get_player_pos()
+        if tuple(position) != VIRIDIAN_OLD_MAN_APPROACH:
+            return None
+
+        blocked = self._tile_truth()
+        active = getattr(self, "viridian_old_man_dialog_active", False)
+        if active:
+            direction = getattr(self, "viridian_old_man_direction", None)
+            if (
+                not getattr(self, "viridian_old_man_dialog_seen", False)
+                and blocked.get(direction) != "sprite"
+            ):
+                # The NPC can walk away between the facing press and the next
+                # controller tick. Do not press A into empty ground or keep a
+                # stale dialog latch alive.
+                self.viridian_old_man_dialog_active = False
+                return None
+            self.viridian_old_man_dialog_steps = (
+                getattr(self, "viridian_old_man_dialog_steps", 0) + 1
+            )
+            if self._menu_is_open():
+                self.viridian_old_man_dialog_seen = True
+                if self.viridian_old_man_dialog_steps <= VIRIDIAN_OLD_MAN_DIALOG_LIMIT:
+                    return WindowEvent.PRESS_BUTTON_A
+                # A stuck text flag is not a route wall. B is the safe input
+                # that advances or closes Gen I text without choosing a move.
+                self.viridian_old_man_dialog_active = False
+                return WindowEvent.PRESS_BUTTON_B
+            if not getattr(self, "viridian_old_man_dialog_seen", False):
+                return WindowEvent.PRESS_BUTTON_A
+
+            if blocked.get(direction) == "sprite":
+                # CFC4 briefly drops while a page is being rendered. Keep
+                # confirming until the sprite is no longer the live blocker.
+                if self.viridian_old_man_dialog_steps <= VIRIDIAN_OLD_MAN_DIALOG_LIMIT:
+                    return WindowEvent.PRESS_BUTTON_A
+                self.viridian_old_man_dialog_active = False
+                return None
+
+            # The dialog ended and the obstacle moved or stopped blocking the
+            # approach. The next route call may now head for the exit.
+            self.viridian_old_man_dialog_active = False
+            self.viridian_old_man_interaction_confirmed = True
+            return None
+
+        direction = next(
+            (
+                candidate
+                for candidate in ("U", "D")
+                if blocked.get(candidate) == "sprite"
+            ),
+            None,
+        )
+        if direction is None:
+            return None
+
+        self.viridian_old_man_dialog_active = True
+        self.viridian_old_man_dialog_seen = False
+        self.viridian_old_man_dialog_steps = 0
+        self.viridian_old_man_direction = direction
+        self.route_last_issue = "old_man_dialog"
+        self.last_action_was_move = True
+        return ROUTE_EVENTS[direction]
 
     def _run_viridian_forest_nav(self):
         """Cross Viridian Forest and reach Pewter using collision-safe paths."""
         map_id = int(self.emulator.memory.get_map_id())
         if map_id in (2, 54):
             return None
+
+        # A city Center is a real checkpoint, not just a heal shortcut. Do it
+        # before the first forest entry, and recover there after a whiteout
+        # without touching the current save or discarding earned experience.
+        if map_id == 41:
+            return self._run_pokemon_center(
+                "viridian-center", "viridian_center_healed"
+            )
+        # Whether the trip is worth it is answered by the combined HP in RAM,
+        # never by a "já curei" flag. PP exhaustion is handled by battle input,
+        # not by a second healing condition.
+        if self._party_needs_healing():
+            if map_id == 1:
+                # The two entries from the north used to be measured D-pad
+                # strings. They ran out and returned None forever: a trainer
+                # froze at (23,7), one screen from the Center's own door.
+                # One route, walked, works from anywhere in the city.
+                #
+                # The door at (23, 25) is reachable only from below: (22, 25)
+                # is the building wall, so the approach is deliberate.
+                return self._follow_route(
+                    "viridian-center-door", [(21, 26), (23, 26), (23, 25)]
+                )
+            # These three were measured D-pad strings — "press D eighteen
+            # times and hope". From (8,30) in the Forest that walks into the
+            # y=30 tree line, the string runs out, and `_fixed_route` then
+            # returns None forever: the trainer stands in the grass taking
+            # encounters until something kills it. Same waypoints, walked by
+            # the route follower, which reads the screen and remembers the map.
+            if map_id == 51:
+                return self._follow_route(
+                    "forest-back-to-gate", [(16, 46), (16, 47), (16, 48)]
+                )
+            if map_id == 50:
+                return self._follow_route(
+                    "gate-back-to-route2", [(4, 7), (4, 8)]
+                )
+            if map_id == 13:
+                return self._follow_route(
+                    "route2-back-to-viridian",
+                    [(10, 44), (10, 52), (7, 52), (7, 71), (7, 72)],
+                )
 
         if map_id in (0, 12, 1, 50) or (
             map_id == 13 and self.emulator.memory.get_player_pos()[1] > 20
@@ -1163,6 +1381,18 @@ class ScriptedAgent(BaseAgent):
         map_id = int(self.emulator.memory.get_map_id())
         if map_id == 54:
             return None
+        # Mesmo motivo do Centro de Viridian: o flag some ao reiniciar, e sem
+        # perguntar ao cartucho o bot volta a entrar e sair da porta do Centro.
+        # Foram 431 idas e vindas entre o mapa 2 e o 58 numa hora.
+        if self._party_needs_healing():
+            if map_id == 58:
+                return self._run_pokemon_center(
+                    "pewter-center", "pewter_center_healed"
+                )
+            if map_id == 2:
+                return self._follow_route(
+                    "pewter-center-door", [(13, 25), (13, 24)]
+                )
         if map_id == 2:
             return self._follow_route(
                 "pewter-to-gym",
@@ -1409,36 +1639,63 @@ class ScriptedAgent(BaseAgent):
     def _run_pokemon_center(self, route_prefix, healed_attribute):
         """Register a city Center through its real nurse dialogue."""
         position = self.emulator.memory.get_player_pos()
-        if (
-            not getattr(self, healed_attribute, False)
-            and not self._party_needs_healing()
-        ):
-            setattr(self, healed_attribute, True)
-        if not getattr(self, healed_attribute, False):
+        milestone_prefix = healed_attribute.removesuffix("_healed")
+        dialog_attribute = f"{milestone_prefix}_heal_dialog_opened"
+        # "Curei" era decidido por uma caixa de diálogo ter aberto e fechado.
+        # Abrir texto não é curar: os dois saíam do Centro com o mesmo HP,
+        # voltavam para o mato, voltavam ao Centro — e o trinco de uma vez por
+        # jornada escondia o ciclo. Quem decide é a party na RAM.
+        if self._party_needs_healing():
             if position != (3, 3):
                 return self._follow_route(
                     f"{route_prefix}-nurse",
                     [(3, 7), (3, 3)],
                 )
-            menu_open = self._menu_is_open()
-            dialog_attribute = f"{healed_attribute}_dialog_opened"
-            if menu_open:
-                setattr(self, dialog_attribute, True)
-                return WindowEvent.PRESS_BUTTON_A
-            if getattr(self, dialog_attribute, False):
-                setattr(self, healed_attribute, True)
-            else:
-                if int(self.emulator.memory.read_byte(0xD52A)) != 8:
-                    self.last_action_was_move = True
-                    return WindowEvent.PRESS_ARROW_UP
-                return WindowEvent.PRESS_BUTTON_A
-        return self._follow_route(
-            f"{route_prefix}-exit",
-            [(3, 3), (3, 7), (3, 8)],
+            if int(self.emulator.memory.read_byte(0xD52A)) != 8:
+                self.last_action_was_move = True
+                return WindowEvent.PRESS_ARROW_UP
+            # Falar, confirmar o SIM e atravessar a animação são todos A. O fim
+            # da conversa é o time inteiro de volta, não uma caixa fechando.
+            setattr(self, dialog_attribute, True)
+            return WindowEvent.PRESS_BUTTON_A
+        if not getattr(self, dialog_attribute, False):
+            # A whiteout can place a full party in a Center without a nurse
+            # interaction. It is a recovery location, not proof of a new heal.
+            if tuple(position) not in ((3, 7), (4, 7)):
+                return self._follow_route(f"{route_prefix}-exit", [(3, 7)])
+            self.last_action_was_move = True
+            return WindowEvent.PRESS_ARROW_DOWN
+        setattr(self, healed_attribute, True)
+        setattr(
+            self,
+            f"{healed_attribute.replace('_healed', '')}_checkpoint_confirmed",
+            True,
         )
+        self.last_center_healed_map_id = int(self.emulator.memory.get_map_id())
+        # Leaving used to be a measured D-pad sequence, played once. When any
+        # press was eaten — by the nurse's last text box, by a step that landed
+        # a tile off — the sequence ran out and the controller returned None
+        # forever: a trainer stood on the Center's own doormat, healthy, unable
+        # to walk out. Walking to the door and pressing into it repeats until
+        # the cartridge actually changes map.
+        if tuple(position) not in ((3, 7), (4, 7)):
+            return self._follow_route(f"{route_prefix}-exit", [(3, 7)])
+        self.last_action_was_move = True
+        return WindowEvent.PRESS_ARROW_DOWN
 
     def _party_needs_healing(self):
+        """True only when the team's combined HP is below one fifth.
+
+        Per-Pokémon rules kept sending the trip back too early: at 29/30 a
+        trainer walked the whole city to the Center, healed, took one scratch
+        on the way out and turned around. Exhausted PP is handled by battle
+        control; it is not a second reason to start a healing trip.
+        """
         party_count = min(int(self.emulator.memory.get_party_count()), 6)
+        if party_count <= 0:
+            return False
+        total_hp = 0
+        total_max = 0
         for index in range(party_count):
             struct_start = 0xD16B + index * 44
             current_hp = (
@@ -1447,9 +1704,9 @@ class ScriptedAgent(BaseAgent):
             max_hp = (
                 int(self.emulator.memory.read_byte(struct_start + 34)) << 8
             ) + int(self.emulator.memory.read_byte(struct_start + 35))
-            if current_hp < max_hp:
-                return True
-        return False
+            total_hp += current_hp
+            total_max += max_hp
+        return bool(total_max and total_hp < total_max * HEAL_HP_FRACTION)
 
     def _run_bill_quest(self):
         """Heal, clear the Cerulean rival/bridge and obtain the S.S. Ticket."""
@@ -1646,142 +1903,391 @@ class ScriptedAgent(BaseAgent):
         return 0
 
     def _follow_route(self, route_id, waypoints):
-        """Walk the route using what the cartridge says about the tiles.
+        """Walk the route the way it was actually walking before.
 
-        This used to be a pile of guesses stacked on one another: learn a wall
-        from a failed step, forget it when the tile contradicted itself, doubt
-        it while a text box was open, avoid going back to break the pacing the
-        forgetting caused. Every layer fixed the layer below and added a new
-        way to get stuck, because all of them were compensating for one missing
-        fact — which tiles are actually walkable.
+        There were two of these in this class, and Python kept the last one:
+        the short one. Everything that ever worked on a cartridge worked with
+        the short one. Deleting the "dead" duplicate was not a cleanup, it
+        swapped the pilot mid-flight — measured from the same save, the long
+        version covered 11 tiles in 400 steps and then sat still, where this
+        one covered 26 in 77.
 
-        The cartridge answers that directly (`src/tile_collision.py`), so the
-        guessing is gone. What is left is a step chooser: head toward the
-        waypoint, and when that side is blocked, take the other axis.
+        So this is the short one, with two things kept because they are read
+        from the cartridge rather than guessed: the published trail, and the
+        two-tile pacing guard.
         """
         if not waypoints:
             return None
-
-        # Dialogue and menus eat the D-pad. B closes a menu and also advances
-        # text; A gets its turn for prompts that need a confirmation.
         if self._menu_is_open():
             self.route_menu_presses = getattr(self, "route_menu_presses", 0) + 1
-            if self.route_menu_presses <= MENU_PRESS_LIMIT:
-                return self._route_text()
-        else:
-            self.route_menu_presses = 0
+            return self._route_text()
+        self.route_menu_presses = 0
 
-        current_x, current_y = self.emulator.memory.get_player_pos()
+        x, y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
+        previous = getattr(self, "route_last_position", None)
+        direction = getattr(self, "route_last_direction", None)
+        if previous is not None and direction and previous[0] != map_id:
+            self.route_entry_map = previous[0]
+            self._warp_memory().record(previous[0], previous[1], previous[2], map_id)
+            # The edge between two outdoor maps is a connection, not a warp:
+            # it is in no warp table, so "a door is only ever a destination"
+            # never covered it. Standing on the tile you just arrived on, the
+            # step back across is the one step that cannot be progress —
+            # BARON crossed Viridian/Route 2 twenty-one hundred times in five
+            # minutes doing exactly that.
+            self.route_entry_block = (
+                map_id, x, y, OPPOSITE_DIRECTIONS[direction], 0,
+            )
+        self.route_last_position = (map_id, x, y)
+
+        entry_block = getattr(self, "route_entry_block", None)
+        blocked_entry = None
+        if entry_block:
+            entry_map, entry_x, entry_y, back, age = entry_block
+            if (map_id, x, y) != (entry_map, entry_x, entry_y) or age >= ENTRY_BLOCK_STEPS:
+                self.route_entry_block = None
+            else:
+                self.route_entry_block = (entry_map, entry_x, entry_y, back, age + 1)
+                blocked_entry = back
+
+        # The guide writes the trail down; the follower walks the one that was
+        # already confirmed on RAM. Neither changes how a step is chosen.
+        # Both trainers are doing the same job now: find the way through and
+        # write it down. Whoever confirms a quest first publishes the trail,
+        # and the other one joins it — the roles were about styles of play, and
+        # what is missing is the map, not variety.
+        quest_id = getattr(self, "current_task_name", None)
+        recorder = getattr(self, "trail_recorder", None)
+        store = getattr(self, "trail_store", None)
+        using_trail = False
+        if quest_id and recorder is not None:
+            recorder.record(quest_id, map_id, x, y)
+        if quest_id and store is not None:
+            # Recomputing the join every step is what made the trail bounce:
+            # from (28,20) the nearest point was (29,20), and from (29,20) it
+            # was (28,20) — the trail crosses both on the way out and on the
+            # way back. The plan is kept and walked forward like any route;
+            # it is only rebuilt when the bot is nowhere near it any more,
+            # which is exactly what a whiteout does.
+            key = (quest_id, map_id)
+            cached = getattr(self, "trail_plan", None)
+            trail = cached[1] if cached and cached[0] == key else None
+            if trail:
+                nearest = min(
+                    abs(int(px) - x) + abs(int(py) - y) for px, py in trail
+                )
+                if nearest > TRAIL_REJOIN_DISTANCE:
+                    trail = None
+            if trail is None:
+                trail = waypoints_from(store.load(quest_id), map_id, x, y)
+                # Rejoining by "nearest point" can rejoin *behind*: one step
+                # past the tile where the leg begins, the nearest point is that
+                # beginning, so the trail pulled the bot back onto the map
+                # border it had just crossed — six hundred times. Points just
+                # walked are points already spent.
+                recent = set(getattr(self, "route_recent_tiles", []))
+                while trail and (map_id, int(trail[0][0]), int(trail[0][1])) in recent:
+                    trail = trail[1:]
+                self.trail_plan = (key, trail)
+            if trail and not (len(trail) == 1 and (x, y) == tuple(trail[0])):
+                waypoints = trail
+                route_id = f"trail-{quest_id}-{map_id}"
+                using_trail = True
+            elif trail:
+                # The leg ends on the doorway to the next map, and a trail says
+                # nothing about how to cross it — the next leg is measured in
+                # another map's coordinates. Standing on the last point, hand
+                # the step back to the route the quest drew, whose final
+                # waypoint is deliberately one tile past the border.
+                self.trail_plan = None
 
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
-            # A resumed save or a whiteout can enter a route in its middle.
-            # Start from the closest waypoint instead of walking back to the
-            # first one through everything in between.
-            closest = min(
+            self.route_index = min(
                 range(len(waypoints)),
-                key=lambda index: (
-                    abs(current_x - int(waypoints[index][0]))
-                    + abs(current_y - int(waypoints[index][1]))
-                ),
+                key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
             )
-            on_waypoint = (current_x, current_y) == tuple(waypoints[closest])
-            self.route_index = (
-                min(closest + 1, len(waypoints) - 1) if on_waypoint else closest
-            )
-            self.route_blocked_steps = 0
-            self.route_best_distance = None
-            self.route_unreachable_steps = 0
-
-        # Record doors as they are crossed: the tile the bot stood on when the
-        # map changed is a fact every trainer can use.
-        previous = getattr(self, "route_last_position", None)
-        direction = getattr(self, "route_last_direction", None)
-        if previous is not None and direction is not None and previous[0] != map_id:
-            self._warp_memory().record(previous[0], previous[1], previous[2], map_id)
-        self.route_last_position = (map_id, current_x, current_y)
-
-        while (
-            self.route_index < len(waypoints) - 1
-            and (current_x, current_y) == tuple(waypoints[self.route_index])
-        ):
+        while self.route_index < len(waypoints) - 1 and (
+            x, y
+        ) == tuple(waypoints[self.route_index]):
             self.route_index += 1
 
-        index = min(self.route_index, len(waypoints) - 1)
-        target_x, target_y = waypoints[index]
+        # The same route id can be handed a shorter list than last time — the
+        # Route 2 executor swaps its waypoints once the Center is registered.
+        # The stale index then indexed past the end, IndexError, and the caller
+        # swallowed it and returned NOOP: a bot frozen mid-city with no message
+        # anywhere. Clamping is the whole fix.
+        self.route_index = min(self.route_index, len(waypoints) - 1)
+        target_x, target_y = waypoints[self.route_index]
         blocked = self._tile_truth()
-
-        # Path around what is in front, using the visible screen — also read
-        # from the cartridge, so it is truth and not memory. Single steps are
-        # enough to avoid a wall and not enough to go around one: a bot whose
-        # waypoint sat north of a cliff paced between two tiles forever,
-        # because from each of them the other looked equally good.
-        # Progress is measured in distance to the anchor, not in steps taken:
-        # a bot bouncing between two tiles takes a step every time and gets
-        # nowhere, which is exactly how this looked for hours.
-        distance = abs(target_x - current_x) + abs(target_y - current_y)
-        best = getattr(self, "route_best_distance", None)
-        if best is None or distance < best or index != getattr(self, "route_best_index", None):
-            self.route_best_distance = distance
-            self.route_best_index = index
-            self.route_unreachable_steps = 0
+        if blocked_entry:
+            blocked[blocked_entry] = "map_edge"
+        # Collision calls a doorway walkable, which is true and useless: with
+        # the Mart door one tile north, "walk north" put the bot inside the
+        # shop, out on the mat, and north again — the flashing at the door.
+        # A door is only ever somewhere to arrive at.
+        if self.route_index < len(waypoints) - 1:
+            # Only mid-route. A route's last waypoint is how it leaves the map,
+            # and the tile before it is usually the doorway itself.
+            blocked.update(self._warp_steps(x, y, (target_x, target_y)))
+        wanted = []
+        if abs(target_x - x) >= abs(target_y - y):
+            wanted += self._axis_steps(x, target_x, "R", "L")
+            wanted += self._axis_steps(y, target_y, "D", "U")
         else:
-            self.route_unreachable_steps = getattr(self, "route_unreachable_steps", 0) + 1
+            wanted += self._axis_steps(y, target_y, "D", "U")
+            wanted += self._axis_steps(x, target_x, "R", "L")
 
-        step = self._visible_step(target_x - current_x, target_y - current_y)
-        if step is not None and self.route_unreachable_steps < UNREACHABLE_PATIENCE_STEPS:
+        if self.route_index == len(waypoints) - 1 and abs(target_x - x) + abs(
+            target_y - y
+        ) == 1:
+            wanted = [
+                "R" if target_x > x else
+                "L" if target_x < x else
+                "D" if target_y > y else "U"
+            ]
+
+        if not wanted:
+            # Standing exactly on the last anchor, a route has nothing left to
+            # want. With Oak's parcel in the bag a trainer sat on (20,35) doing
+            # sidesteps until the watchdog restarted the mission, which put it
+            # back on the same tile, which restarted it again — the journey
+            # looked like it was rebooting in a loop. Keep heading the way it
+            # came in, so "arrived" still means "leave".
+            last_direction = getattr(self, "route_last_direction", None)
+            if last_direction:
+                wanted = [last_direction]
+
+        # Where it has just been. Not learned geometry — a memory eight tiles
+        # long, thrown away as it goes.
+        stale = self._recently_walked_steps(map_id, x, y)
+
+        # What the screen has already shown of this map, kept. A screenful is
+        # enough to step around a tree and nowhere near enough to leave a
+        # pocket whose exit is off screen — which is why two trainers spent an
+        # afternoon in the Forest, each tile looking like the best way to a
+        # waypoint neither could reach. Terrain does not change, so remembering
+        # it is not a guess; people are left out of it on purpose.
+        # One tile away, there is nothing to plan: step onto it. Planning here
+        # is how the gate door was missed — the bot had crossed (3,44) often
+        # enough for the frontier rule to take over, and it walked away from
+        # the doorway it was standing next to, over and over.
+        if abs(target_x - x) + abs(target_y - y) == 1:
+            step = (
+                "R" if target_x > x else
+                "L" if target_x < x else
+                "D" if target_y > y else "U"
+            )
+            if step not in blocked:
+                return self._route_move(step)
+
+        # The plan outranks the eight-tile memory: that memory exists for when
+        # there is nothing better than a guess, and a committed path is better.
+        planned = self._planned_step(map_id, x, y, target_x, target_y)
+        if planned is not None and planned not in blocked:
+            return self._route_move(planned)
+
+        for step in wanted:
+            if step not in blocked and step not in stale:
+                return self._route_move(step)
+
+        if wanted and all(blocked.get(step) == "sprite" for step in wanted):
+            self.route_blocked_steps = getattr(self, "route_blocked_steps", 0) + 1
+            if self.route_blocked_steps <= SPRITE_PATIENCE_STEPS:
+                return None
+
+        # Both axes are walls. A sidestep chosen blindly is what parked two
+        # trainers against the Forest's y=30 wall — one paced between (6,30)
+        # and (8,30) for half an hour while the grass fed it battles, the other
+        # simply stopped at (18,32). The screen knows the way around: the tile
+        # map says which of the visible tiles are walkable, so ask it instead
+        # of guessing left or right.
+        step = self._visible_step(target_x - x, target_y - y)
+        if step is not None and step not in blocked and step not in stale:
             return self._route_move(step)
 
-        # Not getting closer: this anchor cannot be reached from here, usually
-        # because the route was measured coming from the other side. Back up one
-        # anchor and approach again instead of pacing.
-        if self.route_unreachable_steps >= UNREACHABLE_PATIENCE_STEPS:
-            self.route_unreachable_steps = 0
-            self.route_best_distance = None
-            if self.route_index > 0:
-                self.route_index -= 1
-                index = self.route_index
-                target_x, target_y = waypoints[index]
-                step = self._visible_step(target_x - current_x, target_y - current_y)
-                if step is not None:
-                    return self._route_move(step)
-
-        # Directions that close the distance, longer axis first, then the two
-        # sidesteps as a way around whatever is in the way.
-        wanted = []
-        if abs(target_x - current_x) >= abs(target_y - current_y):
-            wanted += self._axis_steps(current_x, target_x, "R", "L")
-            wanted += self._axis_steps(current_y, target_y, "D", "U")
-        else:
-            wanted += self._axis_steps(current_y, target_y, "D", "U")
-            wanted += self._axis_steps(current_x, target_x, "R", "L")
-        if not wanted and len(waypoints) >= 2:
-            # The last waypoint can sit one tile past the map border: keep
-            # going the way the route was heading until the map changes.
-            previous_x, previous_y = waypoints[-2]
-            wanted += self._axis_steps(previous_x, target_x, "R", "L")
-            wanted += self._axis_steps(previous_y, target_y, "D", "U")
-        for direction in wanted:
-            if direction not in blocked:
-                self.route_blocked_steps = 0
-                return self._route_move(direction)
-
-        # Every useful direction is taken. A person will move on their own, so
-        # waiting a moment is cheaper than walking away; a wall will not, so
-        # after a few tries step aside and approach from somewhere else.
-        self.route_blocked_steps = getattr(self, "route_blocked_steps", 0) + 1
-        if all(blocked.get(direction) == "sprite" for direction in wanted) and (
-            self.route_blocked_steps <= SPRITE_PATIENCE_STEPS
-        ):
-            return None
-        for direction in ("U", "D", "L", "R"):
-            if direction not in blocked and direction not in wanted:
-                return self._route_move(direction)
+        detours = ("U", "D") if wanted and wanted[0] in ("L", "R") else ("L", "R")
+        for candidate in detours:
+            if candidate not in blocked and candidate not in stale:
+                return self._route_move(candidate)
+        # Everything ahead is either a wall or somewhere we just came from.
+        # Going back is worse than standing still only while there is another
+        # option; now there is not.
+        if step is not None and step not in blocked:
+            return self._route_move(step)
+        for candidate in wanted + list(detours):
+            if candidate not in blocked:
+                return self._route_move(candidate)
         return None
 
+    def _route_role(self):
+        """Guide or follower; tests build agents without going through init."""
+        return getattr(self, "route_role", "follower")
+
+    def publish_trail(self, quest_id):
+        """Hand the walked path to the followers, once the cartridge agrees.
+
+        Called only when a quest predicate is confirmed on real RAM, so a
+        published trail is by construction a path that arrived.
+        """
+        if self.trail_recorder.quest_id != quest_id:
+            return False
+        published = self.trail_store.publish(
+            quest_id, self.player_name, self.trail_recorder.legs()
+        )
+        self.trail_recorder.clear()
+        return published
+
+    def _recently_walked_steps(self, map_id, x, y):
+        """Directions that lead back into the last few tiles walked.
+
+        Pacing is not a wall and not a person: it is the route and the detour
+        disagreeing. Two tiles were not enough to see it. BARON walked between
+        (6,30) and (8,30) in the Forest for half an hour — a four-step cycle,
+        invisible to a memory that only looked two steps back — while the grass
+        kept handing him battles, so from outside it looked like training.
+
+        So the memory is the last eight tiles, and it only has an opinion when
+        the bot is standing somewhere it has already been in that window: then
+        every step that leads back into the window is discouraged. Discouraged,
+        not forbidden — the caller falls back to them when nothing else is
+        open. Nothing is written down, nothing is learned, nothing outlives
+        eight steps.
+        """
+        history = list(getattr(self, "route_recent_tiles", []))
+        history.append((map_id, x, y))
+        history = history[-ROUTE_MEMORY_TILES:]
+        self.route_recent_tiles = history
+        if history.count((map_id, x, y)) < 2:
+            return set()
+        visited = set(history)
+        stale = set()
+        for direction, (dx, dy) in ROUTE_STEP_OFFSETS.items():
+            if (map_id, x + dx, y + dy) in visited:
+                stale.add(direction)
+        return stale
+
+    def _warp_steps(self, x, y, goal):
+        """Directions that step onto a door which is not where we are going."""
+        reader = self._tile_reader()
+        if reader is None:
+            return {}
+        try:
+            warps = reader.warp_tiles()
+        except Exception:
+            return {}
+        return {
+            direction: "warp"
+            for direction, (dx, dy) in ROUTE_STEP_OFFSETS.items()
+            if (x + dx, y + dy) in warps and (x + dx, y + dy) != tuple(goal)
+        }
+
+    def _map_memory(self):
+        """Terrain seen so far, shared by every trainer who walks the same map."""
+        memory = getattr(self, "map_memory", None)
+        if memory is None:
+            memory = MapMemory(SHARED_TERRAIN_PATH)
+            self.map_memory = memory
+        return memory
+
+    def _tile_reader(self):
+        reader = getattr(self, "tile_collision", None)
+        if reader is None:
+            pyboy = getattr(self.emulator, "pyboy", None)
+            if pyboy is None:
+                return None
+            reader = TileCollision(pyboy)
+            self.tile_collision = reader
+        return reader
+
+    def _planned_step(self, map_id, x, y, target_x, target_y):
+        """First step of a path across everything seen of this map, or None.
+
+        Unseen tiles are treated as worth trying, so the plan happily walks off
+        the edge of what has been looked at; every step replaces that optimism
+        with a reading. People are avoided as of right now, never remembered.
+        """
+        reader = self._tile_reader()
+        if reader is None:
+            return None
+        memory = self._map_memory()
+        try:
+            memory.observe(map_id, (x, y), reader.terrain_grid())
+            occupied = {
+                (x + dx, y + dy) for dx, dy in reader.occupied_offsets()
+            }
+            # A door is walkable and it is also a trapdoor. Planning *through*
+            # one is what made the Mart feel like it had gravity: the path to a
+            # waypoint two tiles away crossed the doorway, the bot stepped in,
+            # came out on the mat, and planned the same path again. Doors are
+            # only ever a destination, never a shortcut.
+            goal = (target_x, target_y)
+            occupied |= {
+                tile for tile in reader.warp_tiles()
+                if tile != goal and tile != (x, y)
+            }
+        except Exception:
+            return None
+        self.map_memory_steps = getattr(self, "map_memory_steps", 0) + 1
+        if self.map_memory_steps % TERRAIN_SAVE_INTERVAL == 0:
+            try:
+                memory.save()
+            except OSError:
+                pass
+        # A plan is followed, not recomputed. Replanning every step is what the
+        # y=30 tree line in the Forest turned into pacing: the way around is
+        # long and mostly unseen, so each fresh search picked a different side
+        # and the bot alternated between (6,30) and (8,30) forever, learning a
+        # screenful each time and never committing to either. Now the path is
+        # kept until it is spent, until the goal changes, or until the very
+        # tile it wants to step on turns out to be a wall.
+        # Repeating a tile means the goal is behind something the map does not
+        # know yet. Aim at the edge of the known instead: walking there is the
+        # only move that turns unknown into map, and it always ends the loop.
+        recent = getattr(self, "route_recent_tiles", [])
+        if (
+            recent.count((map_id, x, y)) >= 2
+            and abs(target_x - x) + abs(target_y - y) > FRONTIER_MIN_DISTANCE
+        ):
+            frontier = memory.nearest_frontier(map_id, (x, y), blocked=occupied)
+            if frontier and frontier != (x, y):
+                target_x, target_y = frontier
+
+        plan = getattr(self, "terrain_plan", None)
+        goal_key = (map_id, (target_x, target_y))
+        if plan and plan["key"] == goal_key and plan["steps"]:
+            step = plan["steps"][0]
+            dx, dy = ROUTE_STEP_OFFSETS[step]
+            destination = (x + dx, y + dy)
+            if (
+                plan["from"] == (x, y)
+                and destination not in occupied
+                and not memory.is_solid(map_id, destination)
+            ):
+                plan["steps"] = plan["steps"][1:]
+                plan["from"] = destination
+                return step
+        try:
+            path = memory.find_path(
+                map_id, (x, y), (target_x, target_y), blocked=occupied
+            )
+        except Exception:
+            self.terrain_plan = None
+            return None
+        if not path:
+            self.terrain_plan = None
+            return None
+        first_dx, first_dy = ROUTE_STEP_OFFSETS[path[0]]
+        self.terrain_plan = {
+            "key": goal_key,
+            "steps": path[1:],
+            "from": (x + first_dx, y + first_dy),
+        }
+        return path[0]
+
     def _visible_step(self, target_dx, target_dy):
-        """Step toward the target using the walkability visible on screen."""
+        """Find one local step around visible terrain and sprites."""
         reader = getattr(self, "tile_collision", None)
         if reader is None:
             pyboy = getattr(self.emulator, "pyboy", None)
@@ -1875,6 +2381,18 @@ class ScriptedAgent(BaseAgent):
         self.route_last_direction = direction
         self.route_last_issue = "move"
         return ROUTE_EVENTS[direction]
+
+    def _fixed_route(self, route_id, actions):
+        """Replay a measured D-pad segment without inventing collision facts."""
+        if getattr(self, "fixed_route_id", None) != route_id:
+            self.fixed_route_id = route_id
+            self.fixed_route_index = 0
+        index = getattr(self, "fixed_route_index", 0)
+        if index >= len(actions):
+            return None
+        direction = actions[index]
+        self.fixed_route_index = index + 1
+        return self._route_move(direction)
 
     def _route_text(self):
         """Clear whatever is holding the input, alternating B and A.

@@ -196,8 +196,6 @@ class BattleControllerTests(unittest.TestCase):
         self.assertEqual(44, agent.last_decision["learned_move_id"])
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 class SwitchWhenOutOfPPTests(unittest.TestCase):
@@ -259,10 +257,22 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
         env = self.make_env([self.mon(pp=0)])
         self.assertIsNone(env._switch_target_slot())
 
+    def test_the_switch_waits_for_the_menu_instead_of_walking_into_run(self):
+        # RUN sits one tile from PKMN. With battle text still up the cursor
+        # bytes are not menu coordinates, and a blind press ran away instead of
+        # switching: 62 escapes in ten minutes.
+        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        env.read_m = lambda address: 5 if address == 0xCC25 else 0
+        self.assertEqual("B", env._next_switch_action(), "avança o texto")
+        self.assertFalse(env.switch_menu_open)
+
     def test_the_menu_is_driven_by_the_highlighted_row(self):
         env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        # Menu drawn, cursor on FIGHT: row 0, left column.
+        env.read_m = lambda address: 9 if address == 0xCC25 else 0
         first = env._next_switch_action()
         self.assertEqual("RIGHT", first, "do FIGHT para o PKMN")
+        env.read_m = lambda address: 15 if address == 0xCC25 else 0
         self.assertEqual("A", env._next_switch_action(), "abre a lista da equipe")
         self.assertTrue(env.switch_menu_open)
         self.assertIn("switch_intent", [kind for kind, _ in env.logged])
@@ -308,17 +318,12 @@ class MissionRestartTests(unittest.TestCase):
         env.scripted_agent = agent
         return env
 
-    def test_standing_still_long_enough_restarts_the_mission(self):
+    def test_story_route_is_not_restarted_by_a_timer(self):
         env = self.make_env((14, 19, 4))
         for _ in range(env.limit + 1):
             env._watch_for_stagnation()
-        self.assertIn("mission_restarted", [kind for kind, _ in env.logged])
-        self.assertFalse(hasattr(env.scripted_agent, "route_id"), "rota é descartada")
-        self.assertEqual(
-            "mt_moon_nav", env.scripted_agent.current_task_name,
-            "a missão continua a mesma: limpar a tarefa fazia a detecção de "
-            "checkpoint devolver todo mundo para a luta do rival",
-        )
+        self.assertEqual([], env.logged, "quest real não perde a rota por timeout")
+        self.assertTrue(hasattr(env.scripted_agent, "route_id"), "rota é preservada")
 
     def test_moving_resets_the_count(self):
         env = self.make_env((14, 19, 4))
@@ -366,3 +371,53 @@ class ExhaustedPPTests(unittest.TestCase):
             1, decision["selected_move_slot"],
             "só o slot 1 (Tail Whip) ainda tem PP; slot 0 trava o menu",
         )
+
+
+class FaintedLeadTests(unittest.TestCase):
+    """A faint is a question the game asks, and it waits for the answer."""
+
+    def make_env(self, party, prompt_open=True, active_slot=0):
+        from hybrid_agent import HybridGymEnv
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        env.get_party_info = lambda: list(party)
+        env.read_m = lambda address: (
+            active_slot if address == 0xCC2F
+            else 1 if (address == 0xCFC4 and prompt_open)
+            else 0
+        )
+        env.in_battle = True
+        env.capture_forced = False
+        env.capture_in_flight = False
+        env.capture_plan = []
+        env.capture_bag_open = False
+        env.switch_plan = []
+        env.switch_menu_open = False
+        env.switch_steps = 0
+        env.logged = []
+        env._log_event = lambda kind, data, live=True: env.logged.append((kind, data))
+        return env
+
+    @staticmethod
+    def mon(hp, pp=0):
+        return {
+            "species_id": 1, "level": 10, "hp": hp, "max_hp": 20,
+            "moves": [{"id": 33, "pp": pp}, {"id": 45, "pp": 30}],
+        }
+
+    def test_the_prompt_is_answered_instead_of_run_from(self):
+        # Lead down, nobody with a damaging move: escaping used to win the
+        # ordering and press B at "Use next POKéMON?" forever.
+        env = self.make_env([self.mon(hp=0, pp=0), self.mon(hp=18, pp=0)])
+        self.assertIsNone(env._next_escape_action(), "não se foge de um pedido")
+        self.assertEqual("A", env._next_switch_action(), "responde ao aviso")
+        self.assertTrue(env.switch_menu_open)
+
+    def test_with_everyone_standing_escape_is_still_allowed(self):
+        env = self.make_env([self.mon(hp=20, pp=0), self.mon(hp=18, pp=0)],
+                            prompt_open=False)
+        env._switch_target_slot = lambda: None
+        self.assertIsNotNone(env._next_escape_action())
+
+
+if __name__ == "__main__":
+    unittest.main()

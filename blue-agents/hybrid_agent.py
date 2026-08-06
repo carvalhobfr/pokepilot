@@ -13,6 +13,8 @@ from stable_baselines3 import PPO
 import sys
 import numpy as np
 from pathlib import Path
+from io import BytesIO
+import hashlib
 import sqlite3
 import math
 import time
@@ -84,7 +86,37 @@ SWITCH_MENU_STEP_LIMIT = 12
 MISSION_RESTART_STEPS = 300
 MAJOR_LOCATION_IDS = set(range(0, 11))
 BATTLE_MENU_SAVED_ITEM_ADDRESS = 0xCC2D
+# The battle menu is a 2x2 — FIGHT PKMN / ITEM RUN — and the cartridge stores
+# it as two bytes, not one index: 0xCC26 is the row and 0xCC25 is the cursor's
+# screen column, 9 on the left and 15 on the right. The column doubles as the
+# only honest "the menu is really on screen" signal: while battle text is up it
+# reads something else entirely (5 during "Nothing happened!").
+BATTLE_MENU_COLUMN_ADDRESS = 0xCC25
+BATTLE_MENU_ROW_ADDRESS = 0xCC26
+BATTLE_MENU_LEFT_COLUMN = 9
+BATTLE_MENU_RIGHT_COLUMN = 15
+BATTLE_MENU_FIGHT_ROW = 0
+BATTLE_MENU_ITEM_ROW = 1
+# wMaxMenuItem: the last selectable row of whatever list is on screen.
+BATTLE_MENU_LAST_ROW_ADDRESS = 0xCC28
+# The bag is a flat list: a count, then id/quantity pairs.
+BAG_ITEM_COUNT_ADDRESS = 0xD31D
+BAG_FIRST_ITEM_ADDRESS = 0xD31E
+BAG_CAPACITY = 20
+# One operator order: throw a ball at whatever is on screen right now.
+MANUAL_THROW_BALL_TASK = "MANUAL: THROW_BALL"
+# Predicados que o jogo nunca desfaz: bandeira de evento, insígnia, item na
+# mochila. "Estar no mapa X" fica de fora — estar em algum lugar é temporário.
+DURABLE_QUEST_PREDICATES = {"event_flag", "badge", "bag_item"}
+
+# Centres are the only rooms a run may ever be resumed into.
+POKEMON_CENTER_MAP_IDS = {41, 58, 64, 89, 133, 141, 154, 171, 174, 182}
+CURRENT_STATE_MANIFEST = "current.state.meta.json"
+
 CAPTURE_RESULT_ADVANCE_STEPS = 18
+# Reaching ITEM from anywhere in the 2x2 takes two presses. The rest of this
+# budget is patience with battle text; past it, the screen is not the menu.
+CAPTURE_MENU_STEP_LIMIT = 24
 
 # Small, explicit Gen I strategy prior. Level still drives the general upgrade
 # heuristic; these values cover species whose utility is not obvious from the
@@ -206,6 +238,7 @@ class HybridGymEnv(RedGymEnv):
         super().__init__(config)
         self.battle_agent = SimpleBattleAgent()
         self.agent_name = config.get('agent_name', 'Unknown')
+        self.route_role = config.get("route_role", "follower")
         self.trainer_dir = Path(
             config.get(
                 "trainer_dir",
@@ -288,7 +321,8 @@ class HybridGymEnv(RedGymEnv):
             emulator=self.emulator_adapter,
             player_name=self.agent_name,
             save_dir=str(self.trainer_dir),
-            starter_choice=self.starter_preference
+            starter_choice=self.starter_preference,
+            route_role=self.route_role,
         )
         
         # Initialize AI Path Follower (for AI-assisted navigation)
@@ -318,6 +352,8 @@ class HybridGymEnv(RedGymEnv):
         self.agent_paused = False
         self.playback_speed = 1.0
         self.viewer_count = 0
+        self.last_route_replan_id = None
+        self.pending_route_replan = None
         self.agent_count = max(int(config.get("agent_count", 1)), 1)
         self.state_update_interval = max(
             int(config.get("state_update_interval", 100)), 1
@@ -380,10 +416,6 @@ class HybridGymEnv(RedGymEnv):
             else set()
         )
         
-        # Resume is opt-in. Otherwise the selected CLI state is the true start.
-        if self.resume_state and not self._load_best_checkpoint():
-            print(f"[{self.agent_name}] No checkpoint found – starting from the selected state")
-        
         # Reward State
         self.last_event_count = 0
         self.last_pokedex_count = 0
@@ -412,6 +444,7 @@ class HybridGymEnv(RedGymEnv):
         self.wild_battles_won = 0
         self.trainer_battles_won = 0
         self.deaths = 0
+        self.whiteout_pending = False
         self.last_hp_check = None  # Track HP to detect deaths
         
         # Periodic Auto-Save System (PRIORITÁRIO ao carregar)
@@ -439,6 +472,7 @@ class HybridGymEnv(RedGymEnv):
         self.capture_plan_battle = None
         self.capture_in_flight = False
         self.capture_attempts = 0
+        self.capture_forced = False
         self.capture_result_steps = 0
         self.capture_balls_before_attempt = None
         self.battle_action_mode = "attack"
@@ -457,6 +491,12 @@ class HybridGymEnv(RedGymEnv):
         self.journey_memory_path = self.trainer_dir / "journey.json"
         if self.resume_state:
             self._load_journey_memory()
+        self.scripted_agent.viridian_center_healed = (
+            "viridian_center_healed" in self.announced_story_milestones
+        )
+        self.scripted_agent.pewter_center_healed = (
+            "pewter_center_healed" in self.announced_story_milestones
+        )
         # A PPO rollout boundary must not rewind a real journey.  Keep a
         # process-scoped PyBoy state so the next episode starts where this bot
         # actually stopped.  A new process gets a new path, so --state fresh
@@ -535,10 +575,9 @@ class HybridGymEnv(RedGymEnv):
                 print(f"[{self.agent_name}] Journey carry-load failed: {exc}")
         self._journey_episode_started = True
 
-        # `--resume` selects the external autosave only for the first episode.
-        # On PPO rollout resets, the process-scoped carry state above is newer;
-        # loading the old autosave again would silently rewind the journey.
-        if self.resume_state and not carry_journey and self._load_best_checkpoint():
+        # `--resume` may restore only the explicitly recorded current
+        # checkpoint. It never scans older Center files or arbitrary states.
+        if self.resume_state and not carry_journey and self._load_current_checkpoint():
             obs = self.refresh_after_external_state_load()
 
         # Establish baselines only after every save-state load. This prevents
@@ -554,6 +593,7 @@ class HybridGymEnv(RedGymEnv):
         self.capture_plan_battle = None
         self.capture_in_flight = False
         self.capture_attempts = 0
+        self.capture_forced = False
         self.capture_result_steps = 0
         self.capture_balls_before_attempt = None
         self.battle_action_mode = "attack"
@@ -565,6 +605,44 @@ class HybridGymEnv(RedGymEnv):
         self._sync_quest_objective()
             
         return obs, info
+
+    def _drop_progress_the_cartridge_denies(self, state):
+        """Forget remembered quests the loaded save cannot possibly have done.
+
+        Completion is sticky on purpose — "crossed the Forest" stops being true
+        the moment the bot leaves map 51. Sticky plus a rewound save is a trap:
+        the resume rule refused a `current.state` that was not inside a Center,
+        the run restarted in the bedroom with an empty party, and `journey.json`
+        still claimed five quests. The Forest executor then ran upstairs at
+        home, where it has no route and nothing to do, forever.
+
+        Only irreversible story facts are rechecked: an event flag or an item
+        the game never takes back. Map predicates stay sticky, because being
+        somewhere is temporary by nature.
+        """
+        if getattr(self, "checked_remembered_progress", False):
+            return
+        self.checked_remembered_progress = True
+        denied = set()
+        for quest_id in list(self.quest_completed_ids):
+            node = self.quest_graph.nodes_by_id.get(quest_id)
+            if node is None:
+                continue
+            if not all(
+                str(rule.get("type")) in DURABLE_QUEST_PREDICATES
+                for rule in getattr(node, "success", []) or []
+            ):
+                continue
+            if not self.quest_graph.node_matches(node, state):
+                denied.add(quest_id)
+        if not denied:
+            return
+        self.quest_completed_ids -= denied
+        self._persist_journey_memory()
+        self._log_event("progress_reset", {
+            "dropped": sorted(denied),
+            "reason": "save carregado não confirma estas quests na RAM",
+        })
 
     def _sync_quest_objective(self):
         """Select the first incomplete quest using RAM plus sticky progress.
@@ -578,6 +656,7 @@ class HybridGymEnv(RedGymEnv):
         explicit human order outranks the default background activity.
         """
         state = LiveQuestState(self)
+        self._drop_progress_the_cartridge_denies(state)
 
         # A pending order is verified against the same RAM predicates the story
         # uses, so "ordem cumprida" can never be claimed by elapsed time.
@@ -609,6 +688,19 @@ class HybridGymEnv(RedGymEnv):
             if candidate.id in self.quest_completed_ids:
                 continue
             if self.quest_graph.node_matches(candidate, state):
+                if candidate.id not in self.quest_completed_ids:
+                    # Confirmed on real RAM: only now is the walked path worth
+                    # handing to the followers.
+                    try:
+                        # Keyed by executor, which is what the route follower
+                        # knows itself as while it walks.
+                        if self.scripted_agent.publish_trail(candidate.executor):
+                            self._log_event("trail_published", {
+                                "quest_id": candidate.id,
+                                "reason": "predicado confirmado na RAM",
+                            })
+                    except Exception as error:
+                        print(f"[{self.agent_name}] Trail Error: {error}")
                 self.quest_completed_ids.add(candidate.id)
                 progress_changed = True
                 continue
@@ -728,10 +820,19 @@ class HybridGymEnv(RedGymEnv):
             # no relay at all, which is training with nobody watching.
             self.viewer_count = max(int(global_control.get("viewers", 0) or 0), 0)
             self.agent_paused = bool(agent_control.get("paused", False))
+            request = agent_control.get("replan")
+            if isinstance(request, dict) and request.get("id") != self.last_route_replan_id:
+                self.last_route_replan_id = request.get("id")
+                self.pending_route_replan = request
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             # The relay writes atomically, but keeping the previous state is
             # safer than changing speed due to a transient read failure.
             pass
+
+    def _apply_route_replan(self):
+        # Loop detection remains telemetry-only while route behavior is being
+        # rebuilt. A browser observation must not mutate a live quest cache.
+        self.pending_route_replan = None
 
     def _apply_playback_throttle(self, step_started_at):
         """Throttle the synchronous vector loop to Game Boy wall-clock speed.
@@ -769,6 +870,7 @@ class HybridGymEnv(RedGymEnv):
         )
         if poll_controls:
             self._read_runtime_controls()
+            self._apply_route_replan()
             if self.task_file.exists():
                 try:
                     with open(self.task_file, 'r') as f:
@@ -869,11 +971,27 @@ class HybridGymEnv(RedGymEnv):
                 self.battle_mode_active = True
             # Use the real capture controller for eligible wild encounters;
             # otherwise fall back to the move-selection battle controller.
+            # `MANUAL: THROW_BALL` is one order, not a stream of button
+            # presses: the operator says "throw a ball at this one" and the
+            # capture controller works the real menus, picking the ball by id
+            # from the live bag. It overrides the policy's judgement — that is
+            # the whole point of asking by hand — but never the cartridge's.
+            self.capture_forced = (
+                self.current_task.strip().upper() == MANUAL_THROW_BALL_TASK
+            )
             battle_action_str = self._next_capture_action()
             if battle_action_str is None:
+                # Sending someone out comes first: a fainted lead is not a
+                # battle you may leave, it is a battle waiting on an answer.
                 battle_action_str = self._next_switch_action()
                 if battle_action_str is not None:
                     self.battle_action_mode = "switch"
+            if battle_action_str is None:
+                # Nobody left who can hurt anything: leave, and let the quest
+                # walk to a Center for PP instead of grinding Struggle.
+                battle_action_str = self._next_escape_action()
+                if battle_action_str is not None:
+                    self.battle_action_mode = "escape"
             if battle_action_str is None:
                 self.battle_action_mode = "attack"
                 battle_action_str = self.battle_agent.get_action(self.emulator_adapter)
@@ -991,11 +1109,56 @@ class HybridGymEnv(RedGymEnv):
                 
             elif self.current_task.startswith("MANUAL"):
                 cmd = self.current_task.split(" ")[-1]
-                action = name_to_action(cmd)
-                action_source = "manual"
+                if cmd.upper() == "THROW_BALL":
+                    # Outside a battle there is nothing to throw at. Waiting
+                    # keeps the order standing for the next encounter instead
+                    # of turning it into a stray button press.
+                    action = NOOP_ACTION
+                    action_source = "manual_throw_ball_idle"
+                else:
+                    action = name_to_action(cmd)
+                    action_source = "manual"
             
             elif self.current_task.startswith("QUEST"):
                 action_source = "quest_controller"
+                script_action = None
+                forced_quest_action = False
+                if (
+                    self.current_task == "QUEST: START"
+                    and self.read_m(0xD35E) == 37
+                    and self.read_m(0xD362) == 3
+                    and self.read_m(0xD361) >= 7
+                ):
+                    action = GameAction.DOWN
+                    action_source = "opening_exit"
+                    forced_quest_action = True
+                elif (
+                    self.current_task == "QUEST: START"
+                    and self.read_m(0xD35E) == 40
+                    and self.read_m(0xD163) == 0
+                ):
+                    if self.read_m(0xCFC4) == 1:
+                        action = GameAction.A
+                    else:
+                        target_x = {0: 8, 1: 6, 2: 7}.get(
+                            int(getattr(self, "starter_preference", 0)), 8
+                        )
+                        x, y = self.read_m(0xD362), self.read_m(0xD361)
+                        if y < 4:
+                            action = GameAction.DOWN
+                        elif y > 4:
+                            action = GameAction.UP
+                        elif x < target_x:
+                            action = GameAction.RIGHT
+                        elif x > target_x:
+                            action = GameAction.LEFT
+                        elif not getattr(self, "opening_starter_faced", False):
+                            self.opening_starter_faced = True
+                            action = GameAction.UP
+                        else:
+                            action = GameAction.A
+                    action_source = "opening_starter"
+                    forced_quest_action = True
                 # Delegate to ScriptedAgent
                 try:
                     # Extract quest name (e.g., "QUEST: OAK_EVENT")
@@ -1004,16 +1167,19 @@ class HybridGymEnv(RedGymEnv):
                         quest_name in self.scripted_agent.walkthrough.get("game_flow", {})
                         or hasattr(self.scripted_agent, f"_run_{quest_name}")
                     )
-                    script_action = (
-                        self.scripted_agent.step(quest_name)
-                        if supported
-                        else None
-                    )
+                    if not forced_quest_action:
+                        script_action = (
+                            self.scripted_agent.step(quest_name)
+                            if supported
+                            else None
+                        )
                     
                     if script_action is not None:
                         # Convert PyBoy WindowEvent to RL Action
                         action = self._convert_llm_to_rl_action(script_action)
-                    else:
+                    elif not forced_quest_action:
+                        # A quest with no executor must wait, never fall back
+                        # to PPO roaming and destroy the deterministic route.
                         action = NOOP_ACTION
                         
                 except Exception as e:
@@ -1090,6 +1256,7 @@ class HybridGymEnv(RedGymEnv):
         # 6. Track Battles, Deaths, and Party Changes
         self._track_battles_and_deaths()
         self._track_party_changes()
+        self._persist_center_checkpoints()
         self._watch_for_stagnation()
         self._track_journey()
         
@@ -1541,6 +1708,23 @@ class HybridGymEnv(RedGymEnv):
                 str(quest_id) for quest_id in memory.get("completed_quests", [])
                 if str(quest_id) in self.quest_graph.nodes_by_id
             )
+            if "viridian_center_healed" not in self.announced_story_milestones:
+                try:
+                    with open(self.decision_log_path, "r", encoding="utf-8") as log_file:
+                        for line in log_file:
+                            event = json.loads(line)
+                            data = event.get("data") or {}
+                            if (
+                                event.get("type") == "healed"
+                                and data.get("source") == "pokemon_center"
+                                and int(data.get("map_id", -1)) == 41
+                            ):
+                                self.announced_story_milestones.add(
+                                    "viridian_center_healed"
+                                )
+                                break
+                except (OSError, ValueError, TypeError, json.JSONDecodeError):
+                    pass
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             pass
 
@@ -1658,18 +1842,9 @@ class HybridGymEnv(RedGymEnv):
             None,
         )
 
-    def _battle_menu_path_to_item(self):
-        """Navigate the remembered 2x2 battle menu cursor to ITEM safely."""
-        try:
-            saved_item = int(self.read_m(BATTLE_MENU_SAVED_ITEM_ADDRESS))
-        except Exception:
-            saved_item = 0
-        return {
-            0: ["DOWN"],          # FIGHT -> ITEM
-            1: ["LEFT", "DOWN"],  # PKMN -> FIGHT -> ITEM
-            2: [],                # already on ITEM
-            3: ["LEFT"],          # RUN -> ITEM
-        }.get(saved_item, ["DOWN"])
+    def _battle_menu_step_to_item(self):
+        """One step toward ITEM, decided by what is on screen right now."""
+        return self._battle_menu_step(BATTLE_MENU_ITEM_ROW, BATTLE_MENU_LEFT_COLUMN)
 
     def _enemy_shiny_info(self):
         """Detect the Gen II shiny-compatible DV pattern in a Gen I encounter.
@@ -2366,6 +2541,31 @@ class HybridGymEnv(RedGymEnv):
             "não é espécie nova prioritária nem melhoria do time; derrotar para ganhar experiência",
         )
 
+    def _consume_manual_throw_order(self, battle_info, remaining_balls):
+        """Spend the operator's order once, not once per encounter.
+
+        `MANUAL: THROW_BALL` means "throw one at this one". Left standing it
+        would empty the bag across every battle that followed, so the ball
+        leaving the bag is what closes the order and hands the trainer back to
+        the story.
+        """
+        self.capture_forced = False
+        try:
+            if self.task_file.exists():
+                self.task_file.unlink()
+        except OSError:
+            pass
+        if self.active_quest_id:
+            node = self.quest_graph.nodes_by_id.get(self.active_quest_id)
+            if node is not None:
+                self.current_task = f"QUEST: {node.executor.upper()}"
+        self._log_event("manual_order_completed", {
+            "order": MANUAL_THROW_BALL_TASK,
+            "enemy_species_id": battle_info.get("enemy_species_id"),
+            "pokeballs": remaining_balls,
+            "reason": "bola lançada por ordem do operador; jornada retomada",
+        })
+
     def _next_capture_action(self):
         """Operate the real Gen I menus for a guarded capture attempt.
 
@@ -2398,6 +2598,8 @@ class HybridGymEnv(RedGymEnv):
             )
             self.capture_balls_before_attempt = None
             self.capture_plan = []
+            if ball_was_used and self.capture_forced:
+                self._consume_manual_throw_order(battle_info, remaining_balls)
 
             if policy.get("shiny_candidate") and remaining_balls > 0 and ball_was_used:
                 self.capture_plan_battle = None
@@ -2430,7 +2632,7 @@ class HybridGymEnv(RedGymEnv):
                 # toward FIGHT before SimpleBattleAgent presses A.
                 return "UP"
 
-        if policy["choice"] != "capture":
+        if policy["choice"] != "capture" and not self.capture_forced:
             return None
 
         # Once the bag is open the plan stops being a script and starts being a
@@ -2442,15 +2644,29 @@ class HybridGymEnv(RedGymEnv):
         if getattr(self, "capture_bag_open", False):
             self.battle_action_mode = "capture"
             ball_slot = policy.get("ball_slot")
+            ball_item_id = policy.get("ball_item_id")
             if ball_slot is None:
                 return "B"
             highlighted = self.bag_highlighted_slot()
             if highlighted is None:
                 return "B"
-            if highlighted < ball_slot:
+            # The row is how to get there; the item id is what confirms
+            # arriving. Bag positions shift with every item picked up or used
+            # up, and an eaten press leaves the cursor one row off — pressing A
+            # on the row alone is how a Poké Ball becomes an Antidote.
+            highlighted_item = self.bag_highlighted_item_id()
+            if highlighted_item is not None and highlighted_item == ball_item_id:
+                pass
+            elif highlighted < ball_slot:
                 return "DOWN"
-            if highlighted > ball_slot:
+            elif highlighted > ball_slot:
                 return "UP"
+            elif highlighted_item is not None:
+                # Right row, wrong item: the bag moved under us. Ask the policy
+                # again next step instead of throwing whatever is there.
+                self.capture_bag_open = False
+                self.capture_plan_battle = None
+                return "B"
             self.capture_plan = []
             self.capture_bag_open = False
             self.capture_in_flight = True
@@ -2462,13 +2678,8 @@ class HybridGymEnv(RedGymEnv):
             ball_slot = policy.get("ball_slot")
             if ball_slot is None:
                 return None
-            # Reach ITEM from whichever battle-menu option is remembered,
-            # open the Bag, clamp its cursor to the top, then select the real
-            # inventory slot. This remains correct across shiny retries.
-            # Only up to opening the bag; from there the RAM branch above
-            # drives, because that is the part that kept missing.
-            self.capture_plan = self._battle_menu_path_to_item() + ["A"]
             self.capture_bag_open = False
+            self.capture_menu_steps = 0
             self.capture_plan_battle = self.battle_sequence
             self.capture_attempts += 1
             self._log_event("capture_intent", {
@@ -2485,15 +2696,33 @@ class HybridGymEnv(RedGymEnv):
                 "ball_item_id": policy.get("ball_item_id"),
             })
 
-        if self.capture_plan:
-            self.battle_action_mode = "capture"
-            action = self.capture_plan.pop(0)
-            if not self.capture_plan:
-                # That last A opened the bag; the cursor loop takes over.
-                self.capture_bag_open = True
-            return action
-
-        return None
+        # Walk the battle menu by what the cursor really says. A press eaten by
+        # a text box simply repeats; the Bag is only entered from ITEM.
+        self.battle_action_mode = "capture"
+        self.capture_menu_steps = getattr(self, "capture_menu_steps", 0) + 1
+        if self.capture_menu_steps > CAPTURE_MENU_STEP_LIMIT:
+            # Something on screen is not the battle menu and is not going
+            # away. Give the turn back to the battle controller rather than
+            # pressing into the dark forever.
+            self.capture_plan_battle = None
+            self.capture_bag_open = False
+            self.battle_action_mode = "attack"
+            self._log_event("capture_attempt", {
+                "result": "menu_unreachable",
+                "enemy_id": battle_info.get("enemy_id"),
+                "enemy_species_id": battle_info.get("enemy_species_id"),
+                "reason": "o menu de batalha não respondeu; devolve o turno ao controlador de luta",
+                "pokeballs": self._poke_ball_count(),
+                "motivation": policy.get("motivation"),
+                "shiny_candidate": policy.get("shiny_candidate", False),
+            })
+            return None
+        action = self._battle_menu_step_to_item()
+        if action == "A":
+            # Confirmed on ITEM: this A opens the Bag, and the cursor loop
+            # above takes over from the next step.
+            self.capture_bag_open = True
+        return action
 
     def _has_damaging_pp(self, pokemon):
         return any(
@@ -2564,6 +2793,12 @@ class HybridGymEnv(RedGymEnv):
                 self.switch_steps = 0
                 return "A"
 
+        # The party list can appear without the prompt ever being seen — a
+        # faint in a trainer battle opens it directly. Recognising the screen
+        # matters more than remembering how we got here.
+        if self._party_menu_open():
+            self.switch_menu_open = True
+
         if getattr(self, "switch_menu_open", False):
             self.switch_steps = getattr(self, "switch_steps", 0) + 1
             if self.switch_steps > SWITCH_MENU_STEP_LIMIT:
@@ -2572,6 +2807,18 @@ class HybridGymEnv(RedGymEnv):
                 self.switch_menu_open = False
                 self.switch_steps = 0
                 return "B"
+            # The affirmative answer can leave the faint prompt's text box
+            # open for another frame before the party list is drawn. Cursor
+            # coordinates are stale during that transition; advance the real
+            # prompt first instead of sending D-pad input into it.
+            if self._battle_prompt_open():
+                return "A"
+            # In Blue's forced-switch screen the text flag is already clear,
+            # while CC50 remains 224 until the prompt's hidden cursor accepts
+            # one navigation input. After that first DOWN/UP, A opens the
+            # party list; reading CC26 before then causes an endless DOWN.
+            if int(self.read_m(0xCC50)) == 224 and self.switch_steps > 1:
+                return "A"
             highlighted = self.bag_highlighted_slot()
             if highlighted is None:
                 self.switch_menu_open = False
@@ -2599,10 +2846,10 @@ class HybridGymEnv(RedGymEnv):
             "target_slot": target,
             "party": self.get_party_info(),
         })
-        self.switch_plan = self._battle_menu_path_to_pokemon() + ["A"]
         self.switch_steps = 0
-        action = self.switch_plan.pop(0)
-        if not self.switch_plan and action == "A":
+        action = self._battle_menu_step_to_pokemon()
+        if action == "A":
+            # PKMN confirmed under the cursor: this A opens the party list.
             self.switch_menu_open = True
         return action
 
@@ -2626,7 +2873,7 @@ class HybridGymEnv(RedGymEnv):
             "route_id", "route_index", "route_plan", "route_suspect",
             "route_last_position", "route_last_direction", "route_stuck_steps",
             "route_stuck_cycles", "route_menu_presses", "route_previous_tile",
-            "route_target_was_final",
+            "route_target_was_final", "fixed_route_id", "fixed_route_index",
         ):
             if agent is not None and hasattr(agent, attribute):
                 delattr(agent, attribute)
@@ -2641,6 +2888,12 @@ class HybridGymEnv(RedGymEnv):
 
     def _watch_for_stagnation(self):
         """A bot that has not moved for this long is not making progress."""
+        # Story routes own their recovery. Restarting the mission here erased
+        # the measured segment every 300 PPO steps and recreated the same loop
+        # at Viridian Forest's entrance. The dashboard loop detector can request
+        # a replan explicitly; never discard a real quest route on a timer.
+        if self.current_task.startswith("QUEST"):
+            return
         if self.read_m(0xD057) != 0:
             self.stagnant_steps = 0
             return
@@ -2667,18 +2920,105 @@ class HybridGymEnv(RedGymEnv):
         except Exception:
             return False
 
-    def _battle_menu_path_to_pokemon(self):
-        """Move the remembered 2x2 battle cursor to PKMN."""
+    def _party_menu_open(self):
+        """True when the party list is the menu taking input.
+
+        The 2x2 battle menu and the party list share the cursor bytes, so the
+        only way to tell them apart is the list's own shape: the party screen
+        sets the last selectable row to the last Pokémon, and its cursor sits
+        in column zero. Without this the controller read the party list as a
+        battle menu, decided it was not one, and pressed B — which does nothing
+        at a forced switch. A trainer stood there with two healthy Pokémon and
+        lost the battle.
+        """
         try:
-            saved_item = int(self.read_m(BATTLE_MENU_SAVED_ITEM_ADDRESS))
+            party_count = int(self.read_m(0xD163))
+            if party_count <= 1:
+                return False
+            return (
+                int(self.read_m(BATTLE_MENU_LAST_ROW_ADDRESS)) == party_count - 1
+                and int(self.read_m(BATTLE_MENU_COLUMN_ADDRESS)) == 0
+            )
         except Exception:
-            saved_item = 0
-        return {
-            0: ["RIGHT"],          # FIGHT -> PKMN
-            1: [],                 # already on PKMN
-            2: ["UP", "RIGHT"],    # ITEM -> FIGHT -> PKMN
-            3: ["UP"],             # RUN -> PKMN
-        }.get(saved_item, ["RIGHT"])
+            return False
+
+    def _battle_menu_step(self, target_row, target_column):
+        """One press toward a cell of the 2x2 battle menu, or B to get there.
+
+        The column byte alone is not proof that the 2x2 is on screen: inside
+        the move list it still reads like a menu column, and the row goes to 3.
+        A trainer with every attack at zero PP sat there pressing DOWN into a
+        submenu for sixteen thousand steps.
+
+        So the check is behavioural, not structural: if a direction changed
+        nothing, we are not where we thought, and B is the way back — it closes
+        a submenu, it advances text, and it can never pick a move.
+        """
+        try:
+            row = int(self.read_m(BATTLE_MENU_ROW_ADDRESS))
+            column = int(self.read_m(BATTLE_MENU_COLUMN_ADDRESS))
+        except Exception:
+            return "B"
+        previous = getattr(self, "battle_menu_probe", None)
+        self.battle_menu_probe = (row, column)
+        if column not in (BATTLE_MENU_LEFT_COLUMN, BATTLE_MENU_RIGHT_COLUMN):
+            return "B"
+        if row not in (BATTLE_MENU_FIGHT_ROW, BATTLE_MENU_ITEM_ROW):
+            return "B"
+        if row == target_row and column == target_column:
+            self.battle_menu_probe = None
+            return "A"
+        step = (
+            ("DOWN" if target_row > row else "UP") if row != target_row
+            else ("RIGHT" if target_column > column else "LEFT")
+        )
+        if previous == (row, column):
+            # The last press moved nothing at all: text is eating input, or
+            # this is not the menu we think it is.
+            return "B"
+        return step
+
+    def _party_has_no_damage(self):
+        """True when nobody standing has a damaging move with PP left."""
+        for mon in self.get_party_info():
+            if int(mon.get("hp") or 0) <= 0:
+                continue
+            if self._has_damaging_pp(mon):
+                return False
+        return True
+
+    def _next_escape_action(self):
+        """Run from a wild fight there is no way to win, and go get PP back.
+
+        With every damaging move at zero PP a battle is Growl and Struggle: it
+        cannot be won, it cannot be lost quickly, and it hands the trainer
+        another encounter the moment it ends. Only a Center restores PP in
+        Gen I, so the useful move is to leave — and RUN is one tile from PKMN
+        in the same 2x2 menu that is now read rather than remembered.
+
+        Trainer battles have no exit; those are still fought, Struggle and all.
+        """
+        if not self.in_battle or self.capture_forced:
+            return None
+        try:
+            if (int(self.read_m(0xD057)) & 0b10) != 0:
+                return None
+        except Exception:
+            return None
+        if not self._party_has_no_damage():
+            return None
+        # A faint is a question, not a menu: "Use next POKéMON?" has to be
+        # answered before anything else can be chosen. Running from it pressed
+        # B at the prompt forever, and the run sat there with a dead lead.
+        if self._battle_prompt_open() or self._switch_target_slot() is not None:
+            return None
+        return self._battle_menu_step(
+            BATTLE_MENU_ITEM_ROW, BATTLE_MENU_RIGHT_COLUMN
+        )
+
+    def _battle_menu_step_to_pokemon(self):
+        """One step toward PKMN. RUN sits next to it, so nothing is guessed."""
+        return self._battle_menu_step(BATTLE_MENU_FIGHT_ROW, BATTLE_MENU_RIGHT_COLUMN)
 
     def bag_highlighted_slot(self):
         """Bag index under the cursor: scroll offset plus the highlighted row."""
@@ -2686,6 +3026,32 @@ class HybridGymEnv(RedGymEnv):
             return int(self.read_m(MENU_SCROLL_OFFSET_ADDRESS)) + int(
                 self.read_m(MENU_CURSOR_ADDRESS)
             )
+        except Exception:
+            return None
+
+    def bag_highlighted_item_id(self):
+        """The item id actually under the Bag cursor, read from the bag itself.
+
+        Counting rows is not the same as knowing what is highlighted. The
+        Poké Ball's slot moves every time an item is picked up or used up, and
+        a press swallowed by text leaves the cursor one row from where the
+        controller believes it is. Both mistakes look identical from outside —
+        and both end with A pressed on the wrong item.
+
+        The bag is a plain list in RAM, so the honest question is answerable:
+        what is in the highlighted slot right now.
+        """
+        slot = self.bag_highlighted_slot()
+        if slot is None:
+            return None
+        try:
+            count = min(int(self.read_m(BAG_ITEM_COUNT_ADDRESS)), BAG_CAPACITY)
+        except Exception:
+            return None
+        if not 0 <= slot < count:
+            return None
+        try:
+            return int(self.read_m(BAG_FIRST_ITEM_ADDRESS + slot * 2))
         except Exception:
             return None
 
@@ -2860,6 +3226,7 @@ class HybridGymEnv(RedGymEnv):
     
     def _track_battles_and_deaths(self):
         """Track battle victories and deaths for events"""
+        deaths_before = self.deaths
         # Check if in battle
         is_in_battle = self.read_m(0xD057) != 0
 
@@ -2871,6 +3238,20 @@ class HybridGymEnv(RedGymEnv):
                 self.last_battle_enemy_id = enemy_id
                 self.last_battle_enemy_hp = enemy_hp
             self.last_battle_player_hp = player_hp
+            party_during_battle = self.get_party_info()
+            optional_rival_in_progress = (
+                self.last_battle_is_trainer
+                and self.last_battle_map_id == 40
+                and self.current_task == "QUEST: OAK_EVENT"
+            )
+            if (
+                party_during_battle
+                and not optional_rival_in_progress
+                and all(
+                    int(mon.get("hp") or 0) <= 0 for mon in party_during_battle
+                )
+            ):
+                self.whiteout_pending = True
         
         # Detect battle end (was in battle, now not)
         if self.in_battle and not is_in_battle:
@@ -2892,6 +3273,16 @@ class HybridGymEnv(RedGymEnv):
                 and self.last_battle_map_id == 40
                 and self.current_task == "QUEST: OAK_EVENT"
             )
+            end_map_id = int(self.read_m(0xD35E))
+            party_is_full = bool(party) and all(
+                int(mon.get("hp") or 0) >= int(mon.get("max_hp") or 0) > 0
+                for mon in party
+            )
+            whiteout_transition = (
+                self.last_battle_map_id is not None
+                and end_map_id != self.last_battle_map_id
+                and party_is_full
+            )
             if self.last_battle_player_hp == 0 or not has_alive_pokemon:
                 battle_result = "optional_loss" if optional_rival_loss else "loss"
             elif capture_confirmed:
@@ -2904,6 +3295,11 @@ class HybridGymEnv(RedGymEnv):
                 battle_result = "win"
             else:
                 battle_result = "escaped"
+            if whiteout_transition and not optional_rival_loss:
+                # A battle ending on another map is the cartridge's whiteout
+                # transition. Do not let an enemy HP sample mislabel it as a
+                # victory before the party reaches the healing point.
+                battle_result = "loss"
             self._log_event("battle_end", {
                 "type": battle_kind,
                 "result": battle_result,
@@ -2911,7 +3307,7 @@ class HybridGymEnv(RedGymEnv):
                 "active_pokemon": self.last_active_internal_id,
                 "player_hp_at_end": self.last_battle_player_hp,
                 "battle_map_id": self.last_battle_map_id,
-                "end_map_id": int(self.read_m(0xD35E)),
+                "end_map_id": end_map_id,
             }, live=False)
 
             if battle_result == "win":
@@ -2939,14 +3335,12 @@ class HybridGymEnv(RedGymEnv):
                 # On a whiteout, Pokémon Blue can heal the party and warp to
                 # the last healing point before the first non-battle frame is
                 # observable. Preserve that transition as a real death.
-                end_map_id = int(self.read_m(0xD35E))
                 healed_during_warp = (
-                    has_alive_pokemon
-                    and self.last_battle_map_id is not None
-                    and end_map_id != self.last_battle_map_id
+                    whiteout_transition
                 )
                 if battle_result == "loss" and healed_during_warp:
                     self.deaths += 1
+                    self.whiteout_pending = True
                     self._log_event("death", {
                         "total_deaths": self.deaths,
                         "location": end_map_id,
@@ -3015,6 +3409,7 @@ class HybridGymEnv(RedGymEnv):
                 if all_fainted and self.last_hp_check is True and not optional_rival_loss:
                     # Just died (whiteout), detected on the alive -> fainted edge.
                     self.deaths += 1
+                    self.whiteout_pending = True
                     self._log_event("death", {
                         "total_deaths": self.deaths,
                         "location": self.read_m(0xD35E),
@@ -3039,6 +3434,7 @@ class HybridGymEnv(RedGymEnv):
                 self.capture_plan_battle = None
                 self.capture_in_flight = False
                 self.capture_attempts = 0
+                self.capture_forced = False
                 self.capture_result_steps = 0
                 self.capture_balls_before_attempt = None
                 self.battle_action_mode = "attack"
@@ -3112,75 +3508,179 @@ class HybridGymEnv(RedGymEnv):
                 self._log_training_target(battle_info)
         
         self.in_battle = is_in_battle
+        if self.deaths > deaths_before or getattr(self, "whiteout_pending", False):
+            self._invalidate_current_checkpoint()
+            self._save_whiteout_checkpoint()
+
+    def _invalidate_current_checkpoint(self):
+        """Prevent a pre-death checkpoint from being loaded on restart."""
+        trainer_dir = getattr(self, "trainer_dir", None)
+        if trainer_dir is None:
+            return
+        manifest_path = trainer_dir / CURRENT_STATE_MANIFEST
+        try:
+            manifest_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    def _save_whiteout_checkpoint(self):
+        """Preserve a real post-whiteout Center position, never the loss state."""
+        try:
+            map_id = int(self.read_m(0xD35E))
+        except Exception:
+            return
+        if map_id not in POKEMON_CENTER_MAP_IDS:
+            return
+        party = self.get_party_info()
+        if not party or not all(
+            int(mon.get("hp") or 0) >= int(mon.get("max_hp") or 0) > 0
+            for mon in party
+        ):
+            return
+        if self._save_checkpoint(f"center_{map_id}"):
+            self.whiteout_pending = False
 
     def _save_checkpoint(self, milestone):
-        """Save game state at important milestones"""
+        """Save only a verified post-heal Pokémon Center state."""
+        if not str(milestone).startswith("center_"):
+            return False
         checkpoint_file = self.checkpoint_dir / f"{milestone}.state"
         try:
-            with open(checkpoint_file, 'wb') as f:
-                self.pyboy.save_state(f)
+            state = BytesIO()
+            self.pyboy.save_state(state)
+            state_bytes = state.getvalue()
+            for destination in (checkpoint_file, self.trainer_dir / "current.state"):
+                temporary = destination.with_suffix(destination.suffix + ".tmp")
+                with open(temporary, "wb") as state_file:
+                    state_file.write(state_bytes)
+                    state_file.flush()
+                    os.fsync(state_file.fileno())
+                os.replace(temporary, destination)
+            manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
+            manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
+            with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
+                json.dump(
+                    {
+                        "checkpoint": milestone,
+                        "state": "current.state",
+                        "sha256": hashlib.sha256(state_bytes).hexdigest(),
+                    },
+                    manifest_file,
+                )
+                manifest_file.flush()
+                os.fsync(manifest_file.fileno())
+            os.replace(manifest_temporary, manifest_path)
             print(f"[{self.agent_name}] Checkpoint saved: {milestone}")
             self.saved_checkpoint_milestones.add(milestone)
+            return True
         except Exception as e:
             print(f"[{self.agent_name}] Checkpoint save failed: {e}")
+            return False
+
+    def _state_is_center_after_heal(self):
+        """Accept a resume state only inside a Center with a full party."""
+        try:
+            if int(self.read_m(0xD35E)) not in POKEMON_CENTER_MAP_IDS:
+                return False
+            party = self.get_party_info()
+            return bool(party) and all(
+                int(mon.get("hp") or 0) >= int(mon.get("max_hp") or 0) > 0
+                for mon in party
+            )
+        except Exception:
+            return False
     
-    def _load_best_checkpoint(self):
-        """Load most recent save (PRIORIDADE: autosave > milestones)"""
-        
-        # 1. FIRST: Try to load autosave.state (most recent progress)
-        autosave_path = self.trainer_dir / "current.state"
-        if autosave_path.exists():
-            try:
-                with open(autosave_path, 'rb') as f:
-                    self.pyboy.load_state(f)
-                print(f"[{self.agent_name}] ✅ Loaded AUTO-SAVE (most recent progress)")
-                return True
-            except Exception as e:
-                print(f"[{self.agent_name}] ⚠️ Auto-save corrupted, trying fallback: {e}")
-        
-        # 2. FALLBACK: Load milestone checkpoints if autosave not found
-        # Priority: brock_defeated > pewter_reached > parcel_delivered > oak_done
-        milestones = ["brock_defeated", "pewter_reached", "parcel_delivered", "oak_done"]
-        
-        for milestone in milestones:
-            checkpoint_file = self.checkpoint_dir / f"{milestone}.state"
-            if checkpoint_file.exists():
-                try:
-                    with open(checkpoint_file, 'rb') as f:
-                        self.pyboy.load_state(f)
-                    print(f"[{self.agent_name}] 🏁 Loaded CHECKPOINT: {milestone}")
-                    self.current_milestone = milestone
-                    return True
-                except:
-                    pass
-        
-        return False  # No save found, start from beginning
+    def _load_current_checkpoint(self):
+        """Load only the current checkpoint explicitly written by this code.
+
+        There is deliberately no fallback to ``center_*.state`` or any older
+        milestone. A stale ``current.state`` is ignored before PyBoy sees it,
+        so a death can never be replaced by a historical position.
+        """
+        current_state = self.trainer_dir / "current.state"
+        manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
+        if not current_state.exists() or not manifest_path.exists():
+            return self._load_last_center_checkpoint()
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as manifest_file:
+                manifest = json.load(manifest_file)
+            if manifest.get("state") != "current.state":
+                return False
+            state_bytes = current_state.read_bytes()
+            if hashlib.sha256(state_bytes).hexdigest() != manifest.get("sha256"):
+                return False
+            with BytesIO(state_bytes) as state_file:
+                self.pyboy.load_state(state_file)
+            print(f"[{self.agent_name}] ✅ Loaded explicit current checkpoint")
+            return True
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            pass
+        return self._load_last_center_checkpoint()
+
+    def _load_last_center_checkpoint(self):
+        """Fall back to the newest Center checkpoint, never to a new game.
+
+        Refusing every state is not the safe option it sounds like: a trainer
+        with a level 18 Ivysaur woke up in Oak's lab choosing a starter again,
+        and the journey file still claimed five finished quests. A Center with
+        a healed party is exactly where a whiteout would have left the run, so
+        resuming there costs nothing that dying would not have cost already.
+        """
+        newest = None
+        try:
+            for candidate in self.checkpoint_dir.glob("center_*.state"):
+                if newest is None or candidate.stat().st_mtime > newest.stat().st_mtime:
+                    newest = candidate
+        except OSError:
+            return False
+        if newest is None:
+            return False
+        try:
+            with open(newest, "rb") as state_file:
+                self.pyboy.load_state(state_file)
+        except (OSError, ValueError):
+            return False
+        print(f"[{self.agent_name}] ♻️ Retomando do último Centro: {newest.name}")
+        return True
     
     def _check_milestones(self):
-        """Check and save checkpoints at key milestones"""
-        # Check party count for Oak Event completion
-        party_count = self.read_m(0xD163)
-        if party_count > 0 and "oak_done" not in self.saved_checkpoint_milestones:
-            self._save_checkpoint("oak_done")
-        
-        # Check if delivered parcel (got Pokedex)
-        has_pokedex = self._capture_story_complete()
-        if has_pokedex and "parcel_delivered" not in self.saved_checkpoint_milestones:
-            self._save_checkpoint("parcel_delivered")
-            
-            # If Khalliss, mark tiles as golden!
-            # if self.is_khalliss:
-            #     self._mark_golden_tiles()
-        
-        # Check if reached Pewter City (Map ID 2)
-        map_id = self.read_m(0xD35E)
-        if map_id == 2 and "pewter_reached" not in self.saved_checkpoint_milestones:
-            self._save_checkpoint("pewter_reached")
-        
-        # Check if defeated Brock
-        has_boulder_badge = (self.read_m(0xD356) & 0b00000001) != 0
-        if has_boulder_badge and "brock_defeated" not in self.saved_checkpoint_milestones:
-            self._save_checkpoint("brock_defeated")
+        """Save one state, in the only place worth returning to.
+
+        Milestones used to be scattered: party filled, parcel delivered, Pewter
+        reached, Brock beaten. Any of them could be reloaded later and quietly
+        rewind an hour of play — and dying reloaded too, which erased the loss
+        instead of paying for it. A whiteout is part of the game and is left
+        alone; the cartridge already carries the run back to a Center.
+
+        What is worth keeping is a place a stuck run can be resumed from
+        without cheating: inside a Center, right after a real heal.
+        """
+        if self.in_battle:
+            return
+        scripted = getattr(self, "scripted_agent", None)
+        if scripted is None:
+            return
+        try:
+            map_id = int(self.read_m(0xD35E))
+        except Exception:
+            return
+        if map_id not in POKEMON_CENTER_MAP_IDS:
+            return
+        if getattr(scripted, "last_center_healed_map_id", None) != map_id:
+            return
+        party = self.get_party_info()
+        if not party:
+            return
+        healthy = all(
+            int(mon.get("hp") or 0) >= int(mon.get("max_hp") or 0) > 0
+            for mon in party
+        )
+        if not healthy:
+            return
+        milestone = f"center_{map_id}"
+        if milestone in self.saved_checkpoint_milestones:
+            return
+        self._save_checkpoint(milestone)
 
     def _mark_golden_tiles(self):
         """Mark current seen tiles as golden in shared DB"""
@@ -3194,6 +3694,22 @@ class HybridGymEnv(RedGymEnv):
             print(f"[{self.agent_name}] 🌟 GOLDEN PATH ESTABLISHED! Tiles marked for 3x reward.")
         except Exception as e:
             print(f"[{self.agent_name}] ⚠️ Failed to mark golden tiles: {e}")
+
+    def _persist_center_checkpoints(self):
+        """Persist nurse-dialogue checkpoints, never emulator state."""
+        scripted = getattr(self, "scripted_agent", None)
+        if scripted is None:
+            return
+        changed = False
+        for attribute, milestone in (
+            ("viridian_center_checkpoint_confirmed", "viridian_center_healed"),
+            ("pewter_center_checkpoint_confirmed", "pewter_center_healed"),
+        ):
+            if getattr(scripted, attribute, False) and milestone not in self.announced_story_milestones:
+                self.announced_story_milestones.add(milestone)
+                changed = True
+        if changed:
+            self._persist_journey_memory()
 
     def _track_healing(self, current_party):
         """Report a real heal, confirmed by HP in RAM.
@@ -3393,52 +3909,61 @@ class HybridGymEnv(RedGymEnv):
             }, live=False)
 
     def _periodic_save(self):
-        """Save auto-save checkpoint (PRIORITÁRIO ao carregar)"""
-        try:
-            # Save to autosave.state (single file, always most recent)
-            autosave_path = self.trainer_dir / "current.state"
-            autosave_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # Save current state
-            with open(autosave_path, "wb") as f:
-                self.pyboy.save_state(f)
-            
-            # Quiet - only log occasionally
-            if hasattr(self, 'step_count') and self.step_count % 6000 == 0:  # Every ~100s
-                print(f"[{self.agent_name}] 💾 Auto-save updated")
-                    
-        except Exception as e:
-            print(f"[{self.agent_name}] ⚠️ Failed auto-save: {e}")
+        """Do not write arbitrary emulator positions as resume points.
+
+        The regular step loop already checks for a verified Center heal. This
+        hook remains for callers that still trigger the old periodic cadence,
+        but it intentionally performs no state save.
+        """
+        return None
 
     def _manual_save(self, timestamp):
-        """Save manual checkpoint triggered by user"""
+        """Keep manual-save compatibility without creating unsafe states."""
+        self._check_milestones()
+
+    def _write_resume_state(self, label):
+        """Write current.state plus its manifest, wherever the run happens to be.
+
+        This is the end-of-session save: the next start continues from here.
+        It is deliberately the *only* other writer besides the Center
+        checkpoint, and nothing reads it mid-run — a bot that gets stuck has to
+        walk out of it, not be rewound into a better position.
+        """
         try:
-            filename = f"manual_{int(timestamp)}.state"
-            path = self.checkpoint_dir / filename
-            
-            # Save current state
-            with open(path, "wb") as f:
-                self.pyboy.save_state(f)
-            
-            print(f"[{self.agent_name}] ✅ Manual Save Complete: {filename}")
-                    
-        except Exception as e:
-            print(f"[{self.agent_name}] ⚠️ Failed to perform manual save: {e}")
+            with BytesIO() as state:
+                self.pyboy.save_state(state)
+                state_bytes = state.getvalue()
+            destination = self.trainer_dir / "current.state"
+            temporary = destination.with_suffix(destination.suffix + ".tmp")
+            with open(temporary, "wb") as state_file:
+                state_file.write(state_bytes)
+                state_file.flush()
+                os.fsync(state_file.fileno())
+            os.replace(temporary, destination)
+            manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
+            manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
+            with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
+                json.dump(
+                    {
+                        "checkpoint": label,
+                        "state": "current.state",
+                        "sha256": hashlib.sha256(state_bytes).hexdigest(),
+                    },
+                    manifest_file,
+                )
+                manifest_file.flush()
+                os.fsync(manifest_file.fileno())
+            os.replace(manifest_temporary, manifest_path)
+            return True
+        except Exception as error:
+            print(f"[{self.agent_name}] Resume state save failed: {error}")
+            return False
 
     def close(self):
-        """Persist the newest emulator state before PyBoy exports the .sav."""
-        pyboy = getattr(self, "pyboy", None)
-        if pyboy is not None:
-            try:
-                current_state = self.trainer_dir / "current.state"
-                current_state.parent.mkdir(parents=True, exist_ok=True)
-                temporary = current_state.with_suffix(".state.tmp")
-                with open(temporary, "wb") as state_file:
-                    pyboy.save_state(state_file)
-                temporary.replace(current_state)
-                self._persist_journey_memory()
-            except Exception as exc:
-                print(f"[{self.agent_name}] Final state save failed: {exc}")
+        """Persist the journey and where it stopped, so the next run resumes."""
+        self._persist_journey_memory()
+        self._write_resume_state("session_end")
+        print(f"[{self.agent_name}] 💾 Estado final salvo para retomada")
         return super().close()
 
 
