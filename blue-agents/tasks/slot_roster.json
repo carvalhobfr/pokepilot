@@ -45,6 +45,10 @@
     {
       "agent_name": "GARON",
       "reason": "fora do roster; jornada preservada em trainers/"
+    },
+    {
+      "agent_name": "CAARON",
+      "reason": "slot extra criado por --slots 3; jornada preservada em trainers/"
     }
   ]
 }

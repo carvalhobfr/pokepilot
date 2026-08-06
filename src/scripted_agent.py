@@ -85,6 +85,10 @@ FRONTIER_MIN_DISTANCE = 3
 # encontro congela o bot no lugar e o tile se repete sozinho.
 NO_PROGRESS_STEPS = 15
 
+# Passos sem progresso antes de aceitar que o waypoint está errado para onde o
+# bot está, e mirar numa porta do mapa em vez de insistir.
+STUCK_GIVE_UP_STEPS = 40
+
 # Mapas onde um Centro fica no caminho e a próxima etapa não tem nenhum.
 # Viridian antes da Floresta, Pewter antes da Rota 3.
 CENTER_ON_THE_WAY = {1, 2}
@@ -2248,6 +2252,26 @@ class ScriptedAgent(BaseAgent):
                 stale.add(direction)
         return stale
 
+    def _nearest_useful_warp(self, x, y):
+        """Closest door on this map that is not the one just used."""
+        reader = self._tile_reader()
+        if reader is None:
+            return None
+        try:
+            warps = reader.warp_tiles()
+        except Exception:
+            return None
+        entry = getattr(self, "route_entry_block", None)
+        recent = {(int(a), int(b)) for _, a, b in getattr(self, "route_recent_tiles", [])}
+        if entry:
+            recent.add((entry[1], entry[2]))
+        candidates = [tile for tile in warps if tile not in recent]
+        if not candidates:
+            candidates = list(warps)
+        if not candidates:
+            return None
+        return min(candidates, key=lambda t: abs(t[0] - x) + abs(t[1] - y))
+
     def _warp_steps(self, x, y, goal):
         """Directions that step onto a door which is not where we are going."""
         reader = self._tile_reader()
@@ -2343,6 +2367,14 @@ class ScriptedAgent(BaseAgent):
             frontier = memory.nearest_frontier(map_id, (x, y), blocked=occupied)
             if frontier and frontier != (x, y):
                 target_x, target_y = frontier
+            elif getattr(self, "route_no_progress", 0) > STUCK_GIVE_UP_STEPS:
+                # Nothing to explore and nowhere to get to: the waypoint is
+                # wrong for where this bot actually is. The map's own doors are
+                # the one thing here that is not a guess — a cave has no other
+                # way on — so head for the nearest one that is not the way in.
+                door = self._nearest_useful_warp(x, y)
+                if door:
+                    target_x, target_y = door
 
         plan = getattr(self, "terrain_plan", None)
         goal_key = (map_id, (target_x, target_y))
