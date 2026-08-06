@@ -46,3 +46,6 @@ wandb/
 
 # --- sistema --------------------------------------------------------------
 .DS_Store
+
+# Terreno lido da tela: derivado, cresce sozinho e pode ser reconstruído.
+blue-agents/knowledge/maps/terrain.json

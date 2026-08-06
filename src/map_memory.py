@@ -117,7 +117,22 @@ class MapMemory:
                 queue.append(neighbour)
         return None
 
-    def find_path(self, map_id, start, goal, blocked=(), limit=4000):
+    def forget_solid(self, map_id, tile):
+        """Standing on a tile proves it is walkable, whatever was recorded.
+
+        The screen stores metatile ids, and a few walkable subtiles read as
+        wall. One wrong stone is harmless; a map full of them disconnects
+        regions that are joined in the game, and the bot ends up trapped by
+        its own notes. Walking onto a tile is the correction.
+        """
+        map_id = int(map_id)
+        tile = tuple(tile)
+        if tile in self.solid.get(map_id, ()):
+            self.solid[map_id].discard(tile)
+            self.walkable.setdefault(map_id, set()).add(tile)
+            self.dirty = True
+
+    def find_path(self, map_id, start, goal, blocked=(), limit=4000, ignore_solid=False):
         """Shortest known path, treating unseen tiles as worth trying.
 
         Optimism about the unseen is what lets a bot walk off the edge of what
@@ -128,7 +143,7 @@ class MapMemory:
         start, goal = tuple(start), tuple(goal)
         if start == goal:
             return []
-        solid = self.solid.get(map_id, set())
+        solid = set() if ignore_solid else self.solid.get(map_id, set())
         avoid = {tuple(tile) for tile in blocked}
         came = {start: None}
         queue = deque([start])

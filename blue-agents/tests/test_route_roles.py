@@ -274,3 +274,76 @@ class HealingNeedTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TopUpOnTheWayTests(unittest.TestCase):
+    """A Center on the route is cheap; one reached after dying is not."""
+
+    def agent_at(self, fraction):
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        agent._party_health_fraction = lambda: fraction
+        return agent
+
+    def test_half_health_stops_at_the_center_in_viridian(self):
+        # Entering the Forest at half health means dying in the middle of it
+        # and walking the whole stretch again after the whiteout.
+        self.assertTrue(self.agent_at(0.5)._should_top_up_before(1))
+
+    def test_a_healthy_team_walks_past_it(self):
+        self.assertFalse(self.agent_at(0.9)._should_top_up_before(1))
+
+    def test_maps_without_a_center_on_the_way_never_detour(self):
+        self.assertFalse(self.agent_at(0.3)._should_top_up_before(51))
+
+
+class HealForwardTests(unittest.TestCase):
+    """Hurt in the second half of a crossing, the Center ahead is the near one."""
+
+    class ForestMemory:
+        def __init__(self, map_id, pos, party):
+            self.map_id = map_id
+            self.pos = pos
+            self.party = party
+
+        def get_map_id(self): return self.map_id
+        def get_player_pos(self): return self.pos
+        def get_party_count(self): return len(self.party)
+
+        def read_byte(self, address):
+            index, offset = divmod(address - 0xD16B, 44)
+            if 0 <= index < len(self.party):
+                hp, max_hp = self.party[index]
+                if offset == 1: return hp >> 8
+                if offset == 2: return hp & 0xFF
+                if offset == 34: return max_hp >> 8
+                if offset == 35: return max_hp & 0xFF
+                if 8 <= offset <= 11: return 33
+                if 29 <= offset <= 32: return 20
+            return 0
+
+    def agent(self, map_id, pos, party=((5, 40),)):
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        memory = self.ForestMemory(map_id, pos, list(party))
+        agent.emulator = type("FakeEmulator", (), {"memory": memory})()
+        agent.calls = []
+        agent._follow_route = lambda route_id, waypoints: agent.calls.append(route_id)
+        agent._run_pokemon_center = lambda *a: agent.calls.append("center")
+        agent._run_route_2_nav = lambda: agent.calls.append("route_2_nav")
+        agent._leave_unknown_map = lambda: agent.calls.append("leave")
+        return agent
+
+    def test_the_southern_half_walks_back_to_viridian(self):
+        agent = self.agent(51, (16, 40))
+        agent._run_viridian_forest_nav()
+        self.assertEqual(["forest-back-to-gate"], agent.calls)
+
+    def test_the_northern_half_keeps_going_to_pewter(self):
+        # Walking back from here means crossing the whole Forest twice.
+        agent = self.agent(51, (16, 10))
+        agent._run_viridian_forest_nav()
+        self.assertNotIn("forest-back-to-gate", agent.calls)
+
+    def test_route_2_north_never_turns_around(self):
+        agent = self.agent(13, (8, 6))
+        agent._run_viridian_forest_nav()
+        self.assertNotIn("route2-back-to-viridian", agent.calls)

@@ -80,6 +80,24 @@ ENTRY_BLOCK_STEPS = 4
 # "explorar" é dar as costas para a porta em que já se está encostado.
 FRONTIER_MIN_DISTANCE = 3
 
+# Passos sem encurtar a distância até o alvo antes de aceitar que o caminho
+# está fechado. Menos que isso confunde batalha no mato com estar preso: o
+# encontro congela o bot no lugar e o tile se repete sozinho.
+NO_PROGRESS_STEPS = 15
+
+# Mapas onde um Centro fica no caminho e a próxima etapa não tem nenhum.
+# Viridian antes da Floresta, Pewter antes da Rota 3.
+CENTER_ON_THE_WAY = {1, 2}
+
+# Abaixo disso vale parar no Centro que já está no caminho. Bem acima do
+# limite de emergência: entrar na Floresta pela metade é morrer no meio dela.
+TOP_UP_HP_FRACTION = 0.7
+
+# A Floresta é atravessada de sul para norte. Passando da metade, o Centro mais
+# perto é o de Pewter, e ele fica no caminho — voltar custa a travessia inteira.
+FOREST_MIDPOINT_Y = 24
+ROUTE_2_NORTH_Y = 20
+
 SHARED_WARP_PATH = (
     Path(__file__).resolve().parents[1]
     / "blue-agents" / "knowledge" / "maps" / "warps.json"
@@ -1323,7 +1341,9 @@ class ScriptedAgent(BaseAgent):
         # Whether the trip is worth it is answered by the combined HP in RAM,
         # never by a "já curei" flag. PP exhaustion is handled by battle input,
         # not by a second healing condition.
-        if self._party_needs_healing():
+        # A Center that is already on the way is cheap; one reached after a
+        # whiteout costs the whole stretch again.
+        if self._party_needs_healing() or self._should_top_up_before(map_id):
             if map_id == 1:
                 # The two entries from the north used to be measured D-pad
                 # strings. They ran out and returned None forever: a trainer
@@ -1341,19 +1361,31 @@ class ScriptedAgent(BaseAgent):
             # returns None forever: the trainer stands in the grass taking
             # encounters until something kills it. Same waypoints, walked by
             # the route follower, which reads the screen and remembers the map.
-            if map_id == 51:
-                return self._follow_route(
-                    "forest-back-to-gate", [(16, 46), (16, 47), (16, 48)]
-                )
-            if map_id == 50:
-                return self._follow_route(
-                    "gate-back-to-route2", [(4, 7), (4, 8)]
-                )
-            if map_id == 13:
-                return self._follow_route(
-                    "route2-back-to-viridian",
-                    [(10, 44), (10, 52), (7, 52), (7, 71), (7, 72)],
-                )
+            # Past the middle of the crossing, the nearest Center is Pewter's,
+            # and the way there is the way the journey was going anyway. Only
+            # the southern half turns back: walking to Viridian from inside the
+            # Forest means doing the whole crossing again, which is what kept a
+            # trainer with two Pokémon shuttling between Route 2 and the city.
+            _, y = self.emulator.memory.get_player_pos()
+            forward = (
+                (map_id == 51 and y <= FOREST_MIDPOINT_Y)
+                or map_id == 47
+                or (map_id == 13 and y <= ROUTE_2_NORTH_Y)
+            )
+            if not forward:
+                if map_id == 51:
+                    return self._follow_route(
+                        "forest-back-to-gate", [(16, 46), (16, 47), (16, 48)]
+                    )
+                if map_id == 50:
+                    return self._follow_route(
+                        "gate-back-to-route2", [(4, 7), (4, 8)]
+                    )
+                if map_id == 13:
+                    return self._follow_route(
+                        "route2-back-to-viridian",
+                        [(10, 44), (10, 52), (7, 52), (7, 71), (7, 72)],
+                    )
 
         if map_id in (0, 12, 1, 50) or (
             map_id == 13 and self.emulator.memory.get_player_pos()[1] > 20
@@ -1384,7 +1416,7 @@ class ScriptedAgent(BaseAgent):
         # Mesmo motivo do Centro de Viridian: o flag some ao reiniciar, e sem
         # perguntar ao cartucho o bot volta a entrar e sair da porta do Centro.
         # Foram 431 idas e vindas entre o mapa 2 e o 58 numa hora.
-        if self._party_needs_healing():
+        if self._party_needs_healing() or self._should_top_up_before(map_id):
             if map_id == 58:
                 return self._run_pokemon_center(
                     "pewter-center", "pewter_center_healed"
@@ -1682,6 +1714,37 @@ class ScriptedAgent(BaseAgent):
             return self._follow_route(f"{route_prefix}-exit", [(3, 7)])
         self.last_action_was_move = True
         return WindowEvent.PRESS_ARROW_DOWN
+
+    def _party_health_fraction(self):
+        """Combined party HP over combined maximum, 1.0 when whole."""
+        party_count = min(int(self.emulator.memory.get_party_count()), 6)
+        total_hp = 0
+        total_max = 0
+        for index in range(party_count):
+            struct_start = 0xD16B + index * 44
+            total_hp += (
+                int(self.emulator.memory.read_byte(struct_start + 1)) << 8
+            ) + int(self.emulator.memory.read_byte(struct_start + 2))
+            total_max += (
+                int(self.emulator.memory.read_byte(struct_start + 34)) << 8
+            ) + int(self.emulator.memory.read_byte(struct_start + 35))
+        if total_max <= 0:
+            return 1.0
+        return total_hp / total_max
+
+    def _should_top_up_before(self, map_id):
+        """Whether to heal now because the Center is on the way and the next
+        stretch has none.
+
+        Twenty per cent is an emergency rule, and emergencies are the wrong
+        moment to walk across a city: a team at half health entered the Forest,
+        died in the middle of it, whited out back to Viridian and started the
+        same walk again. A Center passed on the route is nearly free, so the
+        bar to stop there is much higher than the bar to turn around.
+        """
+        if map_id not in CENTER_ON_THE_WAY:
+            return False
+        return self._party_health_fraction() < TOP_UP_HP_FRACTION
 
     def _party_needs_healing(self):
         """True only when the team's combined HP is below one fifth.
@@ -2063,6 +2126,23 @@ class ScriptedAgent(BaseAgent):
         # long, thrown away as it goes.
         stale = self._recently_walked_steps(map_id, x, y)
 
+        # Progress toward this target, measured. Repeating a tile is not
+        # evidence of being stuck in tall grass: an encounter freezes the bot
+        # where it stands, so the same tile comes up again and again while the
+        # route is working perfectly. What being stuck actually looks like is
+        # distance to the target that stops falling.
+        distance = abs(target_x - x) + abs(target_y - y)
+        progress_key = (map_id, target_x, target_y)
+        if getattr(self, "route_progress_key", None) != progress_key:
+            self.route_progress_key = progress_key
+            self.route_best_distance = distance
+            self.route_no_progress = 0
+        elif distance < getattr(self, "route_best_distance", distance):
+            self.route_best_distance = distance
+            self.route_no_progress = 0
+        else:
+            self.route_no_progress = getattr(self, "route_no_progress", 0) + 1
+
         # What the screen has already shown of this map, kept. A screenful is
         # enough to step around a tree and nowhere near enough to leave a
         # pocket whose exit is off screen — which is why two trainers spent an
@@ -2213,7 +2293,18 @@ class ScriptedAgent(BaseAgent):
             return None
         memory = self._map_memory()
         try:
-            memory.observe(map_id, (x, y), reader.terrain_grid())
+            # Only read terrain from a screen that is showing the map. In a
+            # battle the tile map holds the battle graphics, and every tile
+            # reads as a wall: those readings were stored as permanent
+            # geometry, and after a few fights in tall grass the Forest was
+            # remembered as a closed pocket — from (6,30) the map offered no
+            # path to any waypoint, not even to the edge of what was known.
+            if (
+                int(self.emulator.memory.read_byte(0xD057)) == 0
+                and not self._menu_is_open()
+            ):
+                memory.observe(map_id, (x, y), reader.terrain_grid())
+                memory.forget_solid(map_id, (x, y))
             occupied = {
                 (x + dx, y + dy) for dx, dy in reader.occupied_offsets()
             }
@@ -2245,9 +2336,8 @@ class ScriptedAgent(BaseAgent):
         # Repeating a tile means the goal is behind something the map does not
         # know yet. Aim at the edge of the known instead: walking there is the
         # only move that turns unknown into map, and it always ends the loop.
-        recent = getattr(self, "route_recent_tiles", [])
         if (
-            recent.count((map_id, x, y)) >= 2
+            getattr(self, "route_no_progress", 0) > NO_PROGRESS_STEPS
             and abs(target_x - x) + abs(target_y - y) > FRONTIER_MIN_DISTANCE
         ):
             frontier = memory.nearest_frontier(map_id, (x, y), blocked=occupied)
@@ -2272,6 +2362,16 @@ class ScriptedAgent(BaseAgent):
             path = memory.find_path(
                 map_id, (x, y), (target_x, target_y), blocked=occupied
             )
+            if not path:
+                # No route through what is known. The notes are a hint, never
+                # an authority: live collision refuses a real wall at the
+                # moment of the step, so trying is cheap and standing still is
+                # not. Without this the bot sat inside a pocket its own map had
+                # invented and had nothing left to explore.
+                path = memory.find_path(
+                    map_id, (x, y), (target_x, target_y),
+                    blocked=occupied, ignore_solid=True,
+                )
         except Exception:
             self.terrain_plan = None
             return None

@@ -113,6 +113,10 @@ DURABLE_QUEST_PREDICATES = {"event_flag", "badge", "bag_item"}
 POKEMON_CENTER_MAP_IDS = {41, 58, 64, 89, 133, 141, 154, 171, 174, 182}
 CURRENT_STATE_MANIFEST = "current.state.meta.json"
 
+# Abaixo disso, um encontro selvagem no caminho não vale o turno: fugir custa
+# um turno, voltar para o Centro custa a etapa inteira.
+FLEE_HP_FRACTION = 0.5
+
 CAPTURE_RESULT_ADVANCE_STEPS = 18
 # Reaching ITEM from anywhere in the 2x2 takes two presses. The rest of this
 # budget is patience with battle text; past it, the screen is not the menu.
@@ -2978,6 +2982,15 @@ class HybridGymEnv(RedGymEnv):
             return "B"
         return step
 
+    def _party_is_worn_out(self):
+        """Combined party HP under the travelling threshold."""
+        party = self.get_party_info()
+        total = sum(int(mon.get("max_hp") or 0) for mon in party)
+        if total <= 0:
+            return False
+        current = sum(int(mon.get("hp") or 0) for mon in party)
+        return current < total * FLEE_HP_FRACTION
+
     def _party_has_no_damage(self):
         """True when nobody standing has a damaging move with PP left."""
         for mon in self.get_party_info():
@@ -3005,7 +3018,13 @@ class HybridGymEnv(RedGymEnv):
                 return None
         except Exception:
             return None
-        if not self._party_has_no_damage():
+        # Two reasons to leave a wild fight. One is having nothing to hit with.
+        # The other is being on a journey with a hurt team: BARON walked up
+        # Route 2, fought everything in the grass with two Pokémon, dropped
+        # below the emergency line and turned around — four round trips to
+        # Viridian in twelve minutes, never reaching the Forest. Running costs
+        # a turn; the round trip costs the whole stretch.
+        if not self._party_has_no_damage() and not self._party_is_worn_out():
             return None
         # A faint is a question, not a menu: "Use next POKéMON?" has to be
         # answered before anything else can be chosen. Running from it pressed

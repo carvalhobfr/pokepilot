@@ -412,6 +412,23 @@ class FaintedLeadTests(unittest.TestCase):
         self.assertEqual("A", env._next_switch_action(), "responde ao aviso")
         self.assertTrue(env.switch_menu_open)
 
+    def test_a_worn_out_team_runs_from_wild_fights_on_the_way(self):
+        # Two Pokémon, half the pool gone: fighting the next Caterpie costs
+        # more than the turn it takes to leave. Four round trips to Viridian
+        # in twelve minutes came from fighting these.
+        env = self.make_env([self.mon(hp=5, pp=20), self.mon(hp=6, pp=20)],
+                            prompt_open=False)
+        env._switch_target_slot = lambda: None
+        self.assertTrue(env._party_is_worn_out())
+        self.assertIsNotNone(env._next_escape_action())
+
+    def test_a_healthy_team_still_fights(self):
+        env = self.make_env([self.mon(hp=20, pp=20), self.mon(hp=18, pp=20)],
+                            prompt_open=False)
+        env._switch_target_slot = lambda: None
+        self.assertFalse(env._party_is_worn_out())
+        self.assertIsNone(env._next_escape_action())
+
     def test_with_everyone_standing_escape_is_still_allowed(self):
         env = self.make_env([self.mon(hp=20, pp=0), self.mon(hp=18, pp=0)],
                             prompt_open=False)
