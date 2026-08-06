@@ -1,0 +1,21 @@
+{
+  "quest": "cerulean_gym_quest",
+  "recorded_by": "minerada:20260805T101255.414852Z-AARON",
+  "recorded_at": 1786050779.689547,
+  "waypoints": 2,
+  "legs": [
+    {
+      "map": 65,
+      "points": [
+        [
+          5,
+          3
+        ],
+        [
+          5,
+          2
+        ]
+      ]
+    }
+  ]
+}

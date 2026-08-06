@@ -5,6 +5,72 @@
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
 
+## Continuar daqui (2026-08-06, fim do dia)
+
+**Objetivo da próxima sessão: cada quest em menos passos, e o ciclo de morte
+tratado como ciclo.** Morrer não é um tropeço no meio do caminho — é um
+recomeço a partir do Centro registrado. Quem mistura os dois ensina o desvio
+como se fosse a rota, e aí o erro vira regra.
+
+### Onde os dois estão
+
+| Treinador | Posição | Quests | Observação |
+|---|---|---|---|
+| AARON | Mt. Moon / Rota 4 | 8, com a insígnia do Brock | atravessa a caverna; dois Pokémon desmaiados |
+| BARON | Rota 2, rumo à Floresta | 5 | destravado do vaivém do Centro de Viridian |
+
+Os saves de referência ficam versionados: `states/viridian-passed-AARON.state`
+e `-BARON.state`. Carregue um deles em vez de replayar uma hora de jogo.
+
+### As três ferramentas de diagnóstico
+
+```bash
+python3 blue-agents/tools/stuck_report.py          # por que travou, com o motivo
+python3 blue-agents/tools/mine_trails.py           # publica a melhor travessia conhecida
+python3 blue-agents/tools/probe_route.py <state>   # o que é alcançável a partir de um save
+```
+
+`stuck_report.py` lê `trainers/<AGENTE>/logs/stuck.jsonl`, escrito sozinho
+quando o treinador passa 30 decisões preso em poucos tiles. Traz posição e
+alvo, direções recusadas **com o motivo** (tileset, gente, porta, fronteira,
+esbarrão), passos sem encurtar distância, o que o mapa acumulado conhece e se
+existe caminho até o alvo. Foi ele que apontou os dois últimos consertos.
+
+`mine_trails.py` varre `archives/` e `trainers/`, acha os trechos em que o
+QuestGraph confirmou a quest na RAM — caminhos que **chegaram** — apaga os
+laços e publica a melhor de cada em `knowledge/routes/`. Critério: cobertura
+primeiro, tamanho depois. E **corta tudo o que veio antes da última morte no
+trecho**, justamente para não ensinar o desvio da derrota como rota.
+
+### O que atacar, na ordem
+
+1. **Menos passos por quest.** As trilhas mineradas hoje têm 4 a 15 pontos
+   porque o log só grava coordenada quando acontece um evento. Uma trilha densa
+   (uma posição por passo, gravada durante uma travessia limpa) daria caminho
+   fechado em vez de âncoras esparsas. O gravador já existe em
+   `src/route_trails.py`; falta persistir a travessia inteira quando a quest é
+   confirmada.
+2. **Ciclo de morte explícito.** Hoje o whiteout é detectado
+   (`death` no log) mas nada separa "tentativa 1" de "tentativa 2". Numerar o
+   ciclo e gravar a trilha por ciclo deixa medir: quantos passos custou cada
+   tentativa, e qual delas virou a rota publicada.
+3. **Treinar antes de entrar.** Não existe nó de treino: nível sobe por
+   acidente, nas batalhas do caminho. Um predicado `party_max_level >= X` antes
+   da Floresta e antes de Mt. Moon evitaria metade das mortes.
+
+### Regras de cura, como ficaram
+
+| Situação | Limite | Ação |
+|---|---|---|
+| Centro no caminho (mapas 1, 2, 15) | HP total < 70% | para e cura |
+| Viajando machucado | HP total < 50% | foge de selvagem |
+| Emergência em qualquer lugar | HP total < 20% | vai ao Centro |
+| **Dentro** de um Centro | qualquer coisa faltando | cura tudo |
+
+A última linha é recente e não é detalhe: com o limite de emergência lá dentro,
+um time a 55% entrava, não curava, saía — e a regra de 70% que o trouxe mandava
+voltar. Entrar e sair, sem fim.
+
 ## Marco validado: Viridian passada
 
 Definido em 2026-08-06. É o ponto a partir do qual a jornada anda sozinha, do

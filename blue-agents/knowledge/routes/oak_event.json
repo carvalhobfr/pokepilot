@@ -1,23 +1,15 @@
 {
   "quest": "oak_event",
-  "recorded_by": "AARON",
-  "recorded_at": 1786036198.248447,
-  "waypoints": 4,
+  "recorded_by": "minerada:20260805T172856.354157Z-BARON",
+  "recorded_at": 1786050779.6908731,
+  "waypoints": 2,
   "legs": [
     {
       "map": 40,
       "points": [
         [
-          8,
+          7,
           4
-        ],
-        [
-          8,
-          5
-        ],
-        [
-          5,
-          5
         ],
         [
           5,

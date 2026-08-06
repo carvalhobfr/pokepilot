@@ -79,13 +79,18 @@ class TrailStore:
         self._cache[quest_id] = (stamp, legs)
         return legs
 
-    def publish(self, quest_id, agent_name, legs):
-        """Store a finished trail, keeping the shortest one ever confirmed."""
+    def publish(self, quest_id, agent_name, legs, force=False):
+        """Store a finished trail, keeping the shortest one ever confirmed.
+
+        ``force`` exists for trails chosen deliberately — the miner picks by
+        coverage first and length second, and a trail that crosses four maps
+        must win over a two-point stump that happens to be shorter.
+        """
         if not legs:
             return False
         length = sum(len(leg["points"]) for leg in legs)
         existing = self.load(quest_id)
-        if existing and sum(len(leg["points"]) for leg in existing) <= length:
+        if not force and existing and sum(len(leg["points"]) for leg in existing) <= length:
             return False
         self.directory.mkdir(parents=True, exist_ok=True)
         payload = {

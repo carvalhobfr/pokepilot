@@ -1,42 +1,42 @@
 {
-  "quest": "start",
+  "quest": "mt_moon_nav",
   "recorded_by": "minerada:20260805T101255.414852Z-AARON",
-  "recorded_at": 1786050779.693376,
+  "recorded_at": 1786050779.6901891,
   "waypoints": 4,
   "legs": [
     {
-      "map": 38,
+      "map": 61,
       "points": [
         [
-          3,
-          6
+          16,
+          4
         ]
       ]
     },
     {
-      "map": 37,
+      "map": 60,
       "points": [
         [
-          7,
-          1
-        ]
-      ]
-    },
-    {
-      "map": 0,
-      "points": [
-        [
-          3,
+          5,
           7
         ]
       ]
     },
     {
-      "map": 40,
+      "map": 15,
       "points": [
         [
-          12,
-          11
+          27,
+          3
+        ]
+      ]
+    },
+    {
+      "map": 3,
+      "points": [
+        [
+          0,
+          18
         ]
       ]
     }

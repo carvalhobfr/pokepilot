@@ -102,7 +102,9 @@ STUCK_REPORT_STEPS = 30
 # Janela olhada para decidir se ele está preso, e quantos lugares diferentes
 # dentro dela ainda contam como parado. Dois tiles alternados são parados.
 STUCK_WINDOW_TILES = 12
-STUCK_DISTINCT_TILES = 3
+# Quatro, não três: entrar e sair de uma porta muda o mapa e conta como lugar
+# novo, e era assim que o vaivém na porta do Centro escapava do gatilho.
+STUCK_DISTINCT_TILES = 4
 
 # Mapas onde um Centro fica no caminho e a próxima etapa não tem nenhum.
 # Viridian antes da Floresta, Pewter antes da Rota 3.
@@ -1371,8 +1373,15 @@ class ScriptedAgent(BaseAgent):
                 #
                 # The door at (23, 25) is reachable only from below: (22, 25)
                 # is the building wall, so the approach is deliberate.
+                # A âncora de aproximação existe para quem vem do oeste: a
+                # porta em (23,25) só é alcançável por baixo, porque (22,25) é
+                # a parede do prédio. Para quem já está embaixo dela, essa
+                # âncora fica *atrás* — e o bot ia até (21,26) e voltava, sem
+                # fim. Quem já chegou embaixo da porta só precisa subir.
+                x, y = self.emulator.memory.get_player_pos()
+                aproximacao = [] if (x >= 22 and y >= 26) else [(21, 26)]
                 return self._follow_route(
-                    "viridian-center-door", [(21, 26), (23, 26), (23, 25)]
+                    "viridian-center-door", aproximacao + [(23, 26), (23, 25)]
                 )
             # These three were measured D-pad strings — "press D eighteen
             # times and hope". From (8,30) in the Forest that walks into the
@@ -1637,7 +1646,7 @@ class ScriptedAgent(BaseAgent):
             # Register and use the Route 4 Center. The open->closed textbox
             # edge confirms the Nurse interaction without relying on a timer.
             position = self.emulator.memory.get_player_pos()
-            if self._party_needs_healing():
+            if self._party_health_fraction() < 1.0:
                 if position != (3, 3):
                     return self._follow_route(
                         "mt-moon-center-nurse", [(3, 7), (3, 3)]
@@ -1697,7 +1706,11 @@ class ScriptedAgent(BaseAgent):
         # Abrir texto não é curar: os dois saíam do Centro com o mesmo HP,
         # voltavam para o mato, voltavam ao Centro — e o trinco de uma vez por
         # jornada escondia o ciclo. Quem decide é a party na RAM.
-        if self._party_needs_healing():
+        # Dentro do Centro, curar é de graça: quem se deu ao trabalho de vir
+        # cura o que falta, e não só o que era emergência. Com o limite de
+        # emergência aqui, um time a 55% entrava, não curava, saía — e a regra
+        # de 70% que o trouxe mandava voltar. Entrar e sair, sem fim.
+        if self._party_health_fraction() < 1.0:
             if position != (3, 3):
                 return self._follow_route(
                     f"{route_prefix}-nurse",
