@@ -711,7 +711,21 @@ class HybridGymEnv(RedGymEnv):
         node = None
         progress_changed = False
         targets = self._directive_target_quest_ids()
-        for candidate in self.quest_graph.nodes:
+        # Insígnia e bandeira de evento o jogo nunca desfaz: onde elas confirmam
+        # um nó, tudo antes dele aconteceu. Sem esse piso, um save carregado com
+        # a insígnia do Brock parava no nó de comprar Poké Bolas — predicado de
+        # recurso, que volta a falhar assim que as bolas acabam — e o executor
+        # daquele nó só conhece o caminho até o Mart de Viridian, então da Rota
+        # 4 ele ficava indo e voltando na mesma casa.
+        floor = self.quest_graph.achievement_floor(state)
+        for index, candidate in enumerate(self.quest_graph.nodes):
+            if index <= floor and candidate.id not in self.quest_completed_ids:
+                self.quest_completed_ids.add(candidate.id)
+                self.quest_generations[candidate.id] = int(
+                    getattr(self, "checkpoint_generation", 0)
+                )
+                progress_changed = True
+                continue
             if candidate.id in self.quest_completed_ids:
                 continue
             if self.quest_graph.node_matches(candidate, state):
