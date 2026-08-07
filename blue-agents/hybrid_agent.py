@@ -2860,7 +2860,17 @@ class HybridGymEnv(RedGymEnv):
             active_slot = 0
         active = party[active_slot] if 0 <= active_slot < len(party) else None
         fainted = active is not None and int(active.get("hp") or 0) <= 0
-        if active is not None and not fainted and self._has_damaging_pp(active):
+        if active is not None and not fainted:
+            # Só troca quem caiu. A troca voluntária — ativo de pé, mas sem PP
+            # de dano — exige abrir o menu de batalha, ir até PKMN, escolher e
+            # confirmar TROCAR, e é aí que ela emperrava: BARON pediu o slot 4
+            # vinte vezes seguidas sem nunca completar, porque o caminho que
+            # este controlador conhece começa no aviso "Use next POKéMON?", que
+            # só aparece quando alguém desmaia.
+            #
+            # Lutar com o que tem na mão é pior turno e é saída: o de status
+            # gasta PP, o Struggle machuca, e o apagão devolve o time inteiro
+            # num Centro. Ficar preso no menu não é saída nenhuma.
             return None
 
         # A fainted lead has to be replaced by whoever is still standing, with

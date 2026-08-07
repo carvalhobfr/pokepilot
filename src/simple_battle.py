@@ -445,15 +445,29 @@ class SimpleBattleAgent:
                 # Whip do nothing at all once the stage is already at the
                 # bottom, and repeating them is how a trainer spent an
                 # afternoon lowering an Attack that could not go lower.
-                usable = [
+                com_pp = [
                     (slot, move_id)
                     for slot, move_id, pp in player_moves
                     if pp > 0 and move_id != disabled_move_id
-                    and not (
+                ]
+                preferidos = [
+                    (slot, move_id) for slot, move_id in com_pp
+                    if not (
                         move_id == LEECH_SEED_MOVE_ID
                         and (self.leech_seed_used or "GRASS" in opponent_types)
                     )
                 ]
+                # A preferência é sobre *qual* golpe de status vale o turno. Ela
+                # nunca pode esvaziar a lista: um golpe repetido de graça é ruim,
+                # e escolher um slot com 0 PP é fatal. Com Tackle e Growl zerados
+                # e só Leech Seed de pé, o filtro tirava a única opção, a escolha
+                # caía no slot 0 exausto, e o cartucho reabria "no PP" para
+                # sempre. AARON ficou 7.650 passos assim.
+                #
+                # A fuga cobria isto antes e foi removida em 2026-08-07: sem
+                # golpe utilizável o bot não vence nem perde, e "ficar até
+                # morrer" precisa que morrer seja possível.
+                usable = preferidos or com_pp
                 fallback = None
                 if usable:
                     fallback = min(

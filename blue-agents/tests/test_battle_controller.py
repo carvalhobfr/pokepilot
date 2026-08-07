@@ -204,9 +204,16 @@ class BattleControllerTests(unittest.TestCase):
 
 
 class SwitchWhenOutOfPPTests(unittest.TestCase):
-    """With every attack at zero PP the game forces Struggle, and Gen I Struggle
-    recoils for half the damage dealt: the active Pokémon grinds itself down
-    fighting something it cannot hurt. A teammate with PP costs nothing.
+    """A troca é só para quem caiu.
+
+    A troca voluntária — ativo de pé, mas sem PP de dano — exigia abrir o menu
+    de batalha, ir até PKMN, escolher e confirmar TROCAR, e emperrava no
+    caminho: BARON pediu o mesmo slot vinte vezes seguidas dentro de Mt. Moon
+    sem nunca completar, e a corrida parou.
+
+    O recuo do Struggle é caro e é saída: machuca, o time cai, e o apagão
+    devolve todos num Centro — que é o ponto de retomada desde 2026-08-07.
+    Ficar preso no menu não é saída nenhuma.
     """
 
     def make_env(self, party, active_slot=0):
@@ -232,9 +239,11 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
             "moves": [{"id": 33, "pp": pp}, {"id": 45, "pp": 30}],  # Tackle, Growl
         }
 
-    def test_a_teammate_with_pp_is_chosen(self):
+    def test_ativo_de_pe_sem_pp_nao_pede_troca(self):
+        # Era o laço: pedia o companheiro e nunca chegava a trocar.
         env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
-        self.assertEqual(1, env._switch_target_slot())
+        self.assertIsNone(env._switch_target_slot())
+        self.assertIsNone(env._next_switch_action())
 
     def test_nobody_is_swapped_while_the_active_can_still_attack(self):
         env = self.make_env([self.mon(pp=10), self.mon(pp=15)])
@@ -263,17 +272,18 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
         env = self.make_env([self.mon(pp=0)])
         self.assertIsNone(env._switch_target_slot())
 
-    def test_the_switch_waits_for_the_menu_instead_of_walking_into_run(self):
-        # RUN sits one tile from PKMN. With battle text still up the cursor
-        # bytes are not menu coordinates, and a blind press ran away instead of
-        # switching: 62 escapes in ten minutes.
-        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+    def test_a_troca_forcada_espera_o_menu_em_vez_de_andar_no_run(self):
+        # RUN fica a um tile do PKMN. Com texto de batalha ainda na tela os
+        # bytes do cursor não são coordenadas de menu, e uma tecla às cegas
+        # fugia em vez de trocar: 62 fugas em dez minutos.
+        env = self.make_env([self.mon(pp=10, hp=0), self.mon(pp=15)])
         env.read_m = lambda address: 5 if address == 0xCC25 else 0
         self.assertEqual("B", env._next_switch_action(), "avança o texto")
         self.assertFalse(env.switch_menu_open)
 
     def test_the_menu_is_driven_by_the_highlighted_row(self):
-        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        # Líder caído: é a troca forçada, a única que este controlador dirige.
+        env = self.make_env([self.mon(pp=10, hp=0), self.mon(pp=15)])
         # Menu drawn, cursor on FIGHT: row 0, left column.
         env.read_m = lambda address: 9 if address == 0xCC25 else 0
         first = env._next_switch_action()
@@ -290,7 +300,7 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
         self.assertEqual("A", env._next_switch_action(), "confirma SWITCH")
 
     def test_a_menu_that_does_not_behave_is_abandoned_not_mashed(self):
-        env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
+        env = self.make_env([self.mon(pp=10, hp=0), self.mon(pp=15)])
         env.switch_menu_open = True
         env.read_m = lambda address: 0  # cursor nunca chega no alvo
         actions = [env._next_switch_action() for _ in range(14)]
