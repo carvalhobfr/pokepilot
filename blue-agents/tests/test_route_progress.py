@@ -27,7 +27,12 @@ class IndiceDeRotaTests(unittest.TestCase):
         return agent
 
     def mirar(self, agent, route_id, posicao, waypoints=None):
-        return agent._select_route_index(route_id, waypoints or self.ROTA, posicao)
+        # `_follow_route` atribui o resultado de volta; sem isso o teste mede
+        # um estado que o código real nunca tem.
+        agent.route_index = agent._select_route_index(
+            route_id, waypoints or self.ROTA, posicao
+        )
+        return agent.route_index
 
     def test_rota_nova_pega_o_mais_proximo(self):
         agent = self.agente()
@@ -64,6 +69,27 @@ class IndiceDeRotaTests(unittest.TestCase):
         agent = self.agente()
         agent.route_progress["curta"] = 9
         self.assertEqual(1, self.mirar(agent, "curta", (9, 9), [(1, 1), (5, 5)]))
+
+    def test_sair_da_rota_solta_o_avanco_depois_de_muito_parado(self):
+        # A outra metade da regra. O avanço impede voltar ao waypoint da
+        # entrada; sem escape, quem sai da rota fica mirando um ponto que não
+        # alcança. AARON e CARON pararam os dois em (8,30) na Floresta, índice
+        # 16, mais de 1.500 passos sem encurtar a distância.
+        from src.scripted_agent import ROUTE_REPLAN_STEPS
+
+        agent = self.agente()
+        self.mirar(agent, "forest-51", (24, 15))       # avançou até o índice 5
+        agent.route_no_progress = ROUTE_REPLAN_STEPS + 1
+        indice = self.mirar(agent, "forest-51", (14, 34))
+        self.assertEqual(0, indice, "reentra pelo waypoint mais perto")
+        self.assertEqual(0, agent.route_no_progress, "o contador reinicia")
+
+    def test_parado_pouco_tempo_nao_solta_o_avanco(self):
+        # Encontro no mato congela o bot; isso não é rota perdida.
+        agent = self.agente()
+        self.mirar(agent, "mt-moon-59", (24, 15))
+        agent.route_no_progress = 10
+        self.assertEqual(5, self.mirar(agent, "mt-moon-59", (14, 35)))
 
     def test_o_apagao_apaga_o_avanco(self):
         # O cartucho devolveu o treinador a um Centro: a travessia recomeça, e

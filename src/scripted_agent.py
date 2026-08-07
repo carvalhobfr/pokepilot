@@ -156,6 +156,13 @@ NO_PROGRESS_STEPS = 15
 # bot está, e mirar numa porta do mapa em vez de insistir.
 STUCK_GIVE_UP_STEPS = 40
 
+# Passos sem encurtar a distância antes de soltar o avanço lembrado da rota. O
+# avanço existe para não voltar ao waypoint da entrada ao reentrar num mapa;
+# quando o bot sai da rota, ele vira uma âncora à frente que nunca se alcança.
+# Bem acima de STUCK_GIVE_UP_STEPS: primeiro tenta-se a porta, e só então se
+# admite que o trecho inteiro está errado.
+ROUTE_REPLAN_STEPS = 120
+
 # Passos que uma parede descoberta na marra vale. Curto de propósito: gente
 # some, e a leitura do cartucho continua sendo a fonte principal.
 BUMP_MEMORY_STEPS = 8
@@ -1898,6 +1905,18 @@ class ScriptedAgent(BaseAgent):
         progress = getattr(self, "route_progress", None)
         if progress is None:
             progress = self.route_progress = {}
+
+        # O avanço lembrado impede voltar ao waypoint da entrada, e essa é a
+        # metade certa. A outra metade faltava: quem **sai** da rota fica preso
+        # mirando um ponto que não alcança, porque o índice nunca recua para o
+        # trecho onde o bot realmente está. AARON e CARON pararam os dois em
+        # (8,30) na Floresta, índice 16, mais de 1.500 passos sem encurtar a
+        # distância. Distância que não cai por tanto tempo é rota perdida, não
+        # rota difícil: solta o avanço e deixa reentrar pelo ponto mais perto.
+        if getattr(self, "route_no_progress", 0) > ROUTE_REPLAN_STEPS:
+            progress.pop(route_id, None)
+            self.route_no_progress = 0
+            self.route_id = None
 
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
