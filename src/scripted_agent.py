@@ -1957,17 +1957,27 @@ class ScriptedAgent(BaseAgent):
         # (8,30) na Floresta, índice 16, mais de 1.500 passos sem encurtar a
         # distância. Distância que não cai por tanto tempo é rota perdida, não
         # rota difícil: solta o avanço e deixa reentrar pelo ponto mais perto.
-        if getattr(self, "route_no_progress", 0) > ROUTE_REPLAN_STEPS:
+        replanejando = getattr(self, "route_no_progress", 0) > ROUTE_REPLAN_STEPS
+        if replanejando:
             progress.pop(route_id, None)
             self.route_no_progress = 0
             self.route_id = None
 
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
-            self.route_index = max(
-                self._nearest_reachable_waypoint(waypoints, (x, y)),
-                min(progress.get(route_id, 0), limite),
-            )
+            # A busca por alcance custa uma varredura em largura por waypoint, e
+            # troca de rota acontece o tempo todo: pagá-la sempre derrubou a
+            # corrida de 65 para 2,5 passos por segundo, o que na tela parece
+            # travamento. Ela só serve quando a distância já provou não bastar,
+            # e é exatamente aí que ela entra.
+            if replanejando:
+                nearest = self._nearest_reachable_waypoint(waypoints, (x, y))
+            else:
+                nearest = min(
+                    range(len(waypoints)),
+                    key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
+                )
+            self.route_index = max(nearest, min(progress.get(route_id, 0), limite))
 
         index = getattr(self, "route_index", 0)
         while index < limite and (x, y) == tuple(waypoints[index]):
