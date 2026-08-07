@@ -15,12 +15,12 @@
     },
     {
       "slot": 1,
-      "agent_name": "CARON",
+      "agent_name": "BARON",
       "identity_index": 1,
       "profile_index": 1,
-      "generation": 1,
+      "generation": 2,
       "status": "active",
-      "archetype": "team_builder",
+      "archetype": "speedrunner",
       "route_role": "follower"
     }
   ],
@@ -55,8 +55,8 @@
       "reason": "slot removido; treinador preservado em trainers/"
     },
     {
-      "agent_name": "BARON",
-      "reason": "pausado a pedido do operador; jornada preservada em trainers/BARON/ (8 quests, Brock vencido)"
+      "agent_name": "CARON",
+      "reason": "saiu do roster para BARON entrar; jornada preservada em trainers/CARON/"
     }
   ]
 }
