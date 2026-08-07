@@ -3875,6 +3875,26 @@ class HybridGymEnv(RedGymEnv):
                 f"fora de batalha em {map_name}"
             ),
         })
+        # A full heal in a room the game calls a Center, on a map this project
+        # does not list as one, is a checkpoint that was never written. Map 68
+        # — the Center at the mouth of Mt. Moon — sat outside
+        # `POKEMON_CENTER_MAP_IDS` while an executor talked to its nurse in a
+        # branch of its own, so the hardest stretch reached so far was the one
+        # with no resume point, and nothing anywhere said so. Silence is what
+        # made that cost a day; say it instead.
+        if (
+            "center" in str(map_name).lower()
+            and map_id not in POKEMON_CENTER_MAP_IDS
+        ):
+            self._log_event("unknown_center", {
+                "map_id": map_id,
+                "map_name": map_name,
+                "reason": (
+                    "cura confirmada num Centro que não está em "
+                    "POKEMON_CENTER_MAP_IDS: nenhum checkpoint foi gravado aqui"
+                ),
+            })
+
         # The panel shows HP bars; a full party is worth publishing at once.
         self._update_agent_state()
 

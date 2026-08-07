@@ -137,6 +137,21 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         self.assertIsNone(self.step(agent))
         self.assertEqual([], agent.called)
 
+    def test_mt_moons_center_counts_as_a_center(self):
+        # Map 68 sat outside the set while `_run_mt_moon_nav` talked to its
+        # nurse in a branch of its own. The checkpoint writer refuses any map
+        # not in the set, so the stretch right before the cave — the hardest
+        # one reached so far — was the one with no resume point.
+        agent = self.agent_in(68, self.HURT)
+        self.assertEqual("HEALING", self.step(agent))
+        self.assertEqual([("center-68", "center_68_healed")], agent.called)
+
+    def test_the_route_4_center_door_is_worth_the_detour(self):
+        # Route 4 carries the door; nothing about it is measured by hand.
+        agent = self.agent_in(15, self.HURT, doors={(11, 5): 68, (18, 5): 59})
+        self.assertEqual("WALKING", self.step(agent))
+        self.assertEqual([("center-door-11-5", [(11, 5)])], agent.walked)
+
     def test_the_rule_covers_every_known_center(self):
         for map_id in POKEMON_CENTER_MAP_IDS:
             agent = self.agent_in(map_id, self.HURT)

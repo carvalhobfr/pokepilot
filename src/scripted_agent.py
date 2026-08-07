@@ -30,7 +30,13 @@ HEAL_HP_FRACTION = 0.20
 # doormat at (3,7). Every Mart likewise, clerk behind the top-left counter. That
 # is what makes "the nearest one" a real controller instead of one more route
 # measured by hand for one city.
-POKEMON_CENTER_MAP_IDS = {41, 58, 64, 89, 133, 141, 154, 171, 174, 182}
+# 68 is the Route 4 Center, at the mouth of Mt. Moon, and it was missing here
+# while `_run_mt_moon_nav` talked to its nurse in a branch of its own. Being
+# absent from this set is not cosmetic: the checkpoint writer refuses any map
+# that is not in it, so the hardest stretch of the journey so far — the one
+# right before the cave — was the one with no resume point. BARON healed there
+# and still lost everything back to Pallet on the next whiteout.
+POKEMON_CENTER_MAP_IDS = {41, 58, 64, 68, 89, 133, 141, 154, 171, 174, 182}
 VIRIDIAN_CENTER_MAP_ID = 41
 # Only Viridian's is proven — it is the one this project has actually walked
 # into and bought from. A Mart id that is wrong here sends a trainer through
@@ -1800,25 +1806,13 @@ class ScriptedAgent(BaseAgent):
         if map_id in routes:
             return self._follow_route(f"mt-moon-{map_id}", routes[map_id])
 
-        if map_id == 68:
-            # Register and use the Route 4 Center. The open->closed textbox
-            # edge confirms the Nurse interaction without relying on a timer.
-            position = self.emulator.memory.get_player_pos()
-            if self._party_health_fraction() < 1.0:
-                if position != (3, 3):
-                    return self._follow_route(
-                        "mt-moon-center-nurse", [(3, 7), (3, 3)]
-                    )
-                if int(self.emulator.memory.read_byte(0xD52A)) != 8:
-                    self.last_action_was_move = True
-                    return WindowEvent.PRESS_ARROW_UP
-                # Falar, confirmar e atravessar a animação são todos A; o fim
-                # é o time inteiro de volta, não uma caixa fechando.
-                return WindowEvent.PRESS_BUTTON_A
-            self.mt_moon_center_healed = True
-            return self._follow_route(
-                "mt-moon-center-exit", [(3, 3), (3, 7), (3, 8)]
-            )
+        # Map 68 is the Route 4 Center and is handled before every executor,
+        # like every other one. It used to have its own copy of the nurse dance
+        # here — and that copy was the whole reason Mt. Moon never produced a
+        # checkpoint: it healed the party but never set
+        # `last_center_healed_map_id`, which is what the checkpoint writer
+        # waits for. Its `mt_moon_center_healed` flag was written and never
+        # read by anything.
 
         if map_id == 60:
             x, y = self.emulator.memory.get_player_pos()

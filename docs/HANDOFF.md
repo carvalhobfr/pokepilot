@@ -627,6 +627,29 @@ parou de novo, no mesmo lugar, por outro motivo.
 Curar e sair são o mesmo controlador. Só o "andar até a porta vindo de fora"
 depende do HP.
 
+### O Centro de Mt. Moon não estava na lista
+
+Visto em 2026-08-07: BARON chegava à Rota 4, ia e voltava da porta do Centro,
+entrava em Mt. Moon e **nunca pegava checkpoint**.
+
+O mapa **68** é o Centro da Rota 4, na boca da caverna. Ele estava fora de
+`POKEMON_CENTER_MAP_IDS`, enquanto `_run_mt_moon_nav` falava com a enfermeira
+dele num ramo próprio — cópia da dança que o controlador genérico já faz. E
+essa cópia era o motivo do checkpoint ausente: ela curava o time mas nunca
+setava `last_center_healed_map_id`, que é o que o gravador de checkpoint
+espera. O flag `mt_moon_center_healed` que ela deixava era escrito e **nunca
+lido por ninguém**.
+
+Estar fora do conjunto não é cosmético: o gravador recusa qualquer mapa que não
+esteja nele. O trecho mais difícil já alcançado — o que vem logo antes da
+caverna — era justamente o único sem ponto de retomada.
+
+O ramo dedicado saiu; o 68 entrou no conjunto e usa o mesmo controlador que os
+outros. E para esta classe de erro parar de ser silenciosa, uma cura confirmada
+numa sala que o jogo chama de Centro mas que não está no conjunto passa a
+emitir `unknown_center` no diário, dizendo que nenhum checkpoint foi gravado
+ali.
+
 ## Regras de cura, como ficaram
 
 | Situação | Limite | Ação |

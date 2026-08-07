@@ -100,5 +100,32 @@ class HealingEventTests(unittest.TestCase):
             self.assertFalse(env._load_current_checkpoint())
 
 
+class UnknownCenterTests(HealingEventTests):
+    """A Center we do not list is a checkpoint that never gets written."""
+
+    def test_healing_in_an_unlisted_center_says_so(self):
+        # Map 68 sat outside the set while an executor talked to its nurse in
+        # a branch of its own, so the stretch before Mt. Moon had no resume
+        # point and nothing anywhere said it.
+        env = self.make_env([self.mon(3)], [self.mon(50)], map_id=999)
+        env._map_name = lambda value: "Pokemon Center Nowhere"
+        env.logged.clear()
+        env.last_party_info = [self.mon(3)]
+        env._track_healing([self.mon(50)])
+        self.assertIn("unknown_center", [kind for kind, _ in env.logged])
+
+    def test_a_listed_center_stays_quiet(self):
+        env = self.make_env([self.mon(3)], [self.mon(50)], map_id=64)
+        self.assertNotIn("unknown_center", [kind for kind, _ in env.logged])
+
+    def test_mt_moons_center_is_listed_now(self):
+        env = self.make_env([self.mon(3)], [self.mon(50)], map_id=68)
+        env._map_name = lambda value: "Pokemon Center Mt Moon"
+        env.logged.clear()
+        env.last_party_info = [self.mon(3)]
+        env._track_healing([self.mon(50)])
+        self.assertNotIn("unknown_center", [kind for kind, _ in env.logged])
+
+
 if __name__ == "__main__":
     unittest.main()
