@@ -33,6 +33,14 @@ blue-agents/*_autosave.state
 blue-agents/checkpoints/
 blue-agents/tasks/journey_states/
 
+# Telemetria da execução: o feed é reescrito inteiro a cada jornada (milhares
+# de linhas por corrida) e ninguém precisa dele para rodar do zero.
+blue-agents/tasks/events_feed.json
+
+# Save da bateria do cartucho, escrito pelo emulador ao sair. Derivado: os
+# states em states/ já carregam a SRAM junto.
+roms/*.gb.ram
+
 # --- checkpoints de treino e telemetria -----------------------------------
 # Pesados e regeneráveis a cada execução.
 blue-agents/v2_repro_runs/
