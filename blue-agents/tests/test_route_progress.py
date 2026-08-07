@@ -103,6 +103,44 @@ class IndiceDeRotaTests(unittest.TestCase):
         agent.route_id = None
         self.assertEqual(1, self.mirar(agent, "mt-moon-59", (14, 35)))
 
+class PortaNaoEAlvoTests(unittest.TestCase):
+    """A rota de um interior começa no tile da porta, e mirar isso é sair."""
+
+    GINASIO = [(4, 13), (4, 8), (1, 8), (1, 4), (4, 4), (4, 2)]
+
+    def agente(self, map_id, portas):
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        agent.route_progress = {}
+        agent.emulator = type("FakeEmulator", (), {
+            "memory": type("M", (), {"get_map_id": staticmethod(lambda: map_id)})()
+        })()
+        agent._warp_memory = lambda: type("W", (), {
+            "doors_from": staticmethod(lambda _m: dict(portas)),
+        })()
+        return agent
+
+    def test_a_porta_do_ginasio_sai_da_lista(self):
+        # AARON chegou ao Ginásio de Pewter em 36 s e entrou e saiu seis vezes,
+        # porque o waypoint 0 é (4,13), a própria porta.
+        agent = self.agente(54, {(4, 13): 2})
+        self.assertNotIn(0, agent._waypoints_worth_aiming_at(self.GINASIO))
+
+    def test_o_ultimo_waypoint_e_excecao(self):
+        # É assim que a rota atravessa para o mapa seguinte.
+        agent = self.agente(54, {(4, 2): 2})
+        self.assertIn(5, agent._waypoints_worth_aiming_at(self.GINASIO))
+
+    def test_sem_porta_conhecida_todos_valem(self):
+        agent = self.agente(54, {})
+        self.assertEqual(
+            list(range(6)), agent._waypoints_worth_aiming_at(self.GINASIO)
+        )
+
+    def test_rota_toda_em_portas_ainda_tem_a_saida(self):
+        # Caso degenerado: sobra o último, que é justamente por onde se sai.
+        agent = self.agente(54, {p: 2 for p in self.GINASIO})
+        self.assertEqual([5], agent._waypoints_worth_aiming_at(self.GINASIO))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1882,7 +1882,30 @@ class ScriptedAgent(BaseAgent):
             return self._walk_to_door("center-door", POKEMON_CENTER_MAP_IDS)
         return None
 
-    def _nearest_reachable_waypoint(self, waypoints, position):
+    def _waypoints_worth_aiming_at(self, waypoints):
+        """Índices que se pode mirar — portas ficam de fora, menos a última.
+
+        A rota de um interior começa no tile da porta, porque é por lá que se
+        entra. Mirar esse tile de dentro do prédio é sair dele: AARON chegou ao
+        Ginásio de Pewter em 36 segundos e depois entrou e saiu seis vezes,
+        porque o waypoint 0 de `brock-approach` é (4,13), a própria porta.
+
+        O último waypoint é exceção, e por isso mesmo: é assim que a rota
+        atravessa para o mapa seguinte.
+        """
+        ultimo = len(waypoints) - 1
+        try:
+            map_id = int(self.emulator.memory.get_map_id())
+            portas = set(self._warp_memory().doors_from(map_id))
+        except Exception:
+            return list(range(len(waypoints)))
+        se_pode_mirar = [
+            index for index, ponto in enumerate(waypoints)
+            if index == ultimo or tuple(ponto) not in portas
+        ]
+        return se_pode_mirar or list(range(len(waypoints)))
+
+    def _nearest_reachable_waypoint(self, waypoints, position, candidatos=None):
         """O waypoint mais perto **que dá para chegar**, não o mais perto.
 
         Distância em linha reta escolhe pontos do outro lado de uma parede.
@@ -1896,7 +1919,7 @@ class ScriptedAgent(BaseAgent):
         """
         x, y = position
         por_distancia = sorted(
-            range(len(waypoints)),
+            candidatos if candidatos is not None else range(len(waypoints)),
             key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
         )
         nearest = por_distancia[0]
@@ -1970,11 +1993,14 @@ class ScriptedAgent(BaseAgent):
             # corrida de 65 para 2,5 passos por segundo, o que na tela parece
             # travamento. Ela só serve quando a distância já provou não bastar,
             # e é exatamente aí que ela entra.
+            candidatos = self._waypoints_worth_aiming_at(waypoints)
             if replanejando:
-                nearest = self._nearest_reachable_waypoint(waypoints, (x, y))
+                nearest = self._nearest_reachable_waypoint(
+                    waypoints, (x, y), candidatos
+                )
             else:
                 nearest = min(
-                    range(len(waypoints)),
+                    candidatos,
                     key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
                 )
             self.route_index = max(nearest, min(progress.get(route_id, 0), limite))
