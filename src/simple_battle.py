@@ -21,13 +21,9 @@ TYPE_NAMES = [
 
 # Native type ids stored in the battle structs. Reading these values is more
 # reliable than maintaining a partial species table and keeps the controller
-# correct for dual-type Pokémon it has never seen before.
-GEN1_TYPE_NAMES = {
-    0: "NORMAL", 1: "FIGHTING", 2: "FLYING", 3: "POISON",
-    4: "GROUND", 5: "ROCK", 7: "BUG", 8: "GHOST",
-    20: "FIRE", 21: "WATER", 22: "GRASS", 23: "ELECTRIC",
-    24: "PSYCHIC", 25: "ICE", 26: "DRAGON",
-}
+# correct for dual-type Pokémon it has never seen before. The mapping lives
+# with the move table because the cartridge uses one set of ids for both.
+from src.move_data import GEN1_TYPE_NAMES, MoveTable
 
 # Pokemon Type Mapping (Species ID -> Types)
 POKEMON_TYPES = {
@@ -61,28 +57,6 @@ EFFECTIVENESS = {
     "PSYCHIC": {"FIGHTING": 2.0, "POISON": 2.0, "PSYCHIC": 0.5},
     "ICE": {"FLYING": 2.0, "GROUND": 2.0, "WATER": 0.5, "GRASS": 2.0, "ICE": 0.5, "DRAGON": 2.0},
     "DRAGON": {"DRAGON": 2.0}
-}
-
-# Canonical Gen I move ids used by the main route. Unknown moves remain
-# unusable until their real ROM data is added; they are never assigned a
-# fictional default power.
-MOVE_TYPES = {
-    1: "NORMAL", 10: "NORMAL", 15: "NORMAL", 19: "FLYING",
-    22: "GRASS", 24: "FIGHTING", 28: "GROUND", 30: "NORMAL",
-    32: "NORMAL", 33: "NORMAL", 37: "NORMAL", 39: "NORMAL",
-    40: "POISON", 43: "NORMAL", 44: "NORMAL", 45: "NORMAL", 52: "FIRE",
-    55: "WATER", 56: "WATER", 57: "WATER", 58: "ICE",
-    61: "WATER", 70: "NORMAL", 73: "GRASS", 75: "GRASS",
-    85: "ELECTRIC", 89: "GROUND", 91: "GROUND", 126: "FIRE",
-    145: "WATER", 157: "ROCK",
-}
-
-MOVE_POWER = {
-    1: 40, 10: 40, 15: 50, 19: 70, 22: 35, 24: 30,
-    28: 0, 30: 65, 32: 1, 33: 35, 37: 90, 39: 0,
-    40: 15, 43: 0, 44: 60, 45: 0, 52: 40, 55: 40, 56: 120,
-    57: 95, 58: 95, 61: 65, 70: 80, 73: 0, 75: 55,
-    85: 95, 89: 100, 91: 100, 126: 120, 145: 20, 157: 75,
 }
 
 # Gen I refuses to delete these moves from the level-up move replacement
@@ -122,6 +96,9 @@ class SimpleBattleAgent:
         self.text_advance_with_a = False
         self.move_learning = None
         self.leech_seed_used = False
+        # Preenchida no primeiro turno, direto do banco 0x0E. Vazia significa
+        # que ninguém perguntou ao cartucho ainda, não que os golpes valem zero.
+        self.move_table = MoveTable()
         self.last_decision = {
             "kind": "uninitialized",
             "reason": "battle controller has not observed a turn yet",
@@ -149,8 +126,17 @@ class SimpleBattleAgent:
     def _live_move_ids(emulator):
         return tuple(int(emulator.read_byte(0xD01C + index)) for index in range(4))
 
-    @staticmethod
-    def _replacement_slot(player_moves):
+    def _load_move_table(self, emulator):
+        """Ler o banco 0x0E uma vez por batalha-controlador e guardar.
+
+        É ROM: não muda enquanto o jogo roda. Reler a cada turno seria mil
+        acessos por encontro para receber sempre a mesma resposta.
+        """
+        if not len(self.move_table):
+            self.move_table = MoveTable.from_memory(emulator)
+        return self.move_table
+
+    def _replacement_slot(self, player_moves):
         """Pick the least useful deletable move from the active build.
 
         Damaging moves are ordered by their canonical base power. Status moves
@@ -161,7 +147,7 @@ class SimpleBattleAgent:
         for slot, move_id, _pp in player_moves:
             if move_id in HM_MOVE_IDS:
                 continue
-            power = MOVE_POWER.get(move_id)
+            power = self.move_table.power(move_id)
             utility = 45 if power is None else power
             choices.append((utility, slot, move_id))
         if not choices:
@@ -178,6 +164,7 @@ class SimpleBattleAgent:
         immediately before the list needs two confirmations; a directional
         input then opens the list without accidentally accepting its first row.
         """
+        self._load_move_table(emulator)
         battle_menu = int(emulator.read_byte(0xCC50))
         menu_top_y = int(emulator.read_byte(0xCC24))
         menu_column = int(emulator.read_byte(0xCC25))
@@ -413,11 +400,15 @@ class SimpleBattleAgent:
             # can otherwise create an infinite loop.
             disabled_move_id = int(emulator.read_byte(0xCCEE))
             
+            moves = self._load_move_table(emulator)
             for slot, move_id, pp in player_moves:
-                move_type = MOVE_TYPES.get(move_id, "NORMAL")
-                move_power = MOVE_POWER.get(move_id, 0)
-                
-                # Skip status moves and exhausted attacks.
+                move_type = moves.type_of(move_id) or "NORMAL"
+                move_power = moves.power(move_id) or 0
+
+                # Skip status moves and exhausted attacks. "Potência zero"
+                # agora vem do cartucho: antes vinha de o golpe faltar na
+                # tabela, e era assim que Thundershock virava status e perdia
+                # a vez para Growl.
                 if move_power == 0 or pp == 0 or move_id == disabled_move_id:
                     continue
                 

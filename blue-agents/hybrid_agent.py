@@ -37,7 +37,7 @@ from gymnasium import spaces
 from collections import Counter
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
-from src.simple_battle import MOVE_POWER
+from src.move_data import MoveTable
 from area_knowledge import (
     area_coverage,
     area_target,
@@ -1997,10 +1997,7 @@ class HybridGymEnv(RedGymEnv):
         # drop: a bot spent a night throwing Sleep Powder at a Metapod with
         # seven Poké Balls in the bag, because the rule kept saying "later".
         enemy_impaired = int(battle_info.get("enemy_status") or 0) != 0
-        has_damage_left = any(
-            MOVE_POWER.get(int(move.get("id") or 0), 0) > 0 and int(move.get("pp") or 0) > 0
-            for move in active.get("moves") or []
-        )
+        has_damage_left = self._has_damaging_pp(active)
         overkill_risk = bool(enemy_level) and active_level >= max(
             enemy_level + OVERKILL_LEVEL_GAP, int(enemy_level * OVERKILL_LEVEL_RATIO)
         )
@@ -2808,9 +2805,17 @@ class HybridGymEnv(RedGymEnv):
             self.capture_bag_open = True
         return action
 
+    def _moves(self):
+        """A tabela do cartucho, lida uma vez por ambiente."""
+        table = getattr(self, "move_table", None)
+        if table is None or not len(table):
+            self.move_table = MoveTable.from_memory(self)
+        return self.move_table
+
     def _has_damaging_pp(self, pokemon):
+        moves = self._moves()
         return any(
-            MOVE_POWER.get(int(move.get("id") or 0), 0) > 0
+            moves.is_damaging(int(move.get("id") or 0))
             and int(move.get("pp") or 0) > 0
             for move in pokemon.get("moves") or []
         )

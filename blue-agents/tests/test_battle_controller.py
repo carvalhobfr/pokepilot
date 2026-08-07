@@ -8,6 +8,8 @@ if PROJECT_ROOT not in sys.path:
 
 from src.simple_battle import SimpleBattleAgent
 
+from tests.rom_fixture import read_rom
+
 
 class FakeMemory:
     def __init__(self, values):
@@ -15,6 +17,9 @@ class FakeMemory:
 
     def read_byte(self, address):
         return self.values.get(address, 0)
+
+    def read_rom(self, bank, address):
+        return read_rom(bank, address)
 
 
 class BattleControllerTests(unittest.TestCase):
@@ -207,6 +212,7 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
     def make_env(self, party, active_slot=0):
         from hybrid_agent import HybridGymEnv
         env = HybridGymEnv.__new__(HybridGymEnv)
+        env.read_rom = read_rom
         env.get_party_info = lambda: list(party)
         env.read_m = lambda address: active_slot if address == 0xCC2F else 0
         env.capture_in_flight = False
@@ -301,6 +307,7 @@ class MissionRestartTests(unittest.TestCase):
     def make_env(self, position, *, in_battle=False):
         from hybrid_agent import HybridGymEnv, MISSION_RESTART_STEPS
         env = HybridGymEnv.__new__(HybridGymEnv)
+        env.read_rom = read_rom
         env.logged = []
         env._log_event = lambda kind, data, live=True: env.logged.append((kind, data))
         env.current_task = "QUEST: MT_MOON_NAV"
@@ -379,6 +386,7 @@ class FaintedLeadTests(unittest.TestCase):
     def make_env(self, party, prompt_open=True, active_slot=0):
         from hybrid_agent import HybridGymEnv
         env = HybridGymEnv.__new__(HybridGymEnv)
+        env.read_rom = read_rom
         env.get_party_info = lambda: list(party)
         env.read_m = lambda address: (
             active_slot if address == 0xCC2F

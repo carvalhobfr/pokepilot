@@ -493,6 +493,10 @@ class RedGymEnv(Env):
         #return self.pyboy.get_memory_value(addr)
         return self.pyboy.memory[addr]
 
+    def read_rom(self, bank, address):
+        """Um byte de um banco da ROM, para as tabelas que o cartucho já traz."""
+        return self.pyboy.memory[bank, address]
+
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'
         return bin(256 + self.read_m(addr))[-bit - 1] == "1"

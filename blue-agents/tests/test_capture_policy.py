@@ -7,6 +7,8 @@ from hybrid_agent import (
     POKEDEX_OWNED_START,
 )
 
+from tests.rom_fixture import read_rom
+
 
 class CapturePolicyTests(unittest.TestCase):
     def make_env(self, *, collector=50, meta=50, balls=5, party=None, memory=None):
@@ -18,6 +20,7 @@ class CapturePolicyTests(unittest.TestCase):
         env.get_party_info = lambda: list(party or [])
         ram = dict(memory or {})
         env.read_m = lambda address: ram.get(address, 0)
+        env.read_rom = read_rom
         env._poke_ball_count = lambda: balls
         env._select_capture_ball = lambda shiny_candidate=False: (
             {"item_id": 4, "slot": 0} if balls else None
