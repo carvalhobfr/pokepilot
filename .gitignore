@@ -62,3 +62,4 @@ blue-agents/knowledge/maps/terrain.json
 # (blue-agents/tools/forget_walls.py). São rede de segurança local, não dado
 # do projeto — o terrain.json em si já é ignorado logo acima.
 blue-agents/knowledge/maps/.envenenado/
+blue-agents/knowledge/maps/static_maps.json
