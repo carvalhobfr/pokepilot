@@ -145,6 +145,11 @@ STUCK_DISTINCT_TILES = 4
 # bastante para não acusar quem entra numa porta e sai porque terminou ali.
 STUCK_MAP_CROSSINGS = 6
 
+# A âncora de aproximação da boca de Mt. Moon, na Rota 4. Quem já está em x=11
+# ou mais a leste passou dela; voltar para trás é o que fechava o ciclo com a
+# caverna.
+MT_MOON_APPROACH_X = 11
+
 # Mapas onde um Centro fica no caminho e a próxima etapa não tem nenhum.
 # Viridian antes da Floresta, Pewter antes da Rota 3.
 CENTER_ON_THE_WAY = {1, 2, 15}
@@ -1840,8 +1845,19 @@ class ScriptedAgent(BaseAgent):
                     [(9, 16), (12, 16), (12, 6), (11, 6), (11, 5)],
                 )
             if x < 20:
+                # (11,6) é âncora de aproximação para quem chega **do oeste** —
+                # do Centro ou da Rota 3. Para quem já está a leste dela, ela
+                # fica atrás, e o ciclo que ela cria é fechado: sai da caverna
+                # em (18,5), o índice é recalculado para o ponto "mais
+                # próximo", volta a andar oeste até (11,6), leste até (18,6),
+                # entra na caverna em (18,5), sai, recomeça. Medido: 400
+                # travessias em 300 segundos.
+                #
+                # Mesmo padrão da porta do Centro de Viridian, já registrado no
+                # handoff: âncora de aproximação atrás do bot é âncora gasta.
+                aproximacao = [] if x >= MT_MOON_APPROACH_X else [(11, 6)]
                 return self._follow_route(
-                    "mt-moon-enter-cave", [(11, 6), (18, 6), (18, 5)]
+                    "mt-moon-enter-cave", aproximacao + [(18, 6), (18, 5)]
                 )
             return self._follow_route(
                 "mt-moon-to-cerulean",

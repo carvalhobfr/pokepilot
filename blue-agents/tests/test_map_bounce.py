@@ -98,3 +98,41 @@ class BounceReportTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MtMoonApproachTests(unittest.TestCase):
+    """The anchor that a trainer has already walked past is a spent anchor."""
+
+    def agent_on_route_4(self, x):
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        agent.emulator = type("E", (), {"memory": type("M", (), {
+            "get_map_id": staticmethod(lambda: 15),
+            "get_player_pos": staticmethod(lambda: (x, 6)),
+            "get_party_count": staticmethod(lambda: 1),
+            "read_byte": staticmethod(lambda address: 0),
+        })()})()
+        agent._party_needs_healing = lambda: False
+        agent._should_top_up_before = lambda map_id: False
+        agent._party_health_fraction = lambda: 1.0
+        agent.seen = {}
+        agent._follow_route = lambda route_id, waypoints: agent.seen.update(
+            {"route": route_id, "waypoints": waypoints}
+        )
+        return agent
+
+    def test_coming_from_the_west_still_uses_the_approach(self):
+        agent = self.agent_on_route_4(9)
+        agent._run_mt_moon_nav()
+        self.assertEqual([(11, 6), (18, 6), (18, 5)], agent.seen["waypoints"])
+
+    def test_already_past_it_heads_straight_for_the_cave(self):
+        # Walking back west to (11,6), then east to the cave, then out of the
+        # cave again is the loop: 400 crossings in 300 seconds.
+        agent = self.agent_on_route_4(16)
+        agent._run_mt_moon_nav()
+        self.assertEqual([(18, 6), (18, 5)], agent.seen["waypoints"])
+
+    def test_stepping_out_of_the_cave_does_not_send_it_west(self):
+        agent = self.agent_on_route_4(18)
+        agent._run_mt_moon_nav()
+        self.assertNotIn((11, 6), agent.seen["waypoints"])
