@@ -1399,73 +1399,12 @@ class ScriptedAgent(BaseAgent):
         if map_id in (2, 54):
             return None
 
-        # A city Center is a real checkpoint, not just a heal shortcut. Do it
-        # before the first forest entry, and recover there after a whiteout
-        # without touching the current save or discarding earned experience.
-        # Standing inside any Center is handled before every executor runs;
-        # see the rule at the top of `step`. A copy here would be a second
-        # place doing the same thing.
-        # Whether the trip is worth it is answered by the combined HP in RAM,
-        # never by a "já curei" flag. PP exhaustion is handled by battle input,
-        # not by a second healing condition.
-        # A Center that is already on the way is cheap; one reached after a
-        # whiteout costs the whole stretch again.
-        if self._party_needs_healing() or self._should_top_up_before(map_id):
-            if map_id == 1:
-                # The two entries from the north used to be measured D-pad
-                # strings. They ran out and returned None forever: a trainer
-                # froze at (23,7), one screen from the Center's own door.
-                # One route, walked, works from anywhere in the city.
-                #
-                # The door at (23, 25) is reachable only from below: (22, 25)
-                # is the building wall, so the approach is deliberate.
-                # A âncora de aproximação existe para quem vem do oeste: a
-                # porta em (23,25) só é alcançável por baixo, porque (22,25) é
-                # a parede do prédio. Para quem já está embaixo dela, essa
-                # âncora fica *atrás* — e o bot ia até (21,26) e voltava, sem
-                # fim. Quem já chegou embaixo da porta só precisa subir.
-                x, y = self.emulator.memory.get_player_pos()
-                aproximacao = [] if (x >= 22 and y >= 26) else [(21, 26)]
-                return self._follow_route(
-                    "viridian-center-door", aproximacao + [(23, 26), (23, 25)]
-                )
-            # These three were measured D-pad strings — "press D eighteen
-            # times and hope". From (8,30) in the Forest that walks into the
-            # y=30 tree line, the string runs out, and `_fixed_route` then
-            # returns None forever: the trainer stands in the grass taking
-            # encounters until something kills it. Same waypoints, walked by
-            # the route follower, which reads the screen and remembers the map.
-            # Past the middle of the crossing, the nearest Center is Pewter's,
-            # and the way there is the way the journey was going anyway. Only
-            # the southern half turns back: walking to Viridian from inside the
-            # Forest means doing the whole crossing again, which is what kept a
-            # trainer with two Pokémon shuttling between Route 2 and the city.
-            _, y = self.emulator.memory.get_player_pos()
-            forward = (
-                (map_id == 51 and y <= FOREST_MIDPOINT_Y)
-                or map_id == 47
-                or (map_id == 13 and y <= ROUTE_2_NORTH_Y)
-            )
-            if not forward:
-                if map_id == 51:
-                    return self._follow_route(
-                        "forest-back-to-gate", [(16, 46), (16, 47), (16, 48)]
-                    )
-                if map_id == 50:
-                    return self._follow_route(
-                        "gate-back-to-route2", [(4, 7), (4, 8)]
-                    )
-                if map_id == 13:
-                    return self._follow_route(
-                        "route2-back-to-viridian",
-                        [(10, 44), (10, 52), (7, 52), (7, 71), (7, 72)],
-                    )
-            # Every branch above is a city measured by hand. Anywhere else, ask
-            # this map whether it has a Center door: if it does, that is the
-            # nearest Center by definition, and none of it was measured.
-            nearest = self._run_nearest_center("forest-nearest-center")
-            if nearest is not None:
-                return nearest
+        # Aqui havia a viagem de volta ao Centro por HP baixo, com um ramo
+        # medido à mão para Viridian e um "meia travessia atrás, meia à
+        # frente" para decidir qual Centro. Saiu inteira: sem cura automática,
+        # HP baixo não interrompe mais a travessia. Estar dentro de um Centro
+        # continua valendo checkpoint, e isso é tratado antes de todo executor,
+        # na regra no topo de `step`.
 
         if map_id in (0, 12, 1, 50) or (
             map_id == 13 and self.emulator.memory.get_player_pos()[1] > 20
@@ -1614,18 +1553,9 @@ class ScriptedAgent(BaseAgent):
         map_id = int(self.emulator.memory.get_map_id())
         if map_id == 54:
             return None
-        # Mesmo motivo do Centro de Viridian: o flag some ao reiniciar, e sem
-        # perguntar ao cartucho o bot volta a entrar e sair da porta do Centro.
-        # Foram 431 idas e vindas entre o mapa 2 e o 58 numa hora.
-        if self._party_needs_healing() or self._should_top_up_before(map_id):
-            if map_id == 58:
-                return self._run_pokemon_center(
-                    "pewter-center", "pewter_center_healed"
-                )
-            if map_id == 2:
-                return self._follow_route(
-                    "pewter-center-door", [(13, 25), (13, 24)]
-                )
+        # O desvio para o Centro de Pewter saiu com a cura automática. Dentro
+        # do 58 o registro do Centro é feito antes do executor, na regra do
+        # topo de `step`.
         if map_id == 2:
             return self._follow_route(
                 "pewter-to-gym",
@@ -1837,13 +1767,8 @@ class ScriptedAgent(BaseAgent):
             # "Já curei aqui" era mais um trinco de processo: reiniciado, ele
             # voltava ao Centro da Rota 4 com o time inteiro e ficava indo e
             # vindo entre (12,6) e (13,6). Quem responde é a party na RAM.
-            if x < 20 and (
-                self._party_needs_healing() or self._should_top_up_before(map_id)
-            ):
-                return self._follow_route(
-                    "mt-moon-to-center",
-                    [(9, 16), (12, 16), (12, 6), (11, 6), (11, 5)],
-                )
+            # O desvio para o Centro da Rota 4 saiu junto com a cura
+            # automática. Quem estiver a oeste segue direto para a caverna.
             if x < 20:
                 # (11,6) é âncora de aproximação para quem chega **do oeste** —
                 # do Centro ou da Rota 3. Para quem já está a leste dela, ela
@@ -1872,23 +1797,22 @@ class ScriptedAgent(BaseAgent):
     def _center_first_action(self):
         """A Center on this map outranks whatever the executor wanted to do.
 
-        The prize is not the HP, it is the **checkpoint**. A confirmed heal
-        inside a Center is the only thing in this project that writes a resume
-        point, so walking past one is throwing away the only defence a whiteout
-        has: with a checkpoint a death costs the stretch, without one it costs
-        the run back to Pallet.
+        The prize is not the HP, it is the **checkpoint**. Entering a Center is
+        the only thing in this project that writes a resume point, so walking
+        past one is throwing away the only defence a whiteout has: with a
+        checkpoint a death costs the stretch, without one it costs the run back
+        to Pallet.
 
-        So the threshold here is not the operator's 20% emergency — that one is
-        about whether a trip across a city is worth it, and this is not a trip.
-        Anything missing, and a Center door on this very map, is enough.
+        A viagem até um Centro por causa de HP foi cancelada pelo operador:
+        ficar até morrer é aceitável, e a cura automática travava o
+        personagem. Sobrou a metade que importa — um Centro **neste mapa**
+        vira ponto de retomada, e o executor espera.
 
         It also closes a hole every executor shared. AARON reached Pewter,
         walked into its Center at 53% with a fainted Caterpie, and stopped:
         `_run_pewter_city_nav` only enters its Center branch when the 20% gate
         says yes, so nothing matched and it fell through to the unknown-map
-        fallback. And the two thresholds agreeing is what keeps the door from
-        becoming a revolving one — in and out was two different numbers, one
-        deciding to enter and another refusing to heal.
+        fallback.
         """
         if getattr(self, "emulator", None) is None:
             return None
@@ -1909,11 +1833,10 @@ class ScriptedAgent(BaseAgent):
                 else (f"center-{map_id}", f"center_{map_id}_healed")
             )
             return self._run_pokemon_center(prefix, healed)
-        if self._party_health_fraction() >= 1.0:
-            return None
-        # A door on this map is "on the way" by definition; a Center a city
-        # away is a trip, and trips still belong to the executors.
-        return self._walk_to_door("center-door", POKEMON_CENTER_MAP_IDS)
+        # Fora de um Centro não há desvio: sem cura automática, HP baixo não é
+        # mais motivo para largar a rota. O executor segue e, se for para
+        # morrer, morre — o cartucho reergue o time no Centro sozinho.
+        return None
 
     def _door_to(self, destinations):
         """Nearest door on this map leading into one of these maps, or None.
@@ -1983,45 +1906,27 @@ class ScriptedAgent(BaseAgent):
         return self._buy_first_shop_item()
 
     def _run_pokemon_center(self, route_prefix, healed_attribute):
-        """Register a city Center through its real nurse dialogue."""
+        """Marcar o Centro como ponto de retomada e sair.
+
+        A enfermeira saiu de cena por ordem do operador em 2026-08-07: a dança
+        até (3,3), o SIM e a animação travavam o personagem, e morrer no meio
+        de um treino não é problema — o cartucho já devolve o time inteiro num
+        Centro depois do apagão. O que **não** pode se perder é o Centro como
+        checkpoint, e esse nunca dependeu da cura: dependia de estar aqui.
+
+        Por isso este controlador continua dono das duas metades, só que agora
+        são "registrar" e "sair". Sem a segunda, um treinador ficava parado no
+        capacho: nenhum executor tem ramo para Centro, e o passo caía no
+        fallback de mapa desconhecido.
+        """
         position = self.emulator.memory.get_player_pos()
-        milestone_prefix = healed_attribute.removesuffix("_healed")
-        dialog_attribute = f"{milestone_prefix}_heal_dialog_opened"
-        # "Curei" era decidido por uma caixa de diálogo ter aberto e fechado.
-        # Abrir texto não é curar: os dois saíam do Centro com o mesmo HP,
-        # voltavam para o mato, voltavam ao Centro — e o trinco de uma vez por
-        # jornada escondia o ciclo. Quem decide é a party na RAM.
-        # Dentro do Centro, curar é de graça: quem se deu ao trabalho de vir
-        # cura o que falta, e não só o que era emergência. Com o limite de
-        # emergência aqui, um time a 55% entrava, não curava, saía — e a regra
-        # de 70% que o trouxe mandava voltar. Entrar e sair, sem fim.
-        if self._party_health_fraction() < 1.0:
-            if position != (3, 3):
-                return self._follow_route(
-                    f"{route_prefix}-nurse",
-                    [(3, 7), (3, 3)],
-                )
-            if int(self.emulator.memory.read_byte(0xD52A)) != 8:
-                self.last_action_was_move = True
-                return WindowEvent.PRESS_ARROW_UP
-            # Falar, confirmar o SIM e atravessar a animação são todos A. O fim
-            # da conversa é o time inteiro de volta, não uma caixa fechando.
-            setattr(self, dialog_attribute, True)
-            return WindowEvent.PRESS_BUTTON_A
-        if not getattr(self, dialog_attribute, False):
-            # A whiteout can place a full party in a Center without a nurse
-            # interaction. It is a recovery location, not proof of a new heal.
-            if tuple(position) not in ((3, 7), (4, 7)):
-                return self._follow_route(f"{route_prefix}-exit", [(3, 7)])
-            self.last_action_was_move = True
-            return WindowEvent.PRESS_ARROW_DOWN
         setattr(self, healed_attribute, True)
         setattr(
             self,
             f"{healed_attribute.replace('_healed', '')}_checkpoint_confirmed",
             True,
         )
-        self.last_center_healed_map_id = int(self.emulator.memory.get_map_id())
+        self.last_center_visited_map_id = int(self.emulator.memory.get_map_id())
         # Leaving used to be a measured D-pad sequence, played once. When any
         # press was eaten — by the nurse's last text box, by a step that landed
         # a tile off — the sequence ran out and the controller returned None
@@ -2102,16 +2007,8 @@ class ScriptedAgent(BaseAgent):
             )
 
         if map_id == 3:
-            if (
-                not getattr(self, "cerulean_center_healed", False)
-                and not self._party_needs_healing()
-            ):
-                self.cerulean_center_healed = True
-            if not getattr(self, "cerulean_center_healed", False):
-                return self._follow_route(
-                    "cerulean-to-center",
-                    [(0, 18), (19, 18), (19, 17)],
-                )
+            # A parada de cura em Cerulean saiu; o Centro só entra na rota se
+            # o caminho passar por cima dele.
             return self._follow_route(
                 "cerulean-to-rival",
                 [
@@ -2245,19 +2142,7 @@ class ScriptedAgent(BaseAgent):
                 "cerulean_gym_center_healed",
             )
         if map_id == 3:
-            if (
-                not getattr(self, "cerulean_gym_center_healed", False)
-                and not self._party_needs_healing()
-            ):
-                self.cerulean_gym_center_healed = True
-            if not getattr(self, "cerulean_gym_center_healed", False):
-                return self._follow_route(
-                    "cerulean-gym-heal",
-                    [
-                        (20, 0), (20, 12), (8, 12), (8, 18),
-                        (19, 18), (19, 17),
-                    ],
-                )
+            # Sem parada de cura: direto para a porta do ginásio.
             return self._follow_route(
                 "cerulean-gym-door",
                 [(19, 18), (19, 20), (30, 20), (30, 19)],

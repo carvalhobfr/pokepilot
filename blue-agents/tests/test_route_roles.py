@@ -386,10 +386,13 @@ class HealForwardTests(unittest.TestCase):
         agent._leave_unknown_map = lambda: agent.calls.append("leave")
         return agent
 
-    def test_the_southern_half_walks_back_to_viridian(self):
+    def test_a_metade_sul_tambem_segue_em_frente(self):
+        # A volta a Viridian existia para curar. Sem cura automática, HP baixo
+        # não interrompe mais a travessia: segue a rota do mapa 51.
         agent = self.agent(51, (16, 40))
         agent._run_viridian_forest_nav()
-        self.assertEqual(["forest-back-to-gate"], agent.calls)
+        self.assertEqual(["forest-51"], agent.calls)
+        self.assertNotIn("forest-back-to-gate", agent.calls)
 
     def test_the_northern_half_keeps_going_to_pewter(self):
         # Walking back from here means crossing the whole Forest twice.

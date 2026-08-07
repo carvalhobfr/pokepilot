@@ -1,12 +1,17 @@
-"""Inside a Center, heal — before any executor gets a say.
+"""Dentro de um Centro, registrar — antes de qualquer executor.
 
-AARON crossed the Forest, reached Pewter, walked into its Center at 53% with a
-fainted Caterpie, and stopped. `_run_pewter_city_nav` only enters the Center
-branch when `_party_needs_healing()` says yes, and that gate is 20%. Nothing
-matched, so it fell through to the unknown-map fallback and stood still.
+AARON atravessou a Floresta, chegou a Pewter, entrou no Centro a 53% com um
+Caterpie desmaiado, e parou. `_run_pewter_city_nav` só entra no ramo do Centro
+quando o portão de 20% diz sim; nada casou, e o passo caiu no fallback de mapa
+desconhecido.
 
-Every executor that can end up in a Center has the same hole, so the rule lives
-ahead of all of them.
+Todo executor que pode terminar num Centro tem o mesmo buraco, então a regra
+mora à frente de todos eles.
+
+O que a regra faz mudou em 2026-08-07, por ordem do operador: a cura automática
+travava o personagem e saiu. Ficar até morrer é aceitável. Sobrou a metade que
+importa — estar num Centro grava o ponto de retomada — e o desvio até a porta
+de um Centro por HP baixo foi cancelado junto.
 """
 
 import sys
@@ -79,14 +84,13 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
     def step(self, agent):
         return agent._center_first_action()
 
-    def test_a_hurt_party_in_pewters_center_heals(self):
+    def test_a_hurt_party_in_pewters_center_is_registered(self):
         agent = self.agent_in(58, self.HURT)
         self.assertEqual("HEALING", self.step(agent))
         self.assertEqual([("center-58", "center_58_healed")], agent.called)
 
-    def test_fifty_three_percent_is_enough_to_heal_once_inside(self):
-        # The emergency gate is 20% and stays 20% for travelling. Inside, the
-        # trip is already paid for.
+    def test_qualquer_hp_entrega_o_controle_uma_vez_dentro(self):
+        # Não há mais portão de HP: estar dentro basta.
         agent = self.agent_in(58, self.HURT)
         self.assertLess(agent._party_health_fraction(), 1.0)
         self.assertGreater(agent._party_health_fraction(), 0.2)
@@ -101,26 +105,24 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         self.assertEqual("HEALING", self.step(agent))
         self.assertEqual([("center-58", "center_58_healed")], agent.called)
 
-    def test_a_center_door_on_this_map_is_worth_the_detour(self):
-        # Not for the HP: a confirmed heal is the only thing that writes a
-        # checkpoint, and a checkpoint is what makes a whiteout cost the
-        # stretch instead of the run.
+    def test_a_porta_do_centro_nao_e_mais_desvio(self):
+        # Machucado do lado de fora segue a rota. Era aqui que nascia a viagem
+        # de cura, e é ela que foi cancelada.
         agent = self.agent_in(2, self.HURT, doors={(13, 25): 58, (16, 17): 54})
-        self.assertEqual("WALKING", self.step(agent))
-        self.assertEqual([("center-door-13-25", [(13, 25)])], agent.walked)
+        self.assertIsNone(self.step(agent))
+        self.assertEqual([], agent.walked)
 
     def test_a_whole_party_walks_straight_past_it(self):
         agent = self.agent_in(2, self.WHOLE, doors={(13, 25): 58})
         self.assertIsNone(self.step(agent))
         self.assertEqual([], agent.walked)
 
-    def test_entering_and_healing_use_the_same_threshold(self):
-        # Two different numbers — one deciding to enter, another refusing to
-        # heal — is what turned the door into a revolving one.
-        outside = self.agent_in(2, self.HURT, doors={(13, 25): 58})
-        inside = self.agent_in(58, self.HURT)
-        self.assertIsNotNone(self.step(outside))
-        self.assertIsNotNone(self.step(inside))
+    def test_o_hp_nao_decide_mais_nada_do_lado_de_fora(self):
+        # Só o mapa decide: dentro entrega, fora devolve None — inteiro ou
+        # machucado, tanto faz.
+        for party in (self.HURT, self.WHOLE):
+            self.assertIsNone(self.step(self.agent_in(2, party, doors={(13, 25): 58})))
+            self.assertEqual("HEALING", self.step(self.agent_in(58, party)))
 
     def test_viridian_keeps_its_own_milestone_name(self):
         # `viridian_center_healed` is read outside this class as the story
@@ -146,11 +148,10 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         self.assertEqual("HEALING", self.step(agent))
         self.assertEqual([("center-68", "center_68_healed")], agent.called)
 
-    def test_the_route_4_center_door_is_worth_the_detour(self):
-        # Route 4 carries the door; nothing about it is measured by hand.
+    def test_a_rota_4_segue_para_a_caverna_e_nao_para_o_centro(self):
         agent = self.agent_in(15, self.HURT, doors={(11, 5): 68, (18, 5): 59})
-        self.assertEqual("WALKING", self.step(agent))
-        self.assertEqual([("center-door-11-5", [(11, 5)])], agent.walked)
+        self.assertIsNone(self.step(agent))
+        self.assertEqual([], agent.walked)
 
     def test_the_rule_covers_every_known_center(self):
         for map_id in POKEMON_CENTER_MAP_IDS:

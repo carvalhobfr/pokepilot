@@ -3703,7 +3703,7 @@ class HybridGymEnv(RedGymEnv):
             self.whiteout_pending = False
 
     def _save_checkpoint(self, milestone):
-        """Save only a verified post-heal Pokémon Center state."""
+        """Save only a Pokémon Center state, healed or not."""
         if not str(milestone).startswith("center_"):
             return False
         checkpoint_file = self.checkpoint_dir / f"{milestone}.state"
@@ -3835,7 +3835,18 @@ class HybridGymEnv(RedGymEnv):
         alone; the cartridge already carries the run back to a Center.
 
         What is worth keeping is a place a stuck run can be resumed from
-        without cheating: inside a Center, right after a real heal.
+        without cheating: inside a Center.
+
+        Estar aqui basta. Antes o checkpoint exigia cura confirmada e time
+        cheio, e isso amarrava a persistência a uma decisão de jogo: derrotar
+        Surge sem levar dano e entrar no Centro a 100% não gravava nada,
+        porque não havia o que curar. Com a cura automática cancelada em
+        2026-08-07, essa exigência não sobrava nenhum checkpoint — o time
+        nunca mais fica cheio por vontade própria.
+
+        Retomar com o time machucado é aceitável por decisão do operador: um
+        apagão durante o treino não é problema, e o cartucho reergue o time
+        num Centro sozinho.
         """
         if self.in_battle:
             return
@@ -3847,22 +3858,18 @@ class HybridGymEnv(RedGymEnv):
         except Exception:
             return
         if map_id not in POKEMON_CENTER_MAP_IDS:
+            # Sair rearma: a próxima entrada neste mesmo Centro grava de novo,
+            # com o progresso que houver. Gravar uma vez por Centro por jornada
+            # congelava o ponto de retomada na primeira visita.
+            self.center_checkpoint_armed = True
             return
-        if getattr(scripted, "last_center_healed_map_id", None) != map_id:
+        if not getattr(self, "center_checkpoint_armed", True):
             return
         party = self.get_party_info()
         if not party:
             return
-        healthy = all(
-            int(mon.get("hp") or 0) >= int(mon.get("max_hp") or 0) > 0
-            for mon in party
-        )
-        if not healthy:
-            return
-        milestone = f"center_{map_id}"
-        if milestone in self.saved_checkpoint_milestones:
-            return
-        self._save_checkpoint(milestone)
+        self.center_checkpoint_armed = False
+        self._save_checkpoint(f"center_{map_id}")
 
     def _mark_golden_tiles(self):
         """Mark current seen tiles as golden in shared DB"""

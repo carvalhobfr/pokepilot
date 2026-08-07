@@ -190,5 +190,68 @@ class CheckpointGenerationTests(unittest.TestCase):
         self.assertEqual(restored.quest_generations, {"mt_moon_nav": 3})
 
 
+class CenterCheckpointTests(unittest.TestCase):
+    """Estar no Centro basta. Cura não é mais condição.
+
+    A regra antiga era: cura confirmada + time cheio → checkpoint. Com a cura
+    automática cancelada, o time nunca mais fica cheio por vontade própria, e
+    essa condição não deixaria sobrar nenhum ponto de retomada.
+    """
+
+    PEWTER_CENTER = 58
+
+    def make_env(self, map_id, party, armed=True):
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        env.agent_name = "AARON"
+        env.in_battle = False
+        env.scripted_agent = type("FakeScripted", (), {})()
+        env.read_m = lambda address: map_id if address == 0xD35E else 0
+        env.get_party_info = lambda: list(party)
+        env.center_checkpoint_armed = armed
+        env.saved = []
+        env._save_checkpoint = lambda milestone: env.saved.append(milestone) or True
+        return env
+
+    def test_time_machucado_num_centro_grava_checkpoint(self):
+        env = self.make_env(self.PEWTER_CENTER, [{"hp": 1, "max_hp": 59}])
+        env._check_milestones()
+        self.assertEqual(["center_58"], env.saved)
+
+    def test_time_inteiro_num_centro_tambem_grava(self):
+        # Vencer um ginásio sem levar dano e entrar no Centro a 100% não
+        # gravava nada, porque não havia o que curar.
+        env = self.make_env(self.PEWTER_CENTER, [{"hp": 59, "max_hp": 59}])
+        env._check_milestones()
+        self.assertEqual(["center_58"], env.saved)
+
+    def test_nao_grava_de_novo_sem_sair(self):
+        env = self.make_env(self.PEWTER_CENTER, [{"hp": 1, "max_hp": 59}])
+        env._check_milestones()
+        env._check_milestones()
+        self.assertEqual(["center_58"], env.saved)
+
+    def test_sair_rearma_para_a_proxima_visita(self):
+        # Gravar uma vez por Centro por jornada congelava o ponto de retomada
+        # na primeira visita, e todo progresso depois dela ficava sem rede.
+        env = self.make_env(self.PEWTER_CENTER, [{"hp": 1, "max_hp": 59}])
+        env._check_milestones()
+        env.read_m = lambda address: 2 if address == 0xD35E else 0
+        env._check_milestones()
+        env.read_m = lambda address: self.PEWTER_CENTER if address == 0xD35E else 0
+        env._check_milestones()
+        self.assertEqual(["center_58", "center_58"], env.saved)
+
+    def test_fora_de_centro_nao_grava(self):
+        env = self.make_env(2, [{"hp": 1, "max_hp": 59}])
+        env._check_milestones()
+        self.assertEqual([], env.saved)
+
+    def test_em_batalha_nao_grava(self):
+        env = self.make_env(self.PEWTER_CENTER, [{"hp": 1, "max_hp": 59}])
+        env.in_battle = True
+        env._check_milestones()
+        self.assertEqual([], env.saved)
+
+
 if __name__ == "__main__":
     unittest.main()
