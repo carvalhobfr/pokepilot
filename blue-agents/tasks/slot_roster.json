@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "slot_count": 2,
+  "slot_count": 3,
   "next_agent_index": 4,
   "slots": [
     {
@@ -18,9 +18,19 @@
       "agent_name": "BARON",
       "identity_index": 1,
       "profile_index": 1,
-      "generation": 2,
+      "generation": 3,
       "status": "active",
       "archetype": "speedrunner",
+      "route_role": "follower"
+    },
+    {
+      "slot": 2,
+      "agent_name": "CARON",
+      "identity_index": 2,
+      "profile_index": 2,
+      "generation": 2,
+      "status": "active",
+      "archetype": "team_builder",
       "route_role": "follower"
     }
   ],
@@ -53,10 +63,6 @@
     {
       "agent_name": "DARON",
       "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "CARON",
-      "reason": "saiu do roster para BARON entrar; jornada preservada em trainers/CARON/"
     }
   ]
 }
