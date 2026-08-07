@@ -88,14 +88,7 @@ VIRIDIAN_OLD_MAN_APPROACH = (17, 4)
 VIRIDIAN_NORTH_EXIT = (17, 0)
 VIRIDIAN_OLD_MAN_DIALOG_LIMIT = 48
 
-# Level is what separates crossing the Forest from dying in it. The wild
-# Caterpie are harmless; the bug catchers on the way north are not, and a party
-# whose best is level 8 loses to the first one — measured, twice, ten steps in.
 VIRIDIAN_FOREST_MAP_ID = 51
-FOREST_MIN_LEVEL = 12
-# A gate with no way out is worse than a death: if the grass will not deliver
-# the levels, cross anyway rather than pace forever.
-FOREST_TRAINING_STEPS = 4000
 
 # Steps spent waiting for a person to move before walking around them. People
 # in Gen I pace on their own; walls do not.
@@ -1449,15 +1442,12 @@ class ScriptedAgent(BaseAgent):
         ):
             return self._run_route_2_nav()
 
-        # Level is the whole difference between crossing the Forest and dying
-        # in it. The wild Caterpie are harmless; the bug catchers on the way
-        # north are not, and both trainers walked into the same one ten steps
-        # in and lost the whole party — then walked back from Pallet to do it
-        # again. Grinding first is cheaper than that trip, every time.
-        if map_id == 51 and self._needs_forest_training():
-            step = self._train_in_forest_entrance()
-            if step is not None:
-                return step
+        # Aqui ficava o treino na entrada da Floresta, desligado por padrão e
+        # removido em 2026-08-07 a pedido do operador. O portão em si estava
+        # certo — time nível 8 perde para o primeiro bug catcher, medido duas
+        # vezes — mas *onde* treinar errou cinco vezes seguidas na ROM, e cada
+        # erro custou uma corrida. Volta quando houver um seletor de área
+        # medido a partir de um save, não deduzido da rota.
 
         routes = {
             51: [
@@ -1484,106 +1474,6 @@ class ScriptedAgent(BaseAgent):
         return max(
             (int(read(0xD16B + index * 44 + 33)) for index in range(count)),
             default=0,
-        )
-
-    def _needs_forest_training(self):
-        """Too weak for the bug catchers, and still allowed to do something.
-
-        Off unless `POKEAI_FOREST_TRAINING=1`. The gate itself is sound — a
-        party whose best is level 8 loses to the first bug catcher, measured
-        twice — but every version of *where to grind* has been wrong on the
-        cartridge, and each wrong one cost a real run:
-
-        | where                        | result                      |
-        |------------------------------|-----------------------------|
-        | line at y=43                 | 1 encounter / 225 steps     |
-        | crossing's southern legs     | 1 / 3765                    |
-        | farthest grass in sight      | walked into the bug catcher |
-        | nearest grass within 3 tiles | detoured north, same        |
-        | two-tile shuffle in place    | 0 / 1200, stuck on 8 tiles  |
-
-        What is proven and worth keeping: `wGrassTile` (`0xD535`) says which
-        tile rolls encounters, and `TileCollision.grass_offsets()` finds them
-        on screen. What is missing is a patch of grass known to be reachable
-        and clear of trainers — and five guesses say that has to be measured
-        from a save, not assumed from the route.
-        """
-        if os.getenv("POKEAI_FOREST_TRAINING", "0") != "1":
-            return False
-        if self._party_max_level() >= FOREST_MIN_LEVEL:
-            self.forest_training_steps = 0
-            return False
-        # A budget, because a gate with no way out is worse than a death. If
-        # the grass will not deliver the levels — no encounters here, PP gone,
-        # anything — the crossing is attempted anyway rather than the trainer
-        # standing in a patch of grass forever.
-        return getattr(self, "forest_training_steps", 0) < FOREST_TRAINING_STEPS
-
-    def _train_in_forest_entrance(self):
-        """Step into the grass beside the trainer, or hand the step back.
-
-        Four attempts at this went wrong the same way, and every one of them
-        was me deciding where the grass is instead of asking:
-
-        1. a nine-tile line at y=43 — one encounter in three thousand steps;
-        2. the crossing's own southern legs — one in three thousand seven
-           hundred. Both are the dirt path, which is why the route follows
-           them;
-        3. `wGrassTile` read properly at last, but aiming at the **farthest**
-           grass in sight, which from (31,24) is north — and north is where the
-           bug catcher stands. The loop walked the party into the fight the
-           levels were being collected to survive;
-        4. nearest grass within three tiles, falling back to a search route
-           when none was in reach. The way west is behind trees, so the search
-           detoured north, into the same trainer.
-
-        So this plans nothing at all. Grass **adjacent** to where the trainer
-        already stands is a step; anything else is `None`, and the crossing
-        route gets the step back. An encounter is rolled per step taken in
-        grass, so a one-tile shuffle earns exactly what a hike earns, and it
-        cannot walk into a trainer, a door, or a tree — because it never walks
-        anywhere. Whatever grass the crossing passes through is grass this
-        trains in.
-
-        The cost is honest: this no longer guarantees level `FOREST_MIN_LEVEL`
-        before the bug catchers, it only takes every free encounter on the way.
-        Guaranteeing it needs to know where a safe patch is, and four guesses
-        say that has to be measured rather than assumed.
-        """
-        position = tuple(self.emulator.memory.get_player_pos())
-        reader = self._tile_reader()
-        if reader is None:
-            return None
-        # A door is a destination, never a shortcut. `_follow_route` only
-        # blocks warp steps while it is not aiming at its last waypoint, and a
-        # training target is always the last waypoint — so on the Forest
-        # entrance the step back through the door was wide open, and BARON
-        # crossed gate to Forest and back every single frame.
-        warps = reader.warp_tiles()
-        beside = {
-            (position[0] + dx, position[1] + dy)
-            for dx, dy in reader.grass_offsets()
-            if abs(dx) + abs(dy) == 1
-        } - warps
-        if not beside:
-            return None
-        self.forest_training_steps = getattr(self, "forest_training_steps", 0) + 1
-
-        # Two tiles, back and forth, and nothing else. "Step onto the nearest
-        # grass" sounds local and is not: picking the same corner of the patch
-        # every time is a fixed heading, and the trainer walked fourteen tiles
-        # up the grass column doing exactly that — arriving, as every other
-        # version did, at the bug catcher. A pair cannot drift.
-        # Only one of the two has to be grass — the other is simply where it
-        # came from. Requiring both broke the pair on arrival every time, and a
-        # pair rebuilt every step is the drift again under another name.
-        pair = getattr(self, "forest_training_pair", None)
-        if not pair or position not in pair:
-            pair = (position, min(beside))
-            self.forest_training_pair = pair
-        home, away = pair
-        return self._follow_route(
-            "forest-training", [away if position == home else home]
         )
 
     def _run_pewter_city_nav(self):

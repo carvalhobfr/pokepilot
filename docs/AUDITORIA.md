@@ -199,7 +199,6 @@ POKEAI_STAGGER_STEPS=1500 python3 start.py --slots 2 \
 |---|---|
 | `POKEAI_STAGGER_STEPS=N` | slot *k* espera *k·N* decisões, em ordem — para o de trás herdar trilha |
 | `POKEAI_FOLLOW_TRAILS=1` | liga o seguimento de trilha (padrão: desligado) |
-| `POKEAI_FOREST_TRAINING=1` | liga o portão de nível antes da Floresta (padrão: desligado) |
 | `--init-state <save>` | de onde parte quem não tem retomada válida |
 
 **Limite de 2 slots.** A máquina tem 8 GB e o swap vive perto do cheio; três

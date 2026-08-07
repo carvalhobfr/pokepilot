@@ -49,6 +49,42 @@ não bug de log — zero ids duplicados.
 O diário agora **colapsa repetição idêntica em sequência**: a primeira sai na
 hora, as seguintes viram uma linha `<tipo>_repeated` com o total.
 
+## 2026-08-07 — treino na Floresta removido, e o que ele deixa em aberto
+
+Saiu a pedido do operador. Estava desligado por padrão (`POKEAI_FOREST_TRAINING`),
+e o motivo está no próprio código: o portão de nível era sólido — time cujo
+melhor é 8 perde para o primeiro bug catcher, medido duas vezes — mas **onde**
+treinar errou cinco vezes na ROM, e cada erro custou uma corrida.
+
+| onde se tentou treinar | resultado |
+|---|---|
+| linha em y=43 | 1 encontro / 225 passos |
+| pernas sul da travessia | 1 / 3765 |
+| grama mais distante à vista | andou até o bug catcher |
+| grama a 3 tiles | desviou ao norte, idem |
+| vaivém de dois tiles | 0 / 1200, preso em 8 tiles |
+
+O que fica provado e vale guardar: `wGrassTile` (`0xD535`) diz qual tile rola
+encontro, e `TileCollision.grass_offsets()` acha na tela. O que falta é um
+trecho de grama **medido a partir de um save** — alcançável e fora da linha de
+visão de treinador.
+
+### O bloqueio que isto não resolve
+
+Removê-lo é limpeza, não conserto. Medido nesta sessão, um bot sozinho partindo
+de save novo:
+
+| | |
+|---|---|
+| lab do Oak → Ginásio de Pewter | **36 segundos** |
+| derrotas seguidas depois disso | **1.047** |
+| mortes | **1.045** |
+| nível do ativo | nunca passa de **10** |
+
+Bulbasaur aprende Vine Whip no 13, e é ele que resolve contra os tipos Terra do
+ginásio. Sem treino o ciclo é o previsto na auditoria: *treinador obrigatório →
+apagão → mesmo treinador*. A navegação está resolvida; a progressão não.
+
 ## 2026-08-07 — `warps.json` estava envenenado, e eu piorei antes de ver
 
 `WarpMemory.record` gravava "o tile onde o bot estava quando o mapa mudou". A
