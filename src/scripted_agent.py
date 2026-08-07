@@ -2934,7 +2934,16 @@ class ScriptedAgent(BaseAgent):
             # has already walked through. Ranked below the entry tile on
             # purpose: the nearest door may well be the one just entered, and
             # aiming at it walks the bot straight back where it came from.
-            known = self._warp_memory().doors_from(map_id)
+            # A porta debaixo dos próprios pés não serve de destino: andar até
+            # onde já se está não é andar. BARON foi retomado exatamente em
+            # cima da porta do Centro da Rota 4, a porta foi descartada por
+            # isso, e ele caiu no passeio cego abaixo — dez tiles ao sul e de
+            # volta, para sempre. Descartar o tile atual e usar a próxima porta
+            # mantém o fallback com uma saída de verdade.
+            known = [
+                tile for tile in self._warp_memory().doors_from(map_id)
+                if tuple(tile) != tuple(position)
+            ]
             if known:
                 door = min(
                     known,
@@ -2942,8 +2951,7 @@ class ScriptedAgent(BaseAgent):
                         abs(tile[0] - position[0]) + abs(tile[1] - position[1])
                     ),
                 )
-                if tuple(position) != door:
-                    return self._follow_route(f"door-{map_id}", [door])
+                return self._follow_route(f"door-{map_id}", [door])
         if entry is None:
             # Never saw the transition — a resumed save, or the whiteout warp
             # that drops a run at its mother's house. Head for the south edge,

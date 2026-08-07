@@ -7,6 +7,10 @@ from pathlib import Path
 
 POKEBALL_PRICE = 200
 
+# O que o jogo nunca desfaz, e que por isso pode dizer "tudo antes disto já
+# aconteceu". `bag_item` não entra: o Bilhete do S.S. Anne some ao ser usado.
+MONOTONIC_PREDICATES = {"badge", "badge_count", "event_flag"}
+
 
 @dataclass(frozen=True)
 class QuestNode:
@@ -42,10 +46,36 @@ class QuestGraph:
             for node in payload["nodes"]
         )
 
+    def achievement_floor(self, state):
+        """Índice do feito irreversível mais avançado que a RAM confirma.
+
+        A história é linear e o nó ativo é o primeiro incompleto — o que dava
+        certo até um predicado de **recurso** aparecer no meio. `buy_pokeballs`
+        pede oito Poké Bolas, e quem gastou as suas volta a falhar ali. Um
+        treinador com a insígnia da Misty carregado de um save era mandado a
+        comprar bolas em Viridian, e o executor daquele nó só conhece o
+        caminho até o Mart de Viridian: da Rota 4 ele não tem rota nenhuma e
+        fica indo e voltando na mesma casa.
+
+        Insígnia e bandeira de evento o jogo nunca desfaz. Onde elas confirmam
+        um nó, tudo antes dele aconteceu, independentemente de quantas bolas
+        sobraram na mochila. `bag_item` fica de fora de propósito: o Bilhete do
+        S.S. Anne some da mochila quando é usado.
+        """
+        floor = -1
+        for index, node in enumerate(self.nodes):
+            kinds = {str(condition.get("type")) for condition in node.success}
+            if not kinds or not kinds <= MONOTONIC_PREDICATES:
+                continue
+            if all(self._matches(condition, state) for condition in node.success):
+                floor = index
+        return floor
+
     def active_node(self, state, completed=()):
         completed = set(completed)
-        for node in self.nodes:
-            if node.id in completed:
+        floor = self.achievement_floor(state)
+        for index, node in enumerate(self.nodes):
+            if index <= floor or node.id in completed:
                 continue
             if not all(self._matches(condition, state) for condition in node.success):
                 return node
@@ -53,9 +83,10 @@ class QuestGraph:
 
     def completed_nodes(self, state, completed=()):
         sticky = set(completed)
+        floor = self.achievement_floor(state)
         completed = []
-        for node in self.nodes:
-            if node.id in sticky or all(
+        for index, node in enumerate(self.nodes):
+            if index <= floor or node.id in sticky or all(
                 self._matches(condition, state) for condition in node.success
             ):
                 completed.append(node.id)
