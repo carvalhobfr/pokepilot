@@ -49,6 +49,58 @@ não bug de log — zero ids duplicados.
 O diário agora **colapsa repetição idêntica em sequência**: a primeira sai na
 hora, as seguintes viram uma linha `<tipo>_repeated` com o total.
 
+## 2026-08-07 — o renascimento é o checkpoint que faltava
+
+Sem parar num Centro, todo apagão devolve a corrida a **Pallet**, e o jogo vira
+roguelite. Quem decide isso é `wLastBlackoutMap` (**0xD719**), que guarda o mapa
+*de fora* do último Centro usado — 1 para Viridian, 15 para a Rota 4.
+
+**Medido no cartucho, não deduzido:** entrar no Centro **não** move o endereço.
+Dirigindo um save de Viridian para dentro do Centro 41, o valor seguiu em 0;
+só virou 1 depois de chegar ao balcão em (3,3) e falar com a enfermeira.
+
+Consequência: a cura voltou, mas o gatilho **não é HP**. É "esta cidade ainda
+não é meu ponto de renascimento", lido da RAM. A cura é efeito colateral da
+única interação que grava o checkpoint interno do jogo. Nenhum limiar de HP
+participa, e nenhuma viagem entre cidades acontece — só a caminhada até a porta
+que já está neste mapa.
+
+Quem decide que acabou é o cartucho: enquanto `0xD719` não apontar para cá, a
+conversa continua. A versão anterior usava um flag `já curei` de processo, que
+sumia no reinício e criava o ciclo de entrar e sair.
+
+### Os Centros vêm da ROM agora
+
+`blue-agents/tools/extract_centers.py` gera
+`knowledge/maps/pokemon_centers.json`. Como o cartucho responde: **tileset 6**,
+**4×7**, e ponteiro de texto seis bytes depois do de script. A porta de cada um
+sai da tabela de warps do mapa de fora — nenhuma coordenada medida à mão.
+
+A lista escrita à mão errava dos dois lados:
+
+| | |
+|---|---|
+| faltava | **81** — Centro da Rota 10, antes do Túnel da Rocha |
+| sobrava | **174** — saguão do Indigo: tileset 2, 6×8, sem enfermeira em (3,3) |
+| armadilha evitada | **140** — Hotel de Celadon: mesmo tileset e mesmo 4×7, mas texto a +3, 3 NPCs e planta de blocos própria |
+
+| Centro | cidade | porta |
+|---|---|---|
+| 41 | Viridian (1) | (23,25) |
+| 58 | Pewter (2) | (13,25) |
+| 64 | Cerulean (3) | (19,17) |
+| 68 | Rota 4 (15) | (11,5) |
+| 81 | Rota 10 (21) | (11,19) |
+| 89 | Vermilion (5) | (11,3) |
+| 133 | Celadon (6) | (41,9) |
+| 141 | Lavender (4) | (3,5) |
+| 154 | Fuchsia (7) | (19,27) |
+| 171 | Cinnabar (8) | (11,11) |
+| 182 | Saffron (10) | (9,29) |
+
+O saguão do Indigo precisa de tratamento próprio quando a rota chegar lá: a
+planta é outra, então o controlador genérico não serve.
+
 ## 2026-08-07 — dois escritores em `warps.json`, e um truncava
 
 `knowledge/maps/warps.json` tinha dois escritores com garantias diferentes:

@@ -30,13 +30,44 @@ HEAL_HP_FRACTION = 0.20
 # doormat at (3,7). Every Mart likewise, clerk behind the top-left counter. That
 # is what makes "the nearest one" a real controller instead of one more route
 # measured by hand for one city.
-# 68 is the Route 4 Center, at the mouth of Mt. Moon, and it was missing here
-# while `_run_mt_moon_nav` talked to its nurse in a branch of its own. Being
-# absent from this set is not cosmetic: the checkpoint writer refuses any map
-# that is not in it, so the hardest stretch of the journey so far — the one
-# right before the cave — was the one with no resume point. BARON healed there
-# and still lost everything back to Pallet on the next whiteout.
-POKEMON_CENTER_MAP_IDS = {41, 58, 64, 68, 89, 133, 141, 154, 171, 174, 182}
+# Onde o cartucho devolve o treinador depois de um apagão. Guarda o mapa de
+# **fora** do último Centro usado — 1 para Viridian, 15 para a Rota 4.
+LAST_BLACKOUT_MAP_ADDRESS = 0xD719
+
+# Os Centros vêm do cartucho, não da memória de ninguém: tileset 6, 4×7, e o
+# ponteiro de texto seis bytes depois do de script. Ver
+# `blue-agents/tools/extract_centers.py`, que gera o arquivo abaixo.
+#
+# A lista escrita à mão errava dos dois lados. Faltava o 81, o Centro da Rota
+# 10 antes do Túnel da Rocha. E sobrava o 174, o saguão do Indigo, que tem
+# outro tileset e é 6×8 — o controlador genérico procuraria uma enfermeira em
+# (3,3) e um capacho em (3,7) que não existem lá. O 140 parece Centro e não é:
+# é o Hotel de Celadon, mesma casca e outro roteiro.
+_CENTERS_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "blue-agents" / "knowledge" / "maps" / "pokemon_centers.json"
+)
+
+
+def _load_centers():
+    """Centros, mapa de fora de cada um, e a porta vista de fora."""
+    try:
+        with open(_CENTERS_PATH, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError):
+        return set(), {}, {}
+    centers = {int(map_id) for map_id in payload.get("centers", [])}
+    outdoor, doors = {}, {}
+    for center, entries in (payload.get("doors") or {}).items():
+        for entry in entries:
+            outdoor.setdefault(int(center), int(entry["map"]))
+            doors.setdefault(int(entry["map"]), []).append(
+                (int(entry["x"]), int(entry["y"]))
+            )
+    return centers, outdoor, doors
+
+
+POKEMON_CENTER_MAP_IDS, CENTER_OUTDOOR_MAP, CENTER_DOOR_BY_OUTDOOR_MAP = _load_centers()
 VIRIDIAN_CENTER_MAP_ID = 41
 # Only Viridian's is proven — it is the one this project has actually walked
 # into and bought from. A Mart id that is wrong here sends a trainer through
@@ -1833,9 +1864,15 @@ class ScriptedAgent(BaseAgent):
                 else (f"center-{map_id}", f"center_{map_id}_healed")
             )
             return self._run_pokemon_center(prefix, healed)
-        # Fora de um Centro não há desvio: sem cura automática, HP baixo não é
-        # mais motivo para largar a rota. O executor segue e, se for para
-        # morrer, morre — o cartucho reergue o time no Centro sozinho.
+        # HP não desvia mais nada. O que desvia é cidade nova: se este mapa tem
+        # porta de Centro e `wLastBlackoutMap` ainda não aponta para cá, o
+        # apagão devolveria a corrida a Pallet. Registrar custa a caminhada até
+        # a porta; não registrar custa tudo desde a última cidade.
+        if (
+            map_id in CENTER_DOOR_BY_OUTDOOR_MAP
+            and self._blackout_map() != map_id
+        ):
+            return self._walk_to_door("center-door", POKEMON_CENTER_MAP_IDS)
         return None
 
     def _door_to(self, destinations):
@@ -1905,21 +1942,57 @@ class ScriptedAgent(BaseAgent):
             return WindowEvent.PRESS_ARROW_LEFT
         return self._buy_first_shop_item()
 
+    def _blackout_map(self):
+        """Para onde o cartucho manda o treinador depois de um apagão.
+
+        `wLastBlackoutMap` guarda o **mapa de fora** do último Centro usado — 1
+        para Viridian, 15 para a Rota 4. Enquanto ele não avança, todo apagão
+        devolve o jogo a Pallet e a corrida vira roguelite.
+        """
+        try:
+            return int(self.emulator.memory.read_byte(LAST_BLACKOUT_MAP_ADDRESS))
+        except Exception:
+            return None
+
+    def _respawn_is_registered(self, center_map_id):
+        """Este Centro já é o ponto de renascimento?
+
+        Medido no cartucho em 2026-08-07: entrar **não** basta. O endereço só
+        muda quando a enfermeira termina a cura — entrei no Centro de Viridian
+        com o valor em 0 e ele continuou em 0; virou 1 depois de curar.
+        """
+        outdoor = CENTER_OUTDOOR_MAP.get(int(center_map_id))
+        if outdoor is None:
+            return True
+        return self._blackout_map() == outdoor
+
     def _run_pokemon_center(self, route_prefix, healed_attribute):
-        """Marcar o Centro como ponto de retomada e sair.
+        """Registrar o Centro como ponto de renascimento e sair.
 
-        A enfermeira saiu de cena por ordem do operador em 2026-08-07: a dança
-        até (3,3), o SIM e a animação travavam o personagem, e morrer no meio
-        de um treino não é problema — o cartucho já devolve o time inteiro num
-        Centro depois do apagão. O que **não** pode se perder é o Centro como
-        checkpoint, e esse nunca dependeu da cura: dependia de estar aqui.
+        A cura por HP baixo foi cancelada pelo operador e não volta: nada aqui
+        olha para HP. O que traz o treinador até este balcão é outra coisa —
+        `wLastBlackoutMap` ainda não aponta para esta cidade, e só a enfermeira
+        move esse endereço. A cura é efeito colateral da única interação que
+        grava o checkpoint interno do jogo.
 
-        Por isso este controlador continua dono das duas metades, só que agora
-        são "registrar" e "sair". Sem a segunda, um treinador ficava parado no
-        capacho: nenhum executor tem ramo para Centro, e o passo caía no
-        fallback de mapa desconhecido.
+        Quem decide se já acabou é o cartucho, não um flag: enquanto o endereço
+        não apontar para cá, a conversa continua. Foi assim que a versão
+        anterior entrava em ciclo — "já curei" era um flag de processo que
+        sumia no reinício.
         """
         position = self.emulator.memory.get_player_pos()
+        map_id = int(self.emulator.memory.get_map_id())
+
+        if not self._respawn_is_registered(map_id):
+            if tuple(position) != (3, 3):
+                return self._follow_route(f"{route_prefix}-nurse", [(3, 7), (3, 3)])
+            if int(self.emulator.memory.read_byte(0xD52A)) != 8:
+                self.last_action_was_move = True
+                return WindowEvent.PRESS_ARROW_UP
+            # Falar, confirmar o SIM e atravessar a animação são todos A. O fim
+            # da conversa é o endereço de renascimento apontando para cá.
+            return WindowEvent.PRESS_BUTTON_A
+
         setattr(self, healed_attribute, True)
         setattr(
             self,

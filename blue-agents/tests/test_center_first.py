@@ -30,9 +30,10 @@ from src.scripted_agent import (
 
 
 class CenterMemory:
-    def __init__(self, map_id, party):
+    def __init__(self, map_id, party, blackout=0):
         self.map_id = map_id
         self.party = party
+        self.blackout = blackout
 
     def get_map_id(self):
         return self.map_id
@@ -44,6 +45,8 @@ class CenterMemory:
         return len(self.party)
 
     def read_byte(self, address):
+        if address == 0xD719:      # wLastBlackoutMap
+            return self.blackout
         index, offset = divmod(address - 0xD16B, 44)
         if not 0 <= index < len(self.party):
             return 0
@@ -105,23 +108,33 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         self.assertEqual("HEALING", self.step(agent))
         self.assertEqual([("center-58", "center_58_healed")], agent.called)
 
-    def test_a_porta_do_centro_nao_e_mais_desvio(self):
-        # Machucado do lado de fora segue a rota. Era aqui que nascia a viagem
-        # de cura, e é ela que foi cancelada.
+    def test_cidade_nova_vale_o_desvio_ate_o_centro(self):
+        # Não pelo HP: por `wLastBlackoutMap`. Enquanto ele não apontar para
+        # esta cidade, um apagão devolve a corrida a Pallet. A memória falsa
+        # devolve 0 para o endereço, então Pewter ainda não está registrada.
         agent = self.agent_in(2, self.HURT, doors={(13, 25): 58, (16, 17): 54})
+        self.assertEqual("WALKING", self.step(agent))
+        self.assertEqual([("center-door-13-25", [(13, 25)])], agent.walked)
+
+    def test_cidade_ja_registrada_nao_desvia(self):
+        agent = self.agent_in(2, self.HURT, doors={(13, 25): 58})
+        agent.emulator.memory.blackout = 2
         self.assertIsNone(self.step(agent))
         self.assertEqual([], agent.walked)
 
-    def test_a_whole_party_walks_straight_past_it(self):
+    def test_time_inteiro_tambem_para_para_registrar(self):
+        # O que traz até aqui não é HP: é o renascimento. Vencer um ginásio sem
+        # levar dano e seguir em frente deixaria a cidade sem ponto de retorno.
         agent = self.agent_in(2, self.WHOLE, doors={(13, 25): 58})
-        self.assertIsNone(self.step(agent))
-        self.assertEqual([], agent.walked)
+        self.assertEqual("WALKING", self.step(agent))
 
-    def test_o_hp_nao_decide_mais_nada_do_lado_de_fora(self):
-        # Só o mapa decide: dentro entrega, fora devolve None — inteiro ou
-        # machucado, tanto faz.
+    def test_o_hp_nao_decide_mais_nada(self):
+        # Inteiro ou machucado, a decisão é a mesma: fora, depende só de a
+        # cidade já estar registrada; dentro, o controlador do Centro assume.
         for party in (self.HURT, self.WHOLE):
-            self.assertIsNone(self.step(self.agent_in(2, party, doors={(13, 25): 58})))
+            fora = self.agent_in(2, party, doors={(13, 25): 58})
+            fora.emulator.memory.blackout = 2
+            self.assertIsNone(self.step(fora))
             self.assertEqual("HEALING", self.step(self.agent_in(58, party)))
 
     def test_viridian_keeps_its_own_milestone_name(self):
@@ -148,10 +161,12 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         self.assertEqual("HEALING", self.step(agent))
         self.assertEqual([("center-68", "center_68_healed")], agent.called)
 
-    def test_a_rota_4_segue_para_a_caverna_e_nao_para_o_centro(self):
+    def test_a_rota_4_registra_o_centro_antes_da_caverna(self):
+        # É a etapa mais dura já alcançada; entrar em Mt. Moon sem esse
+        # renascimento custa tudo desde Pewter.
         agent = self.agent_in(15, self.HURT, doors={(11, 5): 68, (18, 5): 59})
-        self.assertIsNone(self.step(agent))
-        self.assertEqual([], agent.walked)
+        self.assertEqual("WALKING", self.step(agent))
+        self.assertEqual([("center-door-11-5", [(11, 5)])], agent.walked)
 
     def test_the_rule_covers_every_known_center(self):
         for map_id in POKEMON_CENTER_MAP_IDS:
