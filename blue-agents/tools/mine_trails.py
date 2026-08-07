@@ -7,9 +7,13 @@ a quest anterior foi confirmada na RAM — então tudo o que foi andado entre o
 início dela e essa troca é um caminho que **chegou**.
 
 Esta ferramenta lê esses trechos, apaga os laços (voltas que o bot deu e
-desfez), comprime em pontos de virada e publica como trilha compartilhada. A
-mais curta ganha: os dois treinadores passam a segui-la em vez de redescobrir
-o mapa cada um por si.
+desfez), comprime em pontos de virada e publica como trilha compartilhada: os
+dois treinadores passam a segui-la em vez de redescobrir o mapa cada um por si.
+
+O que sai daqui é **âncora esparsa** — o log só grava coordenada quando algo
+acontece, então quatro a quinze pontos representam uma travessia inteira. Uma
+trilha gravada passo a passo durante o jogo sabe o caminho fechado e ganha
+desta na hora de publicar; esta é o que existe enquanto ninguém gravou aquela.
 
     ./blue-agents/tools/mine_trails.py           # publica o que for melhor
     ./blue-agents/tools/mine_trails.py --dry-run # só mostra o que faria
@@ -25,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from src.route_trails import TrailStore, _corner_points  # noqa: E402
+from src.route_trails import TrailStore, _corner_points, _without_loops  # noqa: E402
 
 
 def carregar_eventos(caminho: Path) -> list[dict]:
@@ -87,12 +91,7 @@ def pernas(trecho: list[dict]) -> list[dict]:
         posicao = (int(registro["map_id"]), tuple(registro["coords"]))
         if not pontos or pontos[-1] != posicao:
             pontos.append(posicao)
-    limpos: list[tuple] = []
-    for posicao in pontos:
-        if posicao in limpos:
-            limpos = limpos[: limpos.index(posicao) + 1]
-        else:
-            limpos.append(posicao)
+    limpos = _without_loops(pontos)
     resultado: list[dict] = []
     mapa_atual = None
     corrida: list[list[int]] = []
@@ -154,7 +153,10 @@ def main() -> int:
         if argumentos.dry_run:
             print(f"{quest}: {tamanho} pontos ({estado}) — mapas {mapas} — de {origem}")
             continue
-        publicada = store.publish(quest, f"minerada:{origem}", legs, force=True)
+        # Sem `force`: o log só grava coordenada quando acontece um evento, então
+        # o que sai daqui é âncora esparsa. Uma travessia gravada passo a passo
+        # sabe o caminho inteiro e não pode ser derrubada por quatro pontos.
+        publicada = store.publish(quest, f"minerada:{origem}", legs)
         marca = "publicada" if publicada else "mantida a que já existia"
         print(f"{quest}: {tamanho} pontos, {marca} — mapas {mapas} — de {origem}")
     return 0

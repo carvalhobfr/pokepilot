@@ -35,6 +35,19 @@ PLAYER_TILEMAP_COLUMN = 8
 PLAYER_TILEMAP_ROW = 9
 
 COLLISION_POINTER_ADDRESS = 0xD530
+# Which tile id is tall grass in the current tileset — the one that produces
+# wild encounters. It changes per tileset, and the cartridge keeps it here.
+GRASS_TILE_ADDRESS = 0xD535
+# The LCD window register. Every screen the game draws over the map — a battle,
+# a menu, a shop, the text box of a forced conversation — brings the window
+# down; parking it at the screen height is how the game hides it. Reading it is
+# how the terrain memory knows the map is really what is on screen.
+WINDOW_Y_ADDRESS = 0xFF4A
+WINDOW_HIDDEN_Y = 144
+# Counts a step down while it plays: 0 standing, 7..1 walking. The player's map
+# coordinates only catch up at the end, so anything read from the screen before
+# then belongs to a tile the game has not admitted arriving at yet.
+WALK_COUNTER_ADDRESS = 0xCFC5
 SPRITE_TABLE_ADDRESS = 0xC100
 SPRITE_ENTRY_SIZE = 0x10
 SPRITE_SLOTS = 16
@@ -113,6 +126,21 @@ class TileCollision:
             tiles.add((self._byte(base + 1), self._byte(base)))
         return tiles
 
+    def warp_destinations(self):
+        """Every door on this map and the map it leads to.
+
+        The warp entry is four bytes and only the first two were ever read:
+        where the door is. The fourth says where it goes, and that is what
+        turns "walk to the Mart" into a question the cartridge can answer
+        instead of a route measured by hand for one city.
+        """
+        doors = {}
+        for slot in range(self._byte(WARP_COUNT_ADDRESS)):
+            base = WARP_TABLE_ADDRESS + slot * WARP_ENTRY_SIZE
+            tile = (self._byte(base + 1), self._byte(base))
+            doors[tile] = self._byte(base + 3)
+        return doors
+
     def on_warp(self):
         """True when the player is standing on a warp tile."""
         return (0, 0) in self.warp_offsets()
@@ -123,9 +151,52 @@ class TileCollision:
         This is the version worth remembering. People move, so recording them
         would rebuild the exact disease this module was written to cure: an NPC
         turned into permanent geometry.
+
+        Empty when the screen is not showing the map. The tile map is shared
+        with every other screen the game draws — a battle, a shop, a Pokédex
+        page — and none of their tiles belong to the walkable set, so a reading
+        taken over one of them says "wall" about eighty tiles at once. Stored,
+        that is permanent: nothing in the project ever unlearns a wall. It cost
+        4067 invented walls across seventeen maps, the Forest remembered as four
+        sealed pockets, and a trainer that stood on (6,30) for four thousand
+        steps because its own map offered nowhere to go.
+
+        Two questions, both put to the cartridge rather than to a flag:
+
+        The window register has to say nothing is drawn over the map. This is
+        the one that covers a **forced conversation**: a text box does not stop
+        the player's own tile from being map, so the second check below sails
+        straight through one while the box quietly overwrites the tiles beneath
+        it. Measured on the cartridge, opening the START menu turned two map
+        columns into walls in this very tile map. Battles, menus, shops and
+        cutscene dialogue all bring the window down; only the map leaves it
+        parked off screen.
+
+        And the tile the player is standing on has to read as somewhere a
+        player can stand. That is the backstop for whatever the window misses.
         """
         walkable = self.walkable_tiles()
         warps = self.warp_offsets()
+        # Mid-step the screen has already scrolled half a tile while the player
+        # coordinates still report the tile being left. The reading is fine and
+        # the origin is wrong, so all eighty tiles get written one row off —
+        # and a map stitched from readings that are each one tile out grows
+        # walls that were never there. Measured from (31,24): 24 walkable
+        # standing still, 27 mid-step, which is the answer for (31,23).
+        #
+        # This is the hole the other two checks left open. It survived the
+        # first cleanup: 1075 fresh walls in two hours, and the Forest split in
+        # two again with a route waypoint stranded on the far side.
+        if self._byte(WALK_COUNTER_ADDRESS) != 0:
+            return {}
+        if self._byte(WINDOW_Y_ADDRESS) != WINDOW_HIDDEN_Y:
+            return {}
+        standing = self._byte(
+            TILEMAP_ADDRESS + PLAYER_TILEMAP_ROW * TILEMAP_COLUMNS
+            + PLAYER_TILEMAP_COLUMN
+        )
+        if standing not in walkable and (0, 0) not in warps:
+            return {}
         grid = {}
         for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
             for dx in range(
@@ -140,6 +211,31 @@ class TileCollision:
                 grid[(dx, dy)] = tile in walkable or (dx, dy) in warps
         grid[(0, 0)] = True
         return grid
+
+    def grass_offsets(self):
+        """Visible tiles that produce wild encounters, as player offsets.
+
+        Which tile is tall grass changes with the tileset, and the cartridge
+        keeps the answer in one byte. Guessing instead cost two training loops:
+        a line at y=43 and then the crossing's own southern legs, both chosen
+        because they looked like the entrance, both measured at **one**
+        encounter in three to four thousand steps. They are the dirt path. The
+        grass was a column nine tiles to the west the whole time.
+        """
+        grass = self._byte(GRASS_TILE_ADDRESS)
+        offsets = []
+        for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
+            for dx in range(
+                -(PLAYER_TILEMAP_COLUMN // 2),
+                (TILEMAP_COLUMNS - PLAYER_TILEMAP_COLUMN) // 2,
+            ):
+                column = PLAYER_TILEMAP_COLUMN + dx * 2
+                row = PLAYER_TILEMAP_ROW + dy * 2
+                if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
+                    continue
+                if self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column) == grass:
+                    offsets.append((dx, dy))
+        return offsets
 
     def local_grid(self):
         """Walkability of every tile visible on screen, relative to the player.

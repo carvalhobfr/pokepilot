@@ -109,6 +109,12 @@ STATUS_MOVE_PRIORITY = {
     43: 9,    # Leer
 }
 
+# A Gen I Pokémon holds at most four moves, so the move list has at most four
+# rows and they are numbered from one. Anything outside that is the cursor byte
+# holding something that is not this menu.
+MOVE_LIST_ROWS = 4
+
+
 class SimpleBattleAgent:
     def __init__(self):
         self.move_selection = 0  # Currently selected move (0-3)
@@ -318,6 +324,18 @@ class SimpleBattleAgent:
             battle_menu == 94 and menu_column == 5
         )
         if move_list_open:
+            # The move list rows are one-based, so a zero is not a row — it is
+            # the cursor byte holding something that is not this menu, the same
+            # way an invalid column means the 2x2 selector is not drawn. Read
+            # literally it also happens to be *below* every desired row, so the
+            # comparison below answers DOWN, the press changes nothing, and the
+            # next step reads zero again: AARON pressed DOWN for two minutes
+            # against a level 2 Rattata with a full-PP Tackle in slot 0.
+            #
+            # B is the honest answer to a menu that is not there: it advances
+            # text and can never pick a move by accident.
+            if not 1 <= menu_row <= MOVE_LIST_ROWS:
+                return self._advance_text()
             if menu_row > desired_row:
                 return "UP"
             if menu_row < desired_row:

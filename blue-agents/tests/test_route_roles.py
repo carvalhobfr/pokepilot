@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from pyboy.utils import WindowEvent
 
@@ -78,16 +79,67 @@ class RouteRoleTests(unittest.TestCase):
         follower.trail_recorder.record("route_2_nav", 51, 5, 5)
         self.assertFalse(follower.publish_trail("viridian_forest_nav"))
 
-    def test_the_follower_prefers_the_published_trail_over_the_drawn_route(self):
+    def test_publishing_reports_what_the_crossing_cost(self):
+        guide = self.make_agent((5, 5), "guide")
+        guide.trail_recorder.restart(2)
+        for y in (5, 4, 3):
+            guide.trail_recorder.record("route_2_nav", 51, 5, y)
+        cost = guide.publish_trail("route_2_nav")
+        self.assertEqual(cost["death_cycle"], 2)
+        self.assertEqual(cost["steps"], 3)
+        self.assertEqual(cost["maps"], [51])
+
+    def test_the_walk_that_died_is_dropped_before_the_next_attempt(self):
+        # Publishing the approach that lost together with the walk back from
+        # the Center would teach the detour as the route.
+        guide = self.make_agent((5, 5), "guide")
+        guide.trail_recorder.record("route_2_nav", 51, 9, 9)
+        self.assertEqual(guide.begin_death_cycle(1), 1)
+        guide._follow_route("r", [(9, 5)])
+        self.assertEqual(
+            guide.trail_recorder.legs(), [{"map": 51, "points": [[5, 5]]}]
+        )
+
+    def test_a_death_drops_the_trail_the_bot_was_walking(self):
+        # The plan in hand points into the attempt that just ended.
+        guide = self.make_agent((5, 5), "guide")
+        guide.trail_plan = (("route_2_nav", 51), [(5, 1)])
+        guide.begin_death_cycle(1)
+        self.assertIsNone(guide.trail_plan)
+
+    def test_the_drawn_route_wins_over_a_published_trail(self):
+        # The hand-drawn route is the path that finishes the game, so it is the
+        # one that drives. A trail only has to be wrong once to cost an hour:
+        # one mined point on Route 4 turned the sidestep axis vertical, and
+        # south from that tile is Route 3.
         store = TrailStore(self.directory.name)
         store.publish(
             "route_2_nav", "AARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
         )
         follower = self.make_agent((5, 5), "follower")
-        # The route in the graph says right; the proved trail says up.
+        # The route says right; the trail says up. The route wins.
         self.assertEqual(
-            WindowEvent.PRESS_ARROW_UP, follower._follow_route("r", [(9, 5)])
+            WindowEvent.PRESS_ARROW_RIGHT, follower._follow_route("r", [(9, 5)])
         )
+
+    def test_a_trail_is_still_recorded_while_the_route_drives(self):
+        # Following is off; measuring what a crossing cost is not.
+        follower = self.make_agent((5, 5), "follower")
+        follower._follow_route("r", [(9, 5)])
+        self.assertEqual(
+            [{"map": 51, "points": [[5, 5]]}], follower.trail_recorder.legs()
+        )
+
+    def test_following_a_trail_is_opt_in(self):
+        store = TrailStore(self.directory.name)
+        store.publish(
+            "route_2_nav", "AARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
+        )
+        follower = self.make_agent((5, 5), "follower")
+        with mock.patch("src.scripted_agent.FOLLOW_TRAILS", True):
+            self.assertEqual(
+                WindowEvent.PRESS_ARROW_UP, follower._follow_route("r", [(9, 5)])
+            )
 
     def test_the_other_trainer_joins_the_same_trail(self):
         store = TrailStore(self.directory.name)
@@ -95,9 +147,10 @@ class RouteRoleTests(unittest.TestCase):
             "route_2_nav", "BARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
         )
         guide = self.make_agent((5, 5), "guide")
-        self.assertEqual(
-            WindowEvent.PRESS_ARROW_UP, guide._follow_route("r", [(9, 5)])
-        )
+        with mock.patch("src.scripted_agent.FOLLOW_TRAILS", True):
+            self.assertEqual(
+                WindowEvent.PRESS_ARROW_UP, guide._follow_route("r", [(9, 5)])
+            )
 
     def test_a_follower_thrown_backwards_rejoins_the_trail_behind_it(self):
         store = TrailStore(self.directory.name)
@@ -107,13 +160,14 @@ class RouteRoleTests(unittest.TestCase):
             [{"map": 51, "points": [[5, 20], [5, 10], [5, 1]]}],
         )
         follower = self.make_agent((5, 5), "follower")
-        follower._follow_route("r", [(9, 5)])
-        # A whiteout drops it back at the start of the map: it must head for
-        # the trail again, not keep aiming at where it used to be.
-        follower.memory_probe.position = (5, 25)
-        self.assertEqual(
-            WindowEvent.PRESS_ARROW_UP, follower._follow_route("r", [(9, 5)])
-        )
+        with mock.patch("src.scripted_agent.FOLLOW_TRAILS", True):
+            follower._follow_route("r", [(9, 5)])
+            # A whiteout drops it back at the start of the map: it must head
+            # for the trail again, not keep aiming at where it used to be.
+            follower.memory_probe.position = (5, 25)
+            self.assertEqual(
+                WindowEvent.PRESS_ARROW_UP, follower._follow_route("r", [(9, 5)])
+            )
 
 
 

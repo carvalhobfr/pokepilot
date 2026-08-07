@@ -40,6 +40,14 @@ def parse_args():
     parser.add_argument("--device", choices=["auto", "cpu", "mps"], default="auto")
     parser.add_argument("--state", choices=["fresh", "pokedex"], default="fresh")
     parser.add_argument(
+        "--init-state",
+        default="",
+        help=(
+            "Save every trainer starts from, overriding --state. Three bots "
+            "only compare if they start on the same tile."
+        ),
+    )
+    parser.add_argument(
         "--slots", type=int, default=DEFAULT_SLOT_COUNT,
         help="Bots simultâneos. 2 é o limite térmico seguro num laptop sem ventoinha.",
     )
@@ -156,6 +164,8 @@ def main() -> int:
             "--roster", str(roster_path),
             "--resume",
         ]
+        if args.init_state:
+            command += ["--init-state", args.init_state]
         child = subprocess.Popen(command, cwd=agent_root)
         return_code = child.wait()
         child = None

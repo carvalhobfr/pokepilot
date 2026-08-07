@@ -24,7 +24,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from src.simple_battle import SimpleBattleAgent
-from src.scripted_agent import ScriptedAgent
+from src.scripted_agent import POKEMON_CENTER_MAP_IDS, ScriptedAgent
 from src.knowledge_base import KnowledgeBase  # Import KnowledgeBase
 from pyboy.utils import WindowEvent
 import json
@@ -109,8 +109,11 @@ MANUAL_THROW_BALL_TASK = "MANUAL: THROW_BALL"
 # mochila. "Estar no mapa X" fica de fora — estar em algum lugar é temporário.
 DURABLE_QUEST_PREDICATES = {"event_flag", "badge", "bag_item"}
 
-# Centres are the only rooms a run may ever be resumed into.
-POKEMON_CENTER_MAP_IDS = {41, 58, 64, 89, 133, 141, 154, 171, 174, 182}
+# Centres are the only rooms a run may ever be resumed into. The set lives with
+# the route controller that walks to them; a second copy here would be a second
+# thing to keep in step, and this session has already paid for that mistake
+# twice — a counter kept in the process instead of the journey, once for the
+# head start and once for the death cycle.
 CURRENT_STATE_MANIFEST = "current.state.meta.json"
 
 # Abaixo disso, um encontro selvagem no caminho não vale o turno: fugir custa
@@ -406,6 +409,11 @@ class HybridGymEnv(RedGymEnv):
         self.delay_steps = config.get('delay_steps', 0)
         self.agent_index = config.get('agent_index', 0)
         self.steps_elapsed = 0
+        # A head start is served once per journey, not once per chunk. Each
+        # chunk is a new process with `steps_elapsed` back at zero, so without
+        # remembering this the last slot would pay its delay again every time
+        # and never catch up. Loaded from journey.json below.
+        self.head_start_served = False
         if self.delay_steps > 0:
             print(f"[{self.agent_name}] ⏸️  Delayed start: {self.delay_steps} steps ({self.delay_steps/60:.0f}s)") 
         
@@ -448,6 +456,8 @@ class HybridGymEnv(RedGymEnv):
         self.wild_battles_won = 0
         self.trainer_battles_won = 0
         self.deaths = 0
+        # Which attempt this is. Zero is the first crossing, before any death.
+        self.death_cycle = 0
         self.whiteout_pending = False
         self.last_hp_check = None  # Track HP to detect deaths
         
@@ -698,9 +708,15 @@ class HybridGymEnv(RedGymEnv):
                     try:
                         # Keyed by executor, which is what the route follower
                         # knows itself as while it walks.
-                        if self.scripted_agent.publish_trail(candidate.executor):
+                        cost = self.scripted_agent.publish_trail(candidate.executor)
+                        if cost:
+                            # What it cost is the whole point of measuring: the
+                            # published trail is one attempt out of however many
+                            # the deaths made, and this says which one and how
+                            # many tiles it walked.
                             self._log_event("trail_published", {
                                 "quest_id": candidate.id,
+                                **cost,
                                 "reason": "predicado confirmado na RAM",
                             })
                     except Exception as error:
@@ -935,13 +951,21 @@ class HybridGymEnv(RedGymEnv):
         
         # COMPETITIVE MODE: Delayed Start
         # If agent hasn't reached delay_steps yet, just WAIT
-        if self.steps_elapsed < self.delay_steps:
+        if self.steps_elapsed < self.delay_steps and not self._trail_ready_to_inherit():
             self.steps_elapsed += 1
             if self.steps_elapsed == self.delay_steps:
                 print(f"[{self.agent_name}] 🏁 RACE START! Joining the competition!")
-            elif self.steps_elapsed % 600 == 0:  # Log every 10 seconds
-                remaining = (self.delay_steps - self.steps_elapsed) / 60
-                print(f"[{self.agent_name}] ⏳ Waiting... {remaining:.0f}s remaining")
+                # Paid in full, and written down so the next chunk does not
+                # charge it again.
+                self.head_start_served = True
+                self._persist_journey_memory()
+            elif self.steps_elapsed % 600 == 0:
+                # In steps, not seconds. Dividing by 60 assumed the bot runs at
+                # frame rate; a decision costs far more than a frame — measured
+                # at 3.7 a second with two slots — so "15s remaining" was really
+                # four minutes, and the wait looked like a freeze.
+                remaining = self.delay_steps - self.steps_elapsed
+                print(f"[{self.agent_name}] ⏳ Waiting... {remaining} steps remaining")
             # Execute an explicit NOOP in the parent env.
             action = NOOP_ACTION
             obs, reward, done, truncated, info = super().step(action)
@@ -1712,6 +1736,14 @@ class HybridGymEnv(RedGymEnv):
                 str(quest_id) for quest_id in memory.get("completed_quests", [])
                 if str(quest_id) in self.quest_graph.nodes_by_id
             )
+            if memory.get("head_start_served"):
+                self.head_start_served = True
+                self.delay_steps = 0
+            # Deaths outlive the process. A chunk is a fresh env with the
+            # counter back at zero, so without this every whiteout logged
+            # itself as cycle 1 and "attempt 1 versus attempt 2" — the whole
+            # point of numbering them — was never measurable.
+            self.death_cycle = int(memory.get("death_cycle", 0))
             if "viridian_center_healed" not in self.announced_story_milestones:
                 try:
                     with open(self.decision_log_path, "r", encoding="utf-8") as log_file:
@@ -1745,6 +1777,10 @@ class HybridGymEnv(RedGymEnv):
                         node.id for node in self.quest_graph.nodes
                         if node.id in self.quest_completed_ids
                     ],
+                    "head_start_served": bool(
+                        getattr(self, "head_start_served", False)
+                    ),
+                    "death_cycle": int(getattr(self, "death_cycle", 0)),
                 }, memory_file, ensure_ascii=False, indent=2)
             os.replace(temporary, self.journey_memory_path)
         except OSError:
@@ -3129,6 +3165,12 @@ class HybridGymEnv(RedGymEnv):
             ),
             "action": action,
             "move": selected,
+            # The bytes the controller actually read to choose that key. AARON
+            # pressed DOWN for two minutes straight and the event recorded the
+            # press without the reason, so the freeze had to be reconstructed
+            # from source instead of answering itself. Rule 6 of this project:
+            # observable event, with the motive and the raw data.
+            "menu": controller_decision.get("menu"),
             "pokeballs": balls,
             "collector": self.collector,
             "meta_score": self.meta_score,
@@ -3361,7 +3403,7 @@ class HybridGymEnv(RedGymEnv):
                     self.deaths += 1
                     self.whiteout_pending = True
                     self._log_event("death", {
-                        "total_deaths": self.deaths,
+                        **self._close_death_cycle(),
                         "location": end_map_id,
                         "battle_location": self.last_battle_map_id,
                         "reason": "whiteout confirmado pela transição de mapa e cura automática",
@@ -3430,7 +3472,7 @@ class HybridGymEnv(RedGymEnv):
                     self.deaths += 1
                     self.whiteout_pending = True
                     self._log_event("death", {
-                        "total_deaths": self.deaths,
+                        **self._close_death_cycle(),
                         "location": self.read_m(0xD35E),
                         "reason": "party inteira sem HP fora de batalha",
                     })
@@ -3530,6 +3572,58 @@ class HybridGymEnv(RedGymEnv):
         if self.deaths > deaths_before or getattr(self, "whiteout_pending", False):
             self._invalidate_current_checkpoint()
             self._save_whiteout_checkpoint()
+
+    def _trail_ready_to_inherit(self):
+        """Is there already a walked path for this trainer's own objective?
+
+        The head start exists for one reason: somebody has to cross the map
+        first, or two bots discover it at the same time and the published path
+        is never tested. A step count is a bad way to say that — it is a guess
+        at how long a crossing takes, and 1500 steps is seven minutes of a bot
+        standing still at the rate two slots actually run.
+
+        The condition the number was standing in for is checkable: a dense
+        trail for this quest exists, so there is something to inherit. Once it
+        does, the rest of the wait buys nothing.
+        """
+        quest_id = getattr(self, "active_quest_id", None)
+        if not quest_id:
+            return False
+        node = self.quest_graph.nodes_by_id.get(quest_id)
+        executor = getattr(node, "executor", None)
+        store = getattr(getattr(self, "scripted_agent", None), "trail_store", None)
+        if not executor or store is None:
+            return False
+        try:
+            return bool(store.read(executor).get("dense"))
+        except Exception:
+            return False
+
+    def _close_death_cycle(self):
+        """Number the attempt that just ended, and start the next one.
+
+        Dying is not a stumble in the middle of a route: the cartridge puts the
+        trainer back at the Center and the crossing starts over from there.
+        Unnumbered, attempt 1 and attempt 2 are one blurred walk and there is no
+        saying what either cost. The trail recorded so far goes with it — the
+        approach that lost the fight is not the way through, and publishing it
+        would hand the follower the detour as if it were the route.
+        """
+        self.death_cycle = getattr(self, "death_cycle", 0) + 1
+        self._persist_journey_memory()
+        agent = getattr(self, "scripted_agent", None)
+        steps = 0
+        if agent is not None and hasattr(agent, "begin_death_cycle"):
+            try:
+                steps = agent.begin_death_cycle(self.death_cycle)
+            except Exception as error:
+                print(f"[{self.agent_name}] Trail Error: {error}")
+        return {
+            "total_deaths": self.deaths,
+            "death_cycle": self.death_cycle,
+            "quest_id": self.active_quest_id,
+            "steps_in_cycle": steps,
+        }
 
     def _invalidate_current_checkpoint(self):
         """Prevent a pre-death checkpoint from being loaded on restart."""

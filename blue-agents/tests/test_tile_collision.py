@@ -13,6 +13,9 @@ from src.tile_collision import (
     PLAYER_TILEMAP_ROW,
     TILEMAP_ADDRESS,
     TILEMAP_COLUMNS,
+    WALK_COUNTER_ADDRESS,
+    WINDOW_HIDDEN_Y,
+    WINDOW_Y_ADDRESS,
     TileCollision,
 )
 
@@ -95,6 +98,69 @@ class TileCollisionTests(unittest.TestCase):
         class Broken:
             memory = None
         self.assertEqual({}, TileCollision(Broken()).blocked_directions())
+
+
+class TerrainMemoryTests(unittest.TestCase):
+    """What gets written down forever, and when writing must not happen.
+
+    A tile remembered as walkable by mistake costs one bump. A tile remembered
+    as a wall by mistake is permanent and invisible: the planner routes around
+    it forever and never looks again. So the reading that feeds the memory has
+    to be able to say "not now".
+    """
+
+    def screen(self, standing_tile, floor=44, window_y=WINDOW_HIDDEN_Y, walking=0):
+        # The grid samples every other tile from the player's own row and
+        # column, so the sampled rows are odd and the columns even.
+        tiles = {(PLAYER_TILEMAP_COLUMN, PLAYER_TILEMAP_ROW): standing_tile}
+        for row in range(PLAYER_TILEMAP_ROW % 2, 18, 2):
+            for column in range(PLAYER_TILEMAP_COLUMN % 2, 20, 2):
+                tiles.setdefault((column, row), floor)
+        memory = FakeMemory(walkable_tiles=[floor], tiles=tiles)
+        memory.data[WINDOW_Y_ADDRESS] = window_y
+        memory.data[WALK_COUNTER_ADDRESS] = walking
+        return TileCollision(FakeEmulator(memory))
+
+    def test_the_map_on_screen_is_remembered(self):
+        grid = self.screen(standing_tile=44).terrain_grid()
+        self.assertTrue(grid)
+        self.assertTrue(grid[(0, 0)])
+        self.assertTrue(all(grid.values()))
+
+    def test_a_screen_that_is_not_the_map_is_not_remembered(self):
+        # A battle draws over the same tile map. Every tile of it reads as a
+        # wall, and eighty invented walls stored at once is what sealed the
+        # Forest into four pockets.
+        self.assertEqual({}, self.screen(standing_tile=99).terrain_grid())
+
+    def test_the_refusal_is_total_rather_than_partial(self):
+        # Returning the walls "just in case" is what caused the damage; there
+        # is no half-trustworthy reading here.
+        battle = self.screen(standing_tile=99)
+        self.assertNotIn((0, 1), battle.terrain_grid())
+
+    def test_a_forced_conversation_is_not_remembered(self):
+        # The tile under the player stays map while a text box overwrites the
+        # tiles around it, so the standing check alone sails straight through a
+        # cutscene. The window register is what catches this one: measured on
+        # the cartridge, opening a menu turned two map columns into walls.
+        talking = self.screen(standing_tile=44, window_y=0)
+        self.assertEqual({}, talking.terrain_grid())
+
+    def test_a_step_still_playing_is_not_remembered(self):
+        # The screen has scrolled half a tile while the coordinates still name
+        # the tile being left, so every reading lands one row off. Measured on
+        # the cartridge from (31,24): 24 walkable standing still, 27 mid-step,
+        # and 27 is the answer for (31,23).
+        self.assertEqual({}, self.screen(standing_tile=44, walking=4).terrain_grid())
+
+    def test_the_step_landing_is_what_counts(self):
+        self.assertTrue(self.screen(standing_tile=44, walking=0).terrain_grid())
+
+    def test_a_partly_lowered_window_is_still_a_covered_map(self):
+        # A dialogue box covers the bottom rows rather than the whole screen.
+        # Nothing about that makes the rest of the reading worth keeping.
+        self.assertEqual({}, self.screen(standing_tile=44, window_y=96).terrain_grid())
 
 
 if __name__ == "__main__":

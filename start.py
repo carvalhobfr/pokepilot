@@ -151,6 +151,9 @@ def main() -> int:
     parser.add_argument("--no-browser", action="store_true")
     parser.add_argument("--slots", type=int, default=2,
                         help="Bots simultâneos (2 é o seguro para laptops sem ventoinha)")
+    parser.add_argument("--init-state", default="",
+                        help="Save de onde todo treinador sem retomada começa; "
+                             "três bots só se comparam saindo do mesmo tile")
     args = parser.parse_args()
 
     print("\n  PokeAI 2026 — bots jogando Pokémon Blue de verdade\n")
@@ -191,10 +194,15 @@ def main() -> int:
     print("\n  Na tela: arrastar move o mapa, roda/pinça dá zoom,")
     print("  clicar num bot trava a câmera nele.\n")
 
+    journey_command = [
+        str(python), "run_journeys.py",
+        "--slots", str(args.slots),
+        "--state-update-interval", "50",
+    ]
+    if args.init_state:
+        journey_command += ["--init-state", args.init_state]
     journeys = spawn(
-        [str(python), "run_journeys.py",
-         "--slots", str(args.slots),
-         "--state-update-interval", "50"],
+        journey_command,
         AGENTS,
         "supervisor de jornadas",
     )

@@ -133,14 +133,26 @@ def make_hybrid_env(rank, env_conf, seed=0):
         is_chaos_mode = meta_score < 40
         local_conf['hard_mode_bonus'] = is_chaos_mode
         
-        # Everyone leaves the bedroom together. The staggered start was pure
-        # decoration — each bot drives its own emulator, so nothing in Oak's
-        # errand or anywhere else depends on it — and it made the four runs
-        # incomparable from the first step, which is the opposite of the point.
-        # POKEAI_STAGGER_START=1 brings the old random delay back.
+        # Everyone leaves the bedroom together, because a random head start
+        # made the runs incomparable from the first step.
+        #
+        # POKEAI_STAGGER_STEPS=N is the opposite of that random delay: slot k
+        # waits k*N steps, in slot order, on purpose. It is what makes the
+        # trail measurable. Started together, nobody can inherit a trail that
+        # has not been published yet, so three bots discover the same map three
+        # times and the published path is never tested. Staggered, the first
+        # crossing is walked blind and the ones behind it start from what it
+        # proved — and the cost of each crossing is in `trail_published`.
+        #
+        # The head start is served once and remembered in the trainer's
+        # journey. A chunk is a fresh process with `steps_elapsed` back at
+        # zero, so without that the head start would be re-served every chunk
+        # and the last slot would never catch up.
         delay_frames = 0
-        if os.getenv("POKEAI_STAGGER_START", "0") == "1":
-            import random
+        stagger_steps = int(os.getenv("POKEAI_STAGGER_STEPS", "0") or 0)
+        if stagger_steps > 0:
+            delay_frames = rank * stagger_steps
+        elif os.getenv("POKEAI_STAGGER_START", "0") == "1":
             delay_frames = random.randint(0, 600)
         local_conf['delay_steps'] = delay_frames
         local_conf['agent_index'] = rank  # Stable runtime slot for ranking/comparison
@@ -218,6 +230,16 @@ def parse_args():
         choices=["fresh", "pokedex"],
         default=os.getenv("POKEAI_START_STATE", "fresh"),
         help="Start from the real beginning or the prepared Pokedex state",
+    )
+    parser.add_argument(
+        "--init-state",
+        default=os.getenv("POKEAI_INIT_STATE", ""),
+        help=(
+            "Save every trainer starts from, overriding --state. Comparing "
+            "three crossings of the same stretch means all three start on the "
+            "same tile: point this at states/viridian-passed-AARON.state to "
+            "test the Forest without replaying an hour to reach it."
+        ),
     )
     parser.add_argument(
         "--rom",
@@ -306,8 +328,15 @@ if __name__ == "__main__":
         )
     active_slots = roster["slots"][:num_cpu]
     device = configure_torch(args.device)
-    state_name = "init.state" if args.state == "fresh" else "has_pokedex_nballs.state"
-    state_path = project_root / "states" / state_name
+    if args.init_state:
+        requested_state = Path(args.init_state).expanduser()
+        state_path = (
+            requested_state if requested_state.is_absolute()
+            else project_root / requested_state
+        )
+    else:
+        state_name = "init.state" if args.state == "fresh" else "has_pokedex_nballs.state"
+        state_path = project_root / "states" / state_name
     requested_rom = Path(args.rom).expanduser()
     rom_path = requested_rom if requested_rom.is_absolute() else project_root / "roms" / requested_rom
 
@@ -453,7 +482,19 @@ if __name__ == "__main__":
         print("\n🛑 Training interrupted; persisting policy and emulator slots...")
     finally:
         try:
-            model.save(sess_path / "latest_policy")
+            # Written beside and moved into place, the way every other shared
+            # file in this project is. `model.save` straight onto the shared
+            # path is a window: a SIGKILL through it — and three slots on 8 GB
+            # get SIGKILLed — leaves a half-written zip that every later run
+            # refuses with "wasn't a zip-file", and the shared brain is
+            # silently gone until somebody deletes the wreck by hand.
+            # No dot in the staging name: `model.save` only appends `.zip`
+            # when the path has no suffix, so "latest_policy.next" would be
+            # written verbatim and the move would look for a file that is not
+            # there.
+            staging = sess_path / "latest_policy_next"
+            model.save(staging)
+            os.replace(staging.with_suffix(".zip"), latest_policy)
             print(f"\n💾 Latest shared policy: {latest_policy}")
         finally:
             env.close()

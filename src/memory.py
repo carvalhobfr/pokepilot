@@ -7,6 +7,10 @@ class Memory:
     def read_byte(self, address):
         return self.pyboy.memory[address]
 
+    def read_rom(self, bank, address):
+        """A byte from a ROM bank, for tables the cartridge already holds."""
+        return self.pyboy.memory[bank, address]
+
     def read_word(self, address):
         # Little endian
         return self.pyboy.memory[address] + (self.pyboy.memory[address + 1] << 8)

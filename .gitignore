@@ -49,3 +49,8 @@ wandb/
 
 # Terreno lido da tela: derivado, cresce sozinho e pode ser reconstruído.
 blue-agents/knowledge/maps/terrain.json
+
+# Cópias do mapa acumulado feitas antes de esquecer paredes inventadas
+# (blue-agents/tools/forget_walls.py). São rede de segurança local, não dado
+# do projeto — o terrain.json em si já é ignorado logo acima.
+blue-agents/knowledge/maps/.envenenado/

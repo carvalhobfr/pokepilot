@@ -1,8 +1,11 @@
 {
   "quest": "oak_event",
-  "recorded_by": "minerada:20260805T172856.354157Z-BARON",
-  "recorded_at": 1786050779.6908731,
-  "waypoints": 2,
+  "recorded_by": "CAARON",
+  "recorded_at": 1786053574.0588531,
+  "waypoints": 5,
+  "dense": true,
+  "death_cycle": 0,
+  "steps": 5,
   "legs": [
     {
       "map": 40,
@@ -10,6 +13,18 @@
         [
           7,
           4
+        ],
+        [
+          6,
+          4
+        ],
+        [
+          6,
+          5
+        ],
+        [
+          5,
+          5
         ],
         [
           5,

@@ -26,10 +26,39 @@ HEAL_HP_FRACTION = 0.20
 # The north street in Viridian has a scripted NPC on the approach tile. The
 # route must reach that tile before leaving so a blocking sprite can be talked
 # to instead of being treated as ordinary geometry.
+# Every Pokémon Center in Gen I is the same building inside: nurse at (3,3),
+# doormat at (3,7). Every Mart likewise, clerk behind the top-left counter. That
+# is what makes "the nearest one" a real controller instead of one more route
+# measured by hand for one city.
+POKEMON_CENTER_MAP_IDS = {41, 58, 64, 89, 133, 141, 154, 171, 174, 182}
+VIRIDIAN_CENTER_MAP_ID = 41
+# Only Viridian's is proven — it is the one this project has actually walked
+# into and bought from. A Mart id that is wrong here sends a trainer through
+# the wrong door, so this set grows by measurement, never by memory. Until
+# then `_run_nearest_mart` simply finds no door in other cities and the caller
+# falls back to what it did before.
+POKE_MART_MAP_IDS = {42}
+SHOP_COUNTER_TILE = (2, 5)
+
+# The hand-drawn route is the path that finishes the game, so it drives.
+# Trails keep being recorded and published — they are the measurement of what a
+# crossing cost — but *following* one is opt-in. Exploration is optional; the
+# route is not.
+FOLLOW_TRAILS = os.getenv("POKEAI_FOLLOW_TRAILS", "0") == "1"
+
 VIRIDIAN_CITY_MAP_ID = 1
 VIRIDIAN_OLD_MAN_APPROACH = (17, 4)
 VIRIDIAN_NORTH_EXIT = (17, 0)
 VIRIDIAN_OLD_MAN_DIALOG_LIMIT = 48
+
+# Level is what separates crossing the Forest from dying in it. The wild
+# Caterpie are harmless; the bug catchers on the way north are not, and a party
+# whose best is level 8 loses to the first one — measured, twice, ten steps in.
+VIRIDIAN_FOREST_MAP_ID = 51
+FOREST_MIN_LEVEL = 12
+# A gate with no way out is worse than a death: if the grass will not deliver
+# the levels, cross anyway rather than pace forever.
+FOREST_TRAINING_STEPS = 4000
 
 # Steps spent waiting for a person to move before walking around them. People
 # in Gen I pace on their own; walls do not.
@@ -385,6 +414,10 @@ class ScriptedAgent(BaseAgent):
                  print(f"[CORRECTION] In Bedroom but at step {self.current_step}. Jumping to Step 3 (Leave House).")
                  self.current_step = 3
                  return None # Skip this frame to let loop update action_desc
+
+        center_action = self._center_first_action()
+        if center_action is not None:
+            return center_action
 
         if getattr(self, "current_task_name", None) == "parcel_event":
             return self._run_parcel_event()
@@ -1142,22 +1175,21 @@ class ScriptedAgent(BaseAgent):
         if map_id in routes:
             return self._follow_route(f"buy-balls-{map_id}", routes[map_id])
 
-        if map_id != 42:
+        if map_id not in POKE_MART_MAP_IDS:
+            # The hand-measured routes above only know the way back to
+            # Viridian's Mart. Before giving up, ask this map whether it has a
+            # Mart door of its own — a trainer that spends its last ball north
+            # of Route 2 has no way home and never buys another one.
+            nearest = self._run_nearest_mart("buy-balls-nearest")
+            if nearest is not None:
+                return nearest
             # A whiteout before the first Pokémon Center sends the run back to
             # its mother's house, a map this quest never planned for. Three
             # trainers stood in that living room pressing A while the fourth
             # walked to Pewter.
             return self._leave_unknown_map()
 
-        position = self.emulator.memory.get_player_pos()
-        if position != (2, 5):
-            return self._follow_route("buy-balls-mart", [(3, 7), (3, 5), (2, 5)])
-
-        # The clerk is immediately to the left of the final route tile.
-        if self.emulator.memory.read_byte(0xD52A) != 2:
-            self.last_action_was_move = True
-            return WindowEvent.PRESS_ARROW_LEFT
-        return self._buy_first_shop_item()
+        return self._run_shop_counter()
 
     def _can_afford_another_ball(self):
         """Money is BCD across 0xD347..0xD349; a Poké Ball costs 200."""
@@ -1355,10 +1387,9 @@ class ScriptedAgent(BaseAgent):
         # A city Center is a real checkpoint, not just a heal shortcut. Do it
         # before the first forest entry, and recover there after a whiteout
         # without touching the current save or discarding earned experience.
-        if map_id == 41:
-            return self._run_pokemon_center(
-                "viridian-center", "viridian_center_healed"
-            )
+        # Standing inside any Center is handled before every executor runs;
+        # see the rule at the top of `step`. A copy here would be a second
+        # place doing the same thing.
         # Whether the trip is worth it is answered by the combined HP in RAM,
         # never by a "já curei" flag. PP exhaustion is handled by battle input,
         # not by a second healing condition.
@@ -1414,11 +1445,27 @@ class ScriptedAgent(BaseAgent):
                         "route2-back-to-viridian",
                         [(10, 44), (10, 52), (7, 52), (7, 71), (7, 72)],
                     )
+            # Every branch above is a city measured by hand. Anywhere else, ask
+            # this map whether it has a Center door: if it does, that is the
+            # nearest Center by definition, and none of it was measured.
+            nearest = self._run_nearest_center("forest-nearest-center")
+            if nearest is not None:
+                return nearest
 
         if map_id in (0, 12, 1, 50) or (
             map_id == 13 and self.emulator.memory.get_player_pos()[1] > 20
         ):
             return self._run_route_2_nav()
+
+        # Level is the whole difference between crossing the Forest and dying
+        # in it. The wild Caterpie are harmless; the bug catchers on the way
+        # north are not, and both trainers walked into the same one ten steps
+        # in and lost the whole party — then walked back from Pallet to do it
+        # again. Grinding first is cheaper than that trip, every time.
+        if map_id == 51 and self._needs_forest_training():
+            step = self._train_in_forest_entrance()
+            if step is not None:
+                return step
 
         routes = {
             51: [
@@ -1435,6 +1482,117 @@ class ScriptedAgent(BaseAgent):
         if route:
             return self._follow_route(f"forest-{map_id}", route)
         return self._leave_unknown_map()
+
+    def _party_max_level(self):
+        """Highest level in the party, read from the cartridge."""
+        count = min(int(self.emulator.memory.get_party_count()), 6)
+        read = self.emulator.memory.read_byte
+        # Offset 33 of the party struct is the live level; offset 3 only stays
+        # in sync for boxed Pokémon.
+        return max(
+            (int(read(0xD16B + index * 44 + 33)) for index in range(count)),
+            default=0,
+        )
+
+    def _needs_forest_training(self):
+        """Too weak for the bug catchers, and still allowed to do something.
+
+        Off unless `POKEAI_FOREST_TRAINING=1`. The gate itself is sound — a
+        party whose best is level 8 loses to the first bug catcher, measured
+        twice — but every version of *where to grind* has been wrong on the
+        cartridge, and each wrong one cost a real run:
+
+        | where                        | result                      |
+        |------------------------------|-----------------------------|
+        | line at y=43                 | 1 encounter / 225 steps     |
+        | crossing's southern legs     | 1 / 3765                    |
+        | farthest grass in sight      | walked into the bug catcher |
+        | nearest grass within 3 tiles | detoured north, same        |
+        | two-tile shuffle in place    | 0 / 1200, stuck on 8 tiles  |
+
+        What is proven and worth keeping: `wGrassTile` (`0xD535`) says which
+        tile rolls encounters, and `TileCollision.grass_offsets()` finds them
+        on screen. What is missing is a patch of grass known to be reachable
+        and clear of trainers — and five guesses say that has to be measured
+        from a save, not assumed from the route.
+        """
+        if os.getenv("POKEAI_FOREST_TRAINING", "0") != "1":
+            return False
+        if self._party_max_level() >= FOREST_MIN_LEVEL:
+            self.forest_training_steps = 0
+            return False
+        # A budget, because a gate with no way out is worse than a death. If
+        # the grass will not deliver the levels — no encounters here, PP gone,
+        # anything — the crossing is attempted anyway rather than the trainer
+        # standing in a patch of grass forever.
+        return getattr(self, "forest_training_steps", 0) < FOREST_TRAINING_STEPS
+
+    def _train_in_forest_entrance(self):
+        """Step into the grass beside the trainer, or hand the step back.
+
+        Four attempts at this went wrong the same way, and every one of them
+        was me deciding where the grass is instead of asking:
+
+        1. a nine-tile line at y=43 — one encounter in three thousand steps;
+        2. the crossing's own southern legs — one in three thousand seven
+           hundred. Both are the dirt path, which is why the route follows
+           them;
+        3. `wGrassTile` read properly at last, but aiming at the **farthest**
+           grass in sight, which from (31,24) is north — and north is where the
+           bug catcher stands. The loop walked the party into the fight the
+           levels were being collected to survive;
+        4. nearest grass within three tiles, falling back to a search route
+           when none was in reach. The way west is behind trees, so the search
+           detoured north, into the same trainer.
+
+        So this plans nothing at all. Grass **adjacent** to where the trainer
+        already stands is a step; anything else is `None`, and the crossing
+        route gets the step back. An encounter is rolled per step taken in
+        grass, so a one-tile shuffle earns exactly what a hike earns, and it
+        cannot walk into a trainer, a door, or a tree — because it never walks
+        anywhere. Whatever grass the crossing passes through is grass this
+        trains in.
+
+        The cost is honest: this no longer guarantees level `FOREST_MIN_LEVEL`
+        before the bug catchers, it only takes every free encounter on the way.
+        Guaranteeing it needs to know where a safe patch is, and four guesses
+        say that has to be measured rather than assumed.
+        """
+        position = tuple(self.emulator.memory.get_player_pos())
+        reader = self._tile_reader()
+        if reader is None:
+            return None
+        # A door is a destination, never a shortcut. `_follow_route` only
+        # blocks warp steps while it is not aiming at its last waypoint, and a
+        # training target is always the last waypoint — so on the Forest
+        # entrance the step back through the door was wide open, and BARON
+        # crossed gate to Forest and back every single frame.
+        warps = reader.warp_tiles()
+        beside = {
+            (position[0] + dx, position[1] + dy)
+            for dx, dy in reader.grass_offsets()
+            if abs(dx) + abs(dy) == 1
+        } - warps
+        if not beside:
+            return None
+        self.forest_training_steps = getattr(self, "forest_training_steps", 0) + 1
+
+        # Two tiles, back and forth, and nothing else. "Step onto the nearest
+        # grass" sounds local and is not: picking the same corner of the patch
+        # every time is a fixed heading, and the trainer walked fourteen tiles
+        # up the grass column doing exactly that — arriving, as every other
+        # version did, at the bug catcher. A pair cannot drift.
+        # Only one of the two has to be grass — the other is simply where it
+        # came from. Requiring both broke the pair on arrival every time, and a
+        # pair rebuilt every step is the drift again under another name.
+        pair = getattr(self, "forest_training_pair", None)
+        if not pair or position not in pair:
+            pair = (position, min(beside))
+            self.forest_training_pair = pair
+        home, away = pair
+        return self._follow_route(
+            "forest-training", [away if position == home else home]
+        )
 
     def _run_pewter_city_nav(self):
         """Walk to Pewter's Gym, rebuilding the route after a whiteout."""
@@ -1696,6 +1854,119 @@ class ScriptedAgent(BaseAgent):
             )
 
         return self._leave_unknown_map()
+
+    def _center_first_action(self):
+        """A Center on this map outranks whatever the executor wanted to do.
+
+        The prize is not the HP, it is the **checkpoint**. A confirmed heal
+        inside a Center is the only thing in this project that writes a resume
+        point, so walking past one is throwing away the only defence a whiteout
+        has: with a checkpoint a death costs the stretch, without one it costs
+        the run back to Pallet.
+
+        So the threshold here is not the operator's 20% emergency — that one is
+        about whether a trip across a city is worth it, and this is not a trip.
+        Anything missing, and a Center door on this very map, is enough.
+
+        It also closes a hole every executor shared. AARON reached Pewter,
+        walked into its Center at 53% with a fainted Caterpie, and stopped:
+        `_run_pewter_city_nav` only enters its Center branch when the 20% gate
+        says yes, so nothing matched and it fell through to the unknown-map
+        fallback. And the two thresholds agreeing is what keeps the door from
+        becoming a revolving one — in and out was two different numbers, one
+        deciding to enter and another refusing to heal.
+        """
+        if getattr(self, "emulator", None) is None:
+            return None
+        map_id = int(self.emulator.memory.get_map_id())
+        if map_id in POKEMON_CENTER_MAP_IDS:
+            # Standing inside one hands over unconditionally, healed or not:
+            # this controller owns **both** halves, healing what is missing and
+            # walking back out. Gating it on "is anything missing" left AARON
+            # healed on Pewter's doormat with nothing to press — the executor
+            # has no branch for a whole party in a Center either, so the step
+            # fell through to the unknown-map fallback and stopped.
+            #
+            # Viridian keeps its own names: `viridian_center_healed` is read
+            # outside this class as the story milestone for the first Center.
+            prefix, healed = (
+                ("viridian-center", "viridian_center_healed")
+                if map_id == VIRIDIAN_CENTER_MAP_ID
+                else (f"center-{map_id}", f"center_{map_id}_healed")
+            )
+            return self._run_pokemon_center(prefix, healed)
+        if self._party_health_fraction() >= 1.0:
+            return None
+        # A door on this map is "on the way" by definition; a Center a city
+        # away is a trip, and trips still belong to the executors.
+        return self._walk_to_door("center-door", POKEMON_CENTER_MAP_IDS)
+
+    def _door_to(self, destinations):
+        """Nearest door on this map leading into one of these maps, or None.
+
+        Every route to a Center or a Mart in this project was measured by hand,
+        for one city, from a handful of starting maps — `buy_pokeballs` only
+        knows the way back to Viridian's Mart, so a trainer that spends its last
+        Poké Ball north of Route 2 never buys another one.
+
+        The warp table answers this. It was already being read for *where* the
+        doors are; the fourth byte of each entry says where each one goes.
+        """
+        reader = self._tile_reader()
+        if reader is None:
+            return None
+        x, y = self.emulator.memory.get_player_pos()
+        doors = [
+            tile for tile, destination in reader.warp_destinations().items()
+            if destination in destinations
+        ]
+        if not doors:
+            return None
+        return min(doors, key=lambda tile: abs(tile[0] - x) + abs(tile[1] - y))
+
+    def _walk_to_door(self, route_prefix, destinations):
+        """Head for that door, or None when this map has none of them."""
+        door = self._door_to(destinations)
+        if door is None:
+            return None
+        # The route id carries the door so a different one, on a different map,
+        # cannot inherit a stale waypoint index.
+        return self._follow_route(f"{route_prefix}-{door[0]}-{door[1]}", [door])
+
+    def _run_nearest_center(self, route_prefix="nearest-center"):
+        """Heal at whatever Center this city has, with no route measured by hand.
+
+        Works anywhere because both halves are general: the door comes from the
+        map's own warp table, and every Pokémon Center in Gen I is the same
+        building inside — nurse at (3,3), doormat at (3,7).
+        """
+        map_id = int(self.emulator.memory.get_map_id())
+        if map_id in POKEMON_CENTER_MAP_IDS:
+            return self._run_pokemon_center(route_prefix, f"{route_prefix}_healed")
+        return self._walk_to_door(route_prefix, POKEMON_CENTER_MAP_IDS)
+
+    def _run_nearest_mart(self, route_prefix="nearest-mart"):
+        """Restock at whatever Mart this city has. Same two halves as above."""
+        map_id = int(self.emulator.memory.get_map_id())
+        if map_id in POKE_MART_MAP_IDS:
+            return self._run_shop_counter()
+        return self._walk_to_door(route_prefix, POKE_MART_MAP_IDS)
+
+    def _run_shop_counter(self):
+        """Reach the clerk and buy, from inside any Mart.
+
+        Lifted out of `buy_pokeballs`, where it was written for map 42 and read
+        as if the coordinates were Viridian's. They are not: a Gen I Mart is the
+        same building in every city, clerk behind the top-left counter.
+        """
+        if tuple(self.emulator.memory.get_player_pos()) != SHOP_COUNTER_TILE:
+            return self._follow_route(
+                "shop-counter", [(3, 7), (3, 5), SHOP_COUNTER_TILE]
+            )
+        if self.emulator.memory.read_byte(0xD52A) != 2:
+            self.last_action_was_move = True
+            return WindowEvent.PRESS_ARROW_LEFT
+        return self._buy_first_shop_item()
 
     def _run_pokemon_center(self, route_prefix, healed_attribute):
         """Register a city Center through its real nurse dialogue."""
@@ -2015,9 +2286,23 @@ class ScriptedAgent(BaseAgent):
         if not waypoints:
             return None
         if self._menu_is_open():
-            self.route_menu_presses = getattr(self, "route_menu_presses", 0) + 1
-            return self._route_text()
-        self.route_menu_presses = 0
+            presses = getattr(self, "route_menu_presses", 0) + 1
+            self.route_menu_presses = presses
+            # `MENU_PRESS_LIMIT` was written for this and then stopped being
+            # read: the flag at 0xCFC4 can stay up with nothing on screen that
+            # a button will clear, and an unbounded B/A alternation is a bot
+            # that never walks again. CAARON stood at (5,1) in Oak's Lab for
+            # thousands of steps this way, and left no stuck report either,
+            # because this return happens before the report is written.
+            #
+            # So press, then walk anyway, then press again. The D-pad is
+            # ignored while real text is up, which makes walking free to try;
+            # what must never happen is reading the failed step as a wall, and
+            # the bump memory below already refuses to while the flag is up.
+            if (presses - 1) % (MENU_PRESS_LIMIT * 2) < MENU_PRESS_LIMIT:
+                return self._route_text()
+        else:
+            self.route_menu_presses = 0
 
         x, y = self.emulator.memory.get_player_pos()
         map_id = int(self.emulator.memory.get_map_id())
@@ -2026,6 +2311,14 @@ class ScriptedAgent(BaseAgent):
         if previous is not None and direction and previous[0] != map_id:
             self.route_entry_map = previous[0]
             self._warp_memory().record(previous[0], previous[1], previous[2], map_id)
+            # The tile just arrived on, and how it was entered. `_leave_unknown_map`
+            # has always read this and nothing has ever written it, so its first
+            # and best way out of a map no executor knows — leave by the door you
+            # came in through — was dead code.
+            entry_tiles = getattr(self, "map_entry_tiles", None)
+            if entry_tiles is None:
+                entry_tiles = self.map_entry_tiles = {}
+            entry_tiles[map_id] = (x, y, direction)
             # The edge between two outdoor maps is a connection, not a warp:
             # it is in no warp table, so "a door is only ever a destination"
             # never covered it. Standing on the tile you just arrived on, the
@@ -2082,7 +2375,16 @@ class ScriptedAgent(BaseAgent):
         using_trail = False
         if quest_id and recorder is not None:
             recorder.record(quest_id, map_id, x, y)
-        if quest_id and store is not None:
+        # The drawn route is the one that finishes the game, so it is the one
+        # that drives. A trail is a measurement of a crossing that worked, and
+        # it stays being recorded and published — but following one is opt-in
+        # (`POKEAI_FOLLOW_TRAILS=1`), because a trail that overrides the route
+        # only has to be wrong once: a single mined point on Route 4, at
+        # (27,3), pointed east, which made the sidestep axis vertical, and
+        # south from that tile is Route 3. AARON crossed that border every 0.6
+        # seconds for an hour, following a "shortcut" over a route that was
+        # right the whole time.
+        if quest_id and store is not None and FOLLOW_TRAILS:
             # Recomputing the join every step is what made the trail bounce:
             # from (28,20) the nearest point was (29,20), and from (29,20) it
             # was (28,20) — the trail crosses both on the way out and on the
@@ -2275,15 +2577,35 @@ class ScriptedAgent(BaseAgent):
         """Hand the walked path to the followers, once the cartridge agrees.
 
         Called only when a quest predicate is confirmed on real RAM, so a
-        published trail is by construction a path that arrived.
+        published trail is by construction a path that arrived — and, since a
+        whiteout restarts the recording, one that arrived without dying.
+
+        Returns what the crossing cost, or ``False`` when nothing was stored.
         """
-        if self.trail_recorder.quest_id != quest_id:
+        recorder = self.trail_recorder
+        if recorder.quest_id != quest_id:
             return False
+        legs = recorder.legs()
+        cost = {
+            "points": sum(len(leg["points"]) for leg in legs),
+            "maps": [leg["map"] for leg in legs],
+            "death_cycle": recorder.cycle,
+            "steps": recorder.steps,
+        }
         published = self.trail_store.publish(
-            quest_id, self.player_name, self.trail_recorder.legs()
+            quest_id, self.player_name, legs,
+            dense=True, cycle=recorder.cycle, steps=recorder.steps,
         )
-        self.trail_recorder.clear()
-        return published
+        recorder.clear()
+        return cost if published else False
+
+    def begin_death_cycle(self, cycle):
+        """A whiteout closes the attempt; report what it cost before dropping it."""
+        recorder = getattr(self, "trail_recorder", None)
+        if recorder is None:
+            return 0
+        self.trail_plan = None
+        return recorder.restart(cycle)
 
     def _recently_walked_steps(self, map_id, x, y):
         """Directions that lead back into the last few tiles walked.

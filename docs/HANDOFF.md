@@ -5,6 +5,46 @@
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
 
+## A rota à mão é o caminho principal
+
+Definido com o operador em 2026-08-06. **O caminho feito à mão é o que leva a
+história para frente e é o foco.** Exploração, trilha minerada e trilha densa
+são aceleração opcional. O objetivo é zerar o jogo e ter um caminho
+determinístico para zerar, no qual o bot possa **entrar em qualquer ponto e
+seguir**.
+
+Consequência direta no código: `_follow_route` deixou de deixar a trilha
+sobrepor a rota. Trilha continua sendo **gravada e publicada** — é a medida do
+que uma travessia custou — mas *segui-la* é opt-in por `POKEAI_FOLLOW_TRAILS=1`.
+Uma trilha errada só precisa acertar uma vez para custar uma hora: um único
+ponto minerado na Rota 4, em `(27,3)`, apontava para leste, o que tornou o eixo
+de desvio vertical, e ao sul daquele tile é a Rota 3.
+
+### Até onde o caminho determinístico chega
+
+| | |
+|---|---|
+| nós do grafo | 19 |
+| com rota à mão | **11** (2 via `walkthrough.json`, 9 via `_run_*`) |
+| último validado | `cerulean_gym_quest` — Misty |
+
+Faltam **8 executores**, e é isso que separa o projeto de zerar:
+
+| # | nó | executor ausente |
+|---|---|---|
+| 1 | `vermilion_gym_quest` | Lt. Surge |
+| 2 | `celadon_story_quest` | Erika / Rocket |
+| 3 | `fuchsia_story_quest` | Koga |
+| 4 | `saffron_story_quest` | Sabrina / Silph |
+| 5 | `cinnabar_story_quest` | Blaine |
+| 6 | `viridian_gym_quest` | Giovanni |
+| 7 | `pokemon_league_quest` | Elite Four |
+| 8 | `mewtwo_postgame` | Cerulean Cave |
+
+Cada um precisa de waypoints **medidos**, não deduzidos. Cinco palpites de
+geometria nesta sessão erraram cinco vezes; `tools/probe_route.py` a partir de
+um save é a ferramenta que responde.
+
 ## Continuar daqui (2026-08-06, fim do dia)
 
 **Objetivo da próxima sessão: cada quest em menos passos, e o ciclo de morte
@@ -38,27 +78,556 @@ existe caminho até o alvo. Foi ele que apontou os dois últimos consertos.
 
 `mine_trails.py` varre `archives/` e `trainers/`, acha os trechos em que o
 QuestGraph confirmou a quest na RAM — caminhos que **chegaram** — apaga os
-laços e publica a melhor de cada em `knowledge/routes/`. Critério: cobertura
-primeiro, tamanho depois. E **corta tudo o que veio antes da última morte no
-trecho**, justamente para não ensinar o desvio da derrota como rota.
+laços e publica a melhor de cada em `knowledge/routes/`. E **corta tudo o que
+veio antes da última morte no trecho**, justamente para não ensinar o desvio da
+derrota como rota. O que sai dele é âncora esparsa, e perde para uma travessia
+gravada passo a passo assim que alguém andar aquele trecho (ver "Trilha densa").
 
 ### O que atacar, na ordem
 
-1. **Menos passos por quest.** As trilhas mineradas hoje têm 4 a 15 pontos
-   porque o log só grava coordenada quando acontece um evento. Uma trilha densa
-   (uma posição por passo, gravada durante uma travessia limpa) daria caminho
-   fechado em vez de âncoras esparsas. O gravador já existe em
-   `src/route_trails.py`; falta persistir a travessia inteira quando a quest é
-   confirmada.
-2. **Ciclo de morte explícito.** Hoje o whiteout é detectado
-   (`death` no log) mas nada separa "tentativa 1" de "tentativa 2". Numerar o
-   ciclo e gravar a trilha por ciclo deixa medir: quantos passos custou cada
-   tentativa, e qual delas virou a rota publicada.
+1. ~~**Menos passos por quest.**~~ Feito — ver "Trilha densa" abaixo.
+2. ~~**Ciclo de morte explícito.**~~ Feito — ver "O ciclo de morte" abaixo.
 3. **Treinar antes de entrar.** Não existe nó de treino: nível sobe por
    acidente, nas batalhas do caminho. Um predicado `party_max_level >= X` antes
    da Floresta e antes de Mt. Moon evitaria metade das mortes.
 
-### Regras de cura, como ficaram
+## Trilha densa: o caminho inteiro, não os carimbos
+
+Implementado em 2026-08-06. O gravador já rodava a cada passo — o que se perdia
+estava depois dele, em dois lugares.
+
+`legs()` comprimia a travessia em pontos de virada antes de publicar. Isso é
+reversível enquanto um passo é um tile, mas some assim que existe um pulo
+(ledge, warp, whiteout). Agora publica **uma posição por tile pisado**, com os
+laços desfeitos: ir até uma parede e voltar não é caminho, e um seguidor que
+herdasse o laço o andaria de novo de propósito. `legs(dense=False)` continua
+existindo para quem só quer as viradas.
+
+O segundo lugar é o que travava tudo: **`publish` guardava a mais curta**. As
+dez trilhas publicadas hoje são todas mineradas de log, de 2 a 15 pontos, e sob
+essa regra nenhuma travessia real jamais as substituiria. Pior, elas mal são
+trilhas — o log só grava coordenada quando acontece um evento, então quase toda
+perna tem **um ponto só**:
+
+| Trilha publicada | pernas (mapa, pontos) | mapas que dizem algo |
+|---|---|---|
+| `viridian_forest_nav` | 9 pernas, **todas de 1 ponto** | 0 |
+| `route_2_nav` | 7 pernas, todas de 1 ponto | 0 |
+| `mt_moon_nav`, `start` | idem | 0 |
+| `brock_quest` | 10 pernas, três com 2+ | 3 |
+
+Uma perna de um ponto é carimbo de passagem: `waypoints_from` devolve um item,
+o seguidor pisa nele e devolve o passo para a rota desenhada. O critério novo
+ordena por **alcance, densidade, brevidade** — e alcance conta só as pernas com
+dois pontos ou mais, senão um monte de carimbos venceria uma travessia que sabe
+cada tile. Brevidade em último lugar é literalmente "menos passos por quest":
+entre duas travessias andadas, a mais curta ganha.
+
+`mine_trails.py` deixou de publicar com `force`. Ele continua sendo o que existe
+enquanto ninguém andou o trecho gravando; deixou de poder derrubar quem andou.
+
+**Medido no cartucho**, a partir de `states/viridian-passed-AARON.state`, 900
+decisões, duas batalhas selvagens no caminho:
+
+| | antes | depois |
+|---|---|---|
+| `viridian_forest_nav` publicada | 9 pontos, 9 pernas de 1 ponto | **95 pontos, uma perna** |
+| saltos entre pontos consecutivos | — | **0** (caminho fechado) |
+| tiles andados / pontos guardados | — | 97 / 95 (dois laços desfeitos) |
+
+## Largada escalonada: como a trilha vira medida
+
+Montado em 2026-08-06. Três bots largando juntos descobrem o mesmo mapa três
+vezes: ninguém pode herdar uma trilha que ainda não foi publicada, e o caminho
+publicado nunca é testado. Escalonados, o primeiro atravessa às cegas e os de
+trás partem do que ele provou — e o custo de cada travessia fica registrado.
+
+```bash
+POKEAI_STAGGER_STEPS=1500 python3 start.py --slots 2 \
+    --init-state states/viridian-passed-AARON.state
+```
+
+**Dois slots, não três.** `--slots 3` levou `SIGKILL` duas vezes em 2026-08-06,
+nas duas o worker morreu com código `-9` sem deixar rastro no log — foi o que
+fez uma corrida anterior "sumir" sem erro nenhum e deixar os treinadores
+congelados no meio do mapa. A máquina tem 8 GB e o swap estava em 5,4 GB de 6.
+O aviso do `run_journeys.py` ("2 é o limite térmico seguro num laptop sem
+ventoinha") vale para memória também. Dois bastam para o experimento: um
+atravessa às cegas, o outro herda.
+
+| Peça | O que faz |
+|---|---|
+| `POKEAI_STAGGER_STEPS=N` | slot *k* espera *k·N* decisões, **na ordem dos slots** |
+| `--init-state <save>` | todo treinador sem retomada começa no mesmo tile |
+| `directives.py set <A> --stop-at <nó>` | mesmo objetivo para os três |
+
+O escalonamento antigo (`POKEAI_STAGGER_START=1`) era um atraso **aleatório** de
+0 a 10s, e continua onde estava. Aleatório não serve aqui: a ordem é o
+experimento.
+
+**A vantagem é paga uma vez.** Um chunk é um processo novo com `steps_elapsed`
+zerado, então sem memória o último slot pagaria o atraso de novo a cada chunk e
+nunca alcançaria os outros. `head_start_served` fica em `journey.json`, gravado
+no instante em que a espera termina.
+
+O que medir, tudo já no log: `trail_published` traz `steps`, `points`, `maps` e
+`death_cycle` da travessia que venceu; `death` traz `death_cycle`, `quest_id` e
+`steps_in_cycle` do que aquela tentativa custou. Comparar o primeiro bot (às
+cegas) com os de trás (com a trilha) é subtrair dois números do mesmo evento.
+
+Corrida montada nesta sessão: AARON e BARON saindo de `viridian-passed-AARON`,
+`stop_at = mt_moon_nav` (9 dos 19 nós), 1500 passos de intervalo. As jornadas
+anteriores estão preservadas em `trainers/.reset/`.
+
+### Já medido em produção: trilha densa por cima de carimbo
+
+Antes de a corrida certa subir, uma corrida de jogo novo publicou três trilhas
+gravadas passo a passo por cima das mineradas:
+
+| trilha | antes | depois |
+|---|---|---|
+| `parcel_event` | 6 pontos minerados | **79 pontos andados** |
+| `start` | 4 pontos minerados | **31 pontos andados** |
+| `oak_event` | 2 pontos minerados | 5 pontos andados |
+
+`parcel_event` é a prova do critério novo: 79 pontos substituindo 6. Pela regra
+antiga — "a mais curta ganha" — essa travessia real teria sido **recusada**, e
+os seis carimbos ficariam publicados para sempre.
+
+## Treinar antes da Floresta: cinco tentativas, nenhuma serve (desligado)
+
+**Estado: desligado.** Liga com `POKEAI_FOREST_TRAINING=1`. O portão em si está
+certo — time cujo melhor é nível 8 perde para o primeiro apanhador de insetos,
+medido duas vezes, dez passos depois de entrar. O que nunca acertei foi **onde
+treinar**, e cada erro custou uma corrida:
+
+| onde | resultado no cartucho |
+|---|---|
+| linha em `y=43` | 1 encontro em 225 passos |
+| pernas sul da travessia | 1 em 3765 |
+| mato mais distante à vista | andou até o apanhador de insetos |
+| mato mais próximo em 3 tiles | contornou pelo norte, mesmo lugar |
+| vaivém de duas casas | 0 em 1200, preso em 8 tiles |
+
+O padrão é sempre o mesmo e é o erro que este documento já nomeia: **decidi onde
+ficava o mato em vez de perguntar**. As três primeiras foram geometria
+adivinhada; a quarta e a quinta liam o mato certo e mesmo assim andavam, porque
+qualquer caminho traçado ali passa por onde o apanhador está.
+
+**O que ficou provado e vale manter:**
+
+| Fonte | Endereço | O que dá |
+|---|---|---|
+| tile de mato do tileset | `0xD535` | qual tile gera encontro |
+| mapa de tiles da tela | `0xC3A0` | onde esses tiles estão |
+
+`TileCollision.grass_offsets()` junta os dois e funciona. Também ficou provado
+que a rota da travessia **segue o caminho de terra** — por isso pacear em cima
+dela não encontra nada — e que a entrada sul da Floresta é toda warp
+(`(15,47)` a `(18,47)`), o que quebrou uma das versões contra a regra "porta é
+destino, nunca atalho".
+
+**O que falta:** um trecho de mato medido a partir de um save, sabidamente
+alcançável e sem treinador no caminho. `tools/probe_route.py` é a ferramenta
+para isso. Cinco palpites dizem que precisa ser medido, não deduzido da rota.
+
+## Onde fica o mato, e por que a rota não passa nele
+
+Implementado em 2026-08-06 (item 3 da lista de "o que atacar"). Os dois
+treinadores morreram para o **mesmo** treinador da Floresta, dez passos depois
+de entrar, com o time do save de referência (melhor nível 8). O Caterpie
+selvagem daquele mato é nível 3; os níveis estão ali para pegar.
+
+`_run_viridian_forest_nav` agora treina antes de atravessar enquanto
+`party_max_level < FOREST_MIN_LEVEL` (12). Com orçamento
+(`FOREST_TRAINING_STEPS`): portão sem saída é pior que morte, então se o mato
+não entregar os níveis, atravessa assim mesmo.
+
+### O corredor escolhido a olho não é mato
+
+Foram duas tentativas erradas antes da certa, e o cartucho reprovou as duas:
+
+| corredor | passos de treino | batalhas |
+|---|---|---|
+| linha em y=43, "parecia a entrada" | 225 | 1 |
+| pernas sul da própria travessia | 3765 | 1 |
+| **mato lido de `wGrassTile`** | **27** | **1** |
+
+A rota da travessia **segue o caminho de terra** — é para isso que ela foi
+desenhada. Pacear em cima dela não encontra nada.
+
+Quem responde é o cartucho, como sempre:
+
+| Fonte | Endereço | O que dá |
+|---|---|---|
+| tile de mato do tileset | `0xD535` | qual tile gera encontro |
+| mapa de tiles da tela | `0xC3A0` | onde esses tiles estão |
+
+`TileCollision.grass_offsets()` junta os dois. O treino anda até o tile de mato
+**mais distante à vista** — longe o bastante para a ida ser uma caminhada dentro
+do mato — e mantém o alvo até chegar nele ou ele deixar de ser mato, porque
+reescolher a cada passo é como um plano começa a quicar entre dois tiles.
+
+Medido a partir de `viridian-passed-AARON.state`: `wGrassTile` = 32, e havia uma
+coluna de mato em **x=27, y 20..28**, nove tiles a oeste do corredor que eu
+tinha escolhido.
+
+### Porta é destino, e o treino tinha furado essa regra
+
+Visto rodando, minutos depois de entrar: BARON atravessava portão ↔ Floresta
+**a cada frame**. `_follow_route` só bloqueia passo em warp enquanto **não** está
+mirando o último waypoint — rotas terminam em porta de propósito. Um alvo de
+treino é sempre o último waypoint, então em cima de `(17,47)` o passo de volta
+pela porta ficava livre.
+
+E a entrada sul da Floresta é toda warp: `(15,47)`, `(16,47)`, `(17,47)`,
+`(18,47)`. Agora o treino recusa escolher porta como mato, e em cima de uma
+porta devolve o passo para a rota, que sabe sair de soleira.
+
+**Não validado ponta a ponta:** o harness headless de validação trava dentro de
+uma batalha (`0xD057` continua 1 até o fim dos passos), então não dá para
+confirmar ali que o nível sobe até 12 — só que o mato é encontrado e a batalha
+começa. Vale olhar no cartucho de verdade se a luta longa é do harness ou é
+real; uma corrida anterior mostrou AARON com `switch_intent` repetido numa luta
+demorada.
+
+## 4067 paredes que nunca existiram
+
+Achado em 2026-08-06, e é a causa maior desta sessão. BARON passou **4260
+passos** no tile (6,30) da Floresta. O relatório de travamento explicava sem
+rodeio: `caminho até o alvo: nenhum | fronteira: nenhuma`.
+
+Não era o waypoint nem a colisão ao vivo. O mapa acumulado
+(`knowledge/maps/terrain.json`, compartilhado por todos os treinadores) tinha a
+Floresta partida em **quatro pedaços sem ligação entre si**:
+
+| componente | tiles | faixa |
+|---|---|---|
+| onde BARON estava | 300 | y 23..47 |
+| nordeste | 215 | y 1..19 |
+| noroeste, com o alvo `(7,3)` | 160 | y 0..29 |
+| órfão | 1 | — |
+
+676 tiles caminháveis contra **1144 paredes**. `find_path` respondia "nenhum"
+corretamente: o alvo estava do outro lado de uma parede inventada.
+
+E não era só a Floresta. **14 dos 17 mapas conhecidos estavam partidos** — Rota
+2 em 12 pedaços, Rota 1 em 8, Rota 3 com o dobro de paredes que de chão livre.
+
+### A causa estava escrita no código, e o conserto tinha ficado pela metade
+
+Um comentário em `_planned_step` já descrevia tudo — inclusive o tile:
+
+> *"In a battle the tile map holds the battle graphics, and every tile reads as
+> a wall: those readings were stored as permanent geometry, and after a few
+> fights in tall grass the Forest was remembered as a closed pocket — from
+> (6,30) the map offered no path to any waypoint."*
+
+A trava foi posta (só lê terreno fora de batalha e fora de menu) e **os dados
+gravados antes dela nunca foram limpos**. Nada no projeto desaprende uma parede:
+o planejador desvia dela para sempre e o bot nunca mais olha aquele tile.
+
+**A assimetria é o ponto.** Um tile marcado caminhável por engano custa uma
+esbarrada — o passo falha, a leitura ao vivo recusa, segue o jogo. Um tile
+marcado parede por engano é permanente e invisível.
+
+### As duas metades do conserto
+
+**Os dados.** `blue-agents/tools/forget_walls.py` descarta as paredes e preserva
+os caminháveis, com cópia do anterior em `knowledge/maps/.envenenado/`:
+
+```bash
+./blue-agents/tools/forget_walls.py --dry-run   # mostra quais mapas estão partidos
+./blue-agents/tools/forget_walls.py             # esquece as paredes
+```
+
+Depois disso, `(6,30) -> (7,3)` responde em 28 passos. Desconhecido conta como
+livre, então esquecer parede não cega o planejador: ele volta a ser otimista e
+cada passo troca otimismo por leitura.
+
+**A leitura.** `terrain_grid()` agora devolve `{}` quando a tela não é o mapa.
+Duas perguntas, as duas ao cartucho, nenhuma a um flag:
+
+| Fonte | Endereço | O que responde |
+|---|---|---|
+| janela do LCD | `0xFF4A` | tem algo desenhado por cima do mapa? `144` = não |
+| tile sob o jogador | `wTileMap` na linha 9 | é lugar onde dá para estar de pé? |
+
+A **primeira é a que cobre conversa forçada**. Uma caixa de texto não impede o
+tile do próprio jogador de continuar sendo mapa, então a segunda verificação
+passa direto por uma cutscene enquanto a caixa sobrescreve os tiles embaixo
+dela. Medido no cartucho: abrir o menu START transformou **duas colunas de mapa
+em parede** neste mesmo tilemap. Batalha, menu, loja e diálogo de cutscene
+baixam a janela; só o mapa a deixa estacionada fora da tela.
+
+A segunda é a rede de segurança para o que a janela deixar passar.
+
+Medido no cartucho, nas três telas:
+
+| tela | `WY` | regra antiga | regra nova |
+|---|---|---|---|
+| mapa limpo | 144 | 80 tiles | **80 tiles** |
+| menu START aberto | 0 | 2 colunas viram parede | **0 gravados** |
+| em batalha | 0 | **78 paredes inventadas** | **0 gravados** |
+
+### O furo que sobrou: ler no meio do passo
+
+As duas verificações acima não bastaram. Duas horas depois da primeira limpeza,
+**1075 paredes novas** e a Floresta partida em dois de novo, com `(7,22)` — um
+waypoint da rota à mão — encalhado do lado inacessível.
+
+`0xCFC5` é o contador de passo: `0` parado, `7..1` enquanto o passo toca. As
+coordenadas do jogador só alcançam no fim, mas **a tela já rolou meio tile**.
+Então a leitura está certa e a origem está errada: os 80 tiles são gravados uma
+linha fora. Medido de `(31,24)`:
+
+| | tiles livres lidos |
+|---|---|
+| parado em `(31,24)` | 24 |
+| no meio do passo, ainda reportando `(31,24)` | **27** — que é a resposta de `(31,23)` |
+
+Um mapa costurado com leituras cada uma um tile fora cria paredes que nunca
+existiram, e elas parecem plausíveis. Agora `terrain_grid()` devolve `{}`
+enquanto `0xCFC5 != 0`. Conferido no cartucho: dos 25 frames de um passo, 21
+são recusados e os 4 alinhados devolvem 24 e 27 livres, cada um na sua casa.
+
+| Fonte | Endereço | O que responde |
+|---|---|---|
+| janela do LCD | `0xFF4A` | tem algo por cima do mapa? `144` = não |
+| contador de passo | `0xCFC5` | o passo terminou? `0` = sim |
+| tile sob o jogador | `wTileMap` linha 9 | é lugar onde dá para estar de pé? |
+
+## Centro e Mart mais próximos: a porta é pergunta, não medida
+
+Implementado em 2026-08-06, e fecha a pendência que este documento carregava:
+*"o `buy_pokeballs` só sabe voltar ao Mart de Viridian... Um controlador de
+'reabastecer no Mart mais próximo' ainda não existe."*
+
+O que forçou: AARON gastou a última Poké Bola na Rota 1 e passou o resto da
+corrida com `choice: defeat, reason_code: no_pokeballs`. A política estava
+certa; faltava caminho de volta.
+
+### O quarto byte do warp
+
+A tabela de warps tem 4 bytes por entrada e o projeto só lia os dois primeiros —
+**onde** a porta está. O quarto diz **para onde ela vai**:
+
+| Fonte | Endereço | O que dá |
+|---|---|---|
+| número de warps | `0xD3AE` | quantas portas |
+| tabela de warps (y, x, destino, mapa) | `0xD3AF` | onde estão **e para onde vão** |
+
+`TileCollision.warp_destinations()` devolve `{(x,y): mapa}`. Com isso, "andar
+até o Mart" deixa de ser uma rota medida à mão para uma cidade e vira uma
+pergunta que o cartucho responde em qualquer uma.
+
+A outra metade é que **Gen I constrói o mesmo prédio em toda cidade**: enfermeira
+em `(3,3)`, capacho em `(3,7)`, balconista atrás do balcão superior esquerdo,
+aproximação em `(2,5)`. O interior nunca precisou ser medido por cidade — só
+ninguém tinha separado "achar a porta" de "usar o prédio".
+
+### Medido no cartucho
+
+Dirigindo da Floresta até Viridian e lendo a tabela da cidade:
+
+```
+portas de Viridian: {(23,25): 41, (29,19): 42, (21,15): 43, (21,9): 44, (32,7): 45}
+porta do Centro : (23, 25)
+porta do Mart   : (29, 19)
+```
+
+`(23,25)` é exatamente onde a rota medida à mão (`viridian-center-door`)
+termina. O mecanismo genérico reproduziu sozinho o número que alguém mediu.
+
+### Ligado como rede, não como substituto
+
+Nada foi trocado: as rotas que já funcionam continuam ganhando. O controlador
+novo só entra onde o bot antes se perdia — `buy_pokeballs` fora do mapa 42
+pergunta se *esta* cidade tem Mart antes de desistir, e a cura procura porta de
+Centro em qualquer mapa que as ramificações medidas não cobrem. Sem porta, devolve
+`None` e o comportamento antigo segue igual.
+
+`POKE_MART_MAP_IDS = {42}` — só o de Viridian, que é o único em que este projeto
+entrou e comprou. Um id errado manda o treinador pela porta errada, então o
+conjunto cresce por medição, nunca por memória.
+
+`POKEMON_CENTER_MAP_IDS` era declarado **duas vezes**, em `hybrid_agent.py` e
+implicitamente nas rotas. Agora vive num lugar só e o outro importa — duas
+cópias do mesmo conjunto é como elas divergem em silêncio, o mesmo erro que já
+custou o contador de ciclo de morte e a vantagem de largada nesta sessão.
+
+### O cérebro compartilhado se perdia numa morte no meio da escrita
+
+`latest_policy.zip` era gravado direto por cima de si mesmo. Um `SIGKILL` no
+meio — e três slots em 8 GB levam `SIGKILL` — deixa um zip pela metade, e toda
+corrida seguinte recusa com `wasn't a zip-file`. O aviso aparece uma vez no
+início do bloco e some no meio do log; o cérebro compartilhado fica ausente até
+alguém apagar os destroços à mão.
+
+Agora grava ao lado e move por cima, como todo arquivo compartilhado deste
+projeto. Um detalhe custa uma corrida se passar batido: `model.save` só
+acrescenta `.zip` quando o caminho **não tem sufixo**, então o nome de estágio
+não pode ter ponto — `latest_policy.next` seria gravado literalmente e o move
+procuraria um arquivo que não existe.
+
+## DOWN eterno no menu de golpes: linha 0 não é linha
+
+Visto rodando em 2026-08-06. AARON ficou **dois minutos apertando DOWN** contra
+um Rattata nível 2, segurando um Tackle com 35 de PP no slot 0. O operador
+descreveu como "bugou na mochila"; a mochila estava certa — `capture_decision`
+respondeu `choice: defeat`, `reason_code: no_pokeballs`, porque o inventário
+estava zerado. Quem travou foi o menu de golpes.
+
+A lista de golpes é numerada **a partir de 1**, então o slot 0 quer a linha 1.
+Quando `0xCC26` devolve `0` — o byte do cursor segurando algo que não é esta
+tela — `0 < 1` é verdade, o comparador responde `DOWN`, a tecla não muda nada, e
+o passo seguinte lê `0` de novo. Para sempre.
+
+É o mesmo erro que o menu 2x2 já tinha corrigido ("coluna inválida → `B`") e que
+esta tabela do documento nomeia: *aperta DOWN eternamente na luta*. Agora linha
+fora de `1..4` não navega — devolve avanço de texto, que nunca escolhe um golpe
+por acidente.
+
+**E o evento não sabia dizer por quê.** `battle_decision` gravava
+`action: DOWN` sem os bytes que produziram a decisão; `last_decision["menu"]`
+tinha `battle_menu`, `column`, `row` e `desired_row`, e ninguém publicava. Agora
+publica. Regra 6 deste documento: evento observável, com motivo **e dado bruto**.
+
+## Três travamentos vistos rodando, e o que cada um era
+
+Registrado em 2026-08-06, com os três treinadores da corrida `--slots 3`
+(AARON, BARON, CAARON). Nenhum dos dois primeiros aparecia no
+`stuck_report.py`, e o motivo de não aparecer faz parte do diagnóstico.
+
+### Carimbo não é trilha — AARON atravessava a fronteira a cada 0,6 s
+
+AARON ficou uma hora indo e voltando entre Rota 3 e Rota 4:
+
+```text
+Route 4 [10,17] → Route 3 [61,0] → Route 4 [9,17] → Route 3 [60,0] → …
+```
+
+Não era a fronteira, e não era colisão. A trilha `mt_moon_nav` publicada é
+minerada de log e tem **uma perna com um ponto só** no mapa 15: `(27,3)`. Um
+ponto sozinho ainda vence a rota desenhada — e é longe, a leste. Com o alvo a
+leste, o eixo principal vira horizontal; com o eixo principal horizontal, o
+desvio vira **vertical**; e para o sul, dali, é a Rota 3.
+
+Reproduzido com a trilha real em disco, no mesmo tile, mudando só se a trilha
+existe:
+
+| bloqueio em (10,17) | com a trilha | sem a trilha |
+|---|---|---|
+| nada | `R` (alvo `(27,3)`) | `U` (alvo `(11,6)`) |
+| `U` parede | `R` | `R` |
+| `U` e `R` parede | **`D` → volta para a Rota 3** | `L` |
+
+`waypoints_from` agora **ignora perna com menos de dois pontos**. É o mesmo
+critério que o `publish` usa para medir alcance, e desarma de uma vez as dez
+trilhas mineradas que estão em disco sem apagar arquivo nenhum. Quatro delas
+(`viridian_forest_nav`, `route_2_nav`, `mt_moon_nav`, `start`) são **só**
+carimbos e passam a não dizer nada; as outras seis mantêm as pernas de verdade.
+
+### Caixa de texto sem fim — CAARON parado em Oaks Lab
+
+CAARON ficou em `(5,1)` do mapa 40 com os passos correndo e a posição fixa, por
+mais de dez minutos, sem escrever uma linha de `stuck.jsonl`. As duas coisas têm
+a mesma causa: com `0xCFC4` de pé, `_follow_route` devolve `B`/`A` e **retorna
+antes** de `_report_if_stuck`. Um bot preso em texto é invisível para o relatório
+de travamento, por construção.
+
+`MENU_PRESS_LIMIT = 12` existia para isso e **não era lido por ninguém** — a
+correção descrita em "Três travas que só aparecem no cartucho" sobreviveu como
+constante e sumiu como comportamento. Agora são 12 toques, 12 passos andando
+assim mesmo, e de novo. O D-pad é ignorado enquanto há texto de verdade, então
+tentar andar é de graça; o que não pode é ler o passo falhado como parede, e a
+memória de esbarrão já se recusa a gravar com o flag de pé.
+
+### `map_entry_tiles`: lido, nunca escrito
+
+`_leave_unknown_map` documenta sair pela porta por onde entrou, e lia
+`self.map_entry_tiles` — um atributo que **nenhuma linha do projeto escrevia**.
+A estratégia principal era código morto; sobravam a porta conhecida em
+`warps.json` e o palpite cego para o sul. Agora a chegada é gravada onde a troca
+de mapa já é detectada, em `_follow_route`.
+
+### O que isso deixa em aberto
+
+O `stuck_report.py` não viu nenhum dos dois. Vaivém entre mapas reseta a chave
+de progresso a cada travessia, então "passos sem encurtar a distância" nunca
+cresce; e o laço de texto retorna antes do relatório. Duas formas de travar que
+o detector não enxerga.
+
+## O ciclo de morte
+
+Implementado em 2026-08-06. O whiteout já era detectado; o que faltava era
+tratá-lo como **começo**, não como tropeço no meio.
+
+`_close_death_cycle()` numera a tentativa que acabou e começa a seguinte. O
+evento `death` passou a carregar `death_cycle`, `quest_id` e `steps_in_cycle` —
+quantos tiles aquela tentativa custou antes de morrer. O evento
+`trail_published` carrega os mesmos números do lado que deu certo: qual ciclo
+virou rota, quantos passos, quantos pontos, quais mapas.
+
+**O número tem que sobreviver ao processo.** Um chunk é um env novo com o
+contador zerado, e a primeira versão guardava o ciclo só na memória do processo:
+quatro mortes seguidas se registraram como "ciclo 1", e "tentativa 1 contra
+tentativa 2" — o motivo inteiro de numerar — nunca ficou mensurável. O contador
+agora vive em `journey.json`, gravado no instante da morte, ao lado de
+`head_start_served`, que tinha exatamente o mesmo problema.
+
+Junto com o número, a gravação recomeça: tudo o que foi andado até a morte
+pertence à tentativa que morreu — a aproximação que perdeu a luta e, antes
+dela, a rota que levou até lá. O cartucho já devolveu o treinador ao Centro, e o
+próximo tile é o primeiro tile de uma travessia nova. O minerador já cortava por
+esse critério; o gravador ao vivo, não, e publicava a derrota junto com a volta.
+
+### Centro no caminho: entra sempre, e o prêmio é o checkpoint
+
+Redefinido com o operador em 2026-08-07, depois de AARON atravessar a Floresta,
+chegar a Pewter, entrar no Centro com **53% de HP** e parar de andar.
+
+`_run_pewter_city_nav` só entra no ramo do Centro quando o limite de emergência
+(20%) diz sim. A 53% nada casava, e o executor caía no fallback de mapa
+desconhecido. **Todo executor tinha o mesmo buraco** — o ramo do Centro estava
+escrito cidade por cidade, atrás de um limite pensado para outra pergunta.
+
+A regra agora é uma só, em `_center_first_action`, à frente de todos os
+executores:
+
+| Situação | Ação |
+|---|---|
+| dentro de um Centro, faltando qualquer HP | cura |
+| porta de Centro **neste mapa**, faltando qualquer HP | entra |
+| time inteiro | segue a rota |
+| Centro a uma cidade de distância | é viagem, continua com o executor |
+
+**O limite de 20% não some — ele responde outra pergunta.** Vinte por cento é
+"vale atravessar uma cidade?". Aqui não há travessia: a porta está neste mapa.
+
+E o motivo de entrar não é o HP. Uma cura confirmada dentro de um Centro é a
+**única coisa neste projeto que grava checkpoint**. Passar por um sem entrar é
+jogar fora a única defesa contra whiteout: com checkpoint, morrer custa o
+trecho; sem ele, custa a corrida inteira de volta a Pallet.
+
+Os dois lados usarem **o mesmo número** é também o que impede a porta giratória
+registrada abaixo: entrar e curar decididos por limites diferentes foi o que
+fez um time a 55% entrar, não curar e sair.
+
+A porta vem de `_door_to`, lida da tabela de warps — nenhuma coordenada de
+Centro é medida à mão em cidade nenhuma.
+
+**Dentro de um Centro a entrega é incondicional, curado ou não.** A primeira
+versão desta regra condicionou o controlador inteiro a "falta HP", e ele é quem
+sabe **sair** também: AARON curou, ficou em `(4,7)` — o capacho — com o time
+cheio, e aí nada mais o chamava. O executor não tem ramo para "time inteiro
+dentro de um Centro", então o passo caiu no fallback de mapa desconhecido e
+parou de novo, no mesmo lugar, por outro motivo.
+
+Curar e sair são o mesmo controlador. Só o "andar até a porta vindo de fora"
+depende do HP.
+
+## Regras de cura, como ficaram
 
 | Situação | Limite | Ação |
 |---|---|---|
@@ -356,13 +925,23 @@ da quest é confirmado na RAM** (`hybrid_agent`, no mesmo ponto em que o nó é
 marcado como concluído). Um seguidor nunca herda um caminho que não chegou.
 Publicação preserva a mais curta já confirmada.
 
-O arquivo guarda os pontos de virada, separados em pernas por mapa — um
-waypoint só significa alguma coisa dentro do mapa em que foi medido:
+O arquivo guarda a travessia inteira, separada em pernas por mapa — um waypoint
+só significa alguma coisa dentro do mapa em que foi medido:
 
 ```json
-{"quest": "route_2_nav", "recorded_by": "AARON",
- "legs": [{"map": 1, "points": [[29, 20], [16, 20], ...]}, {"map": 13, ...}]}
+{"quest": "route_2_nav", "recorded_by": "AARON", "dense": true,
+ "death_cycle": 0, "steps": 97,
+ "legs": [{"map": 1, "points": [[29, 20], [29, 19], ...]}, {"map": 13, ...}]}
 ```
+
+**Entrar na trilha em qualquer altura é o requisito, não um detalhe.** Existe
+mais de um caminho certo por um mapa; o que importa é que o caminho escrito
+possa ser retomado de onde quer que o bot tenha ido parar — jogado para trás por
+um whiteout, empurrado por um NPC, enfiado num bolsão. É isso que a densidade
+compra: com quatro âncoras, o ponto mais próximo fica a vinte tiles e a
+reentrada é uma caminhada; com um ponto por tile, o mais próximo é o tile do
+lado. A propriedade está fixada em teste (`JoinAnywhereTests`): de qualquer tile
+do mapa, a trilha responde com o resto do caminho, e o resto nunca cresce.
 
 **Reentrada é recalculada a cada passo**, pelo ponto mais próximo entre todas as
 pernas do mapa atual. É também a resposta inteira para morrer: o whiteout joga o
