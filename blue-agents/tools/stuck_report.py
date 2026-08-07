@@ -69,6 +69,12 @@ def mostrar(relatorio: dict) -> None:
         f" mirando {tuple(relatorio.get('target', []))}"
         f" (rota {relatorio.get('route_id')}, índice {relatorio.get('route_index')})"
     )
+    vaivem = relatorio.get("bouncing_between_maps")
+    if vaivem:
+        # Este é um jeito de travar que não parece travar: o bot anda o tempo
+        # todo, só que entre dois mapas. Escapava do gatilho de tiles porque
+        # cada travessia pisa em lugares diferentes dos dois lados.
+        print(f"  ⇄ indo e voltando entre os mapas {vaivem[0]} e {vaivem[1]}")
     bloqueios = relatorio.get("blocked") or {}
     if bloqueios:
         partes = [f"{lado}: {MOTIVOS.get(motivo, motivo)}" for lado, motivo in bloqueios.items()]

@@ -140,6 +140,10 @@ STUCK_WINDOW_TILES = 12
 # Quatro, não três: entrar e sair de uma porta muda o mapa e conta como lugar
 # novo, e era assim que o vaivém na porta do Centro escapava do gatilho.
 STUCK_DISTINCT_TILES = 4
+# Quantas trocas de mapa seguidas entre os mesmos dois mapas já contam como
+# vaivém. Seis é curto o bastante para pegar o ciclo em segundos e longo o
+# bastante para não acusar quem entra numa porta e sai porque terminou ali.
+STUCK_MAP_CROSSINGS = 6
 
 # Mapas onde um Centro fica no caminho e a próxima etapa não tem nenhum.
 # Viridian antes da Floresta, Pewter antes da Rota 3.
@@ -2644,7 +2648,26 @@ class ScriptedAgent(BaseAgent):
         # gatilho. O que conta é quantos lugares diferentes ele viu por último.
         window = (getattr(self, "stuck_report_window", []) + [(map_id, x, y)])[-STUCK_WINDOW_TILES:]
         self.stuck_report_window = window
-        if len(window) < STUCK_WINDOW_TILES or len(set(window)) > STUCK_DISTINCT_TILES:
+
+        # Trocar de mapa também é ficar parado, e esse jeito de travar escapava
+        # do gatilho acima duas vezes: cada travessia pisa tiles diferentes dos
+        # dois lados, então a janela enche de posições distintas; e a chave de
+        # progresso inclui o mapa, então "passos sem encurtar a distância"
+        # zera a cada ida. AARON cruzou Rota 4 e Mt. Moon **400 vezes em 300
+        # segundos** sem produzir uma linha de relatório, e foi a terceira vez
+        # no mesmo dia que um vaivém entre mapas precisou ser descoberto na mão.
+        crossings = getattr(self, "stuck_map_window", [])
+        if not crossings or crossings[-1] != map_id:
+            crossings = (crossings + [map_id])[-STUCK_MAP_CROSSINGS:]
+            self.stuck_map_window = crossings
+        bouncing = (
+            len(crossings) >= STUCK_MAP_CROSSINGS and len(set(crossings)) <= 2
+        )
+
+        if not bouncing and (
+            len(window) < STUCK_WINDOW_TILES
+            or len(set(window)) > STUCK_DISTINCT_TILES
+        ):
             self.stuck_report_steps = 0
             self.stuck_report_written = 0
             return
@@ -2690,6 +2713,9 @@ class ScriptedAgent(BaseAgent):
             "target": [target_x, target_y],
             "route_id": route_id,
             "route_index": getattr(self, "route_index", None),
+            "bouncing_between_maps": (
+                sorted(set(getattr(self, "stuck_map_window", []))) if bouncing else None
+            ),
             "waypoints": [list(point) for point in waypoints[:8]],
             "blocked": dict(blocked),
             "bumped": [
