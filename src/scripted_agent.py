@@ -2968,16 +2968,19 @@ class ScriptedAgent(BaseAgent):
             # has already walked through. Ranked below the entry tile on
             # purpose: the nearest door may well be the one just entered, and
             # aiming at it walks the bot straight back where it came from.
-            # A porta debaixo dos próprios pés não serve de destino: andar até
-            # onde já se está não é andar. BARON foi retomado exatamente em
-            # cima da porta do Centro da Rota 4, a porta foi descartada por
-            # isso, e ele caiu no passeio cego abaixo — dez tiles ao sul e de
-            # volta, para sempre. Descartar o tile atual e usar a próxima porta
-            # mantém o fallback com uma saída de verdade.
-            known = [
-                tile for tile in self._warp_memory().doors_from(map_id)
-                if tuple(tile) != tuple(position)
-            ]
+            known = self._warp_memory().doors_from(map_id)
+            if tuple(position) in known:
+                # Já em cima da porta: aqui não se anda, se atravessa. Num
+                # interior de Gen I a saída é o capacho na parede sul, e sair
+                # dele é apertar para baixo — é o que o controlador de Centro
+                # sempre fez em (3,7).
+                #
+                # Andar até "a porta mais próxima que não é esta" parece a
+                # correção óbvia e não é: o lab do Oak tem porta dupla, (4,11)
+                # e (5,11), então o bot troca de metade, a outra vira a mais
+                # próxima, e ele fica batendo entre as duas para sempre.
+                self.last_action_was_move = True
+                return WindowEvent.PRESS_ARROW_DOWN
             if known:
                 door = min(
                     known,
