@@ -1882,6 +1882,50 @@ class ScriptedAgent(BaseAgent):
             return self._walk_to_door("center-door", POKEMON_CENTER_MAP_IDS)
         return None
 
+    def _nearest_reachable_waypoint(self, waypoints, position):
+        """O waypoint mais perto **que dá para chegar**, não o mais perto.
+
+        Distância em linha reta escolhe pontos do outro lado de uma parede.
+        AARON e CARON pararam os dois em (8,30) na Floresta mirando (7,22): 8
+        casas de distância, marcado como livre, e sem ligação nenhuma com a
+        região onde eles estavam. Dali eles alcançavam 560 tiles, entre eles o
+        waypoint (13,16) — três posições atrás na rota e perfeitamente andável.
+
+        Se nenhum waypoint responder — mapa novo, conhecimento ainda vazio —
+        vale o mais próximo, que é o que este código sempre fez.
+        """
+        x, y = position
+        por_distancia = sorted(
+            range(len(waypoints)),
+            key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
+        )
+        nearest = por_distancia[0]
+
+        def alcancavel(index):
+            alvo = tuple(waypoints[index])
+            if alvo == (x, y):
+                return True
+            # O último waypoint de uma rota fica de propósito uma casa **fora**
+            # do mapa: é assim que a rota o atravessa. Nenhuma busca chega lá,
+            # e isso não é sinal de nada.
+            if min(alvo) < 0:
+                return True
+            try:
+                map_id = int(self.emulator.memory.get_map_id())
+                return bool(self._map_memory().find_path(map_id, (x, y), alvo))
+            except Exception:
+                return True
+
+        # A preferência só entra quando o mais próximo é comprovadamente
+        # inalcançável. Fora disso vale a distância, que é o que este código
+        # sempre fez e acerta na esmagadora maioria dos passos.
+        if alcancavel(nearest):
+            return nearest
+        for index in por_distancia[1:]:
+            if alcancavel(index):
+                return index
+        return nearest
+
     def _select_route_index(self, route_id, waypoints, position):
         """Qual waypoint mirar agora, sem nunca andar para trás.
 
@@ -1920,11 +1964,10 @@ class ScriptedAgent(BaseAgent):
 
         if getattr(self, "route_id", None) != route_id:
             self.route_id = route_id
-            nearest = min(
-                range(len(waypoints)),
-                key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
+            self.route_index = max(
+                self._nearest_reachable_waypoint(waypoints, (x, y)),
+                min(progress.get(route_id, 0), limite),
             )
-            self.route_index = max(nearest, min(progress.get(route_id, 0), limite))
 
         index = getattr(self, "route_index", 0)
         while index < limite and (x, y) == tuple(waypoints[index]):
