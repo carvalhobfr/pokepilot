@@ -1875,6 +1875,51 @@ class ScriptedAgent(BaseAgent):
             return self._walk_to_door("center-door", POKEMON_CENTER_MAP_IDS)
         return None
 
+    def _select_route_index(self, route_id, waypoints, position):
+        """Qual waypoint mirar agora, sem nunca andar para trás.
+
+        Ao trocar de rota o índice ia para o waypoint **mais próximo**, e é aí
+        que nascia o vaivém: BARON e CARON entravam em Mt. Moon, andavam até o
+        meio, saíam para a Rota 4 por qualquer motivo, e ao reentrar o "mais
+        próximo" era um ponto perto da boca da caverna — atrás de tudo que já
+        tinham andado. Dezoito travessias, nenhum progresso.
+
+        Waypoint já passado é waypoint gasto. É a mesma regra que a âncora de
+        aproximação de Mt. Moon e a da porta do Centro de Viridian já seguem,
+        aplicada ao índice da rota inteira. Estar fisicamente à frente do
+        lembrado ainda vale: o que não vale é retroceder.
+
+        O avanço é por `route_id`, e morre no apagão — o cartucho devolveu o
+        treinador a um Centro, então mirar o meio da caverna a partir da porta
+        seria planejar por cima de terreno que esta tentativa não andou.
+        """
+        x, y = position
+        limite = len(waypoints) - 1
+        progress = getattr(self, "route_progress", None)
+        if progress is None:
+            progress = self.route_progress = {}
+
+        if getattr(self, "route_id", None) != route_id:
+            self.route_id = route_id
+            nearest = min(
+                range(len(waypoints)),
+                key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
+            )
+            self.route_index = max(nearest, min(progress.get(route_id, 0), limite))
+
+        index = getattr(self, "route_index", 0)
+        while index < limite and (x, y) == tuple(waypoints[index]):
+            index += 1
+        # A mesma rota pode receber uma lista mais curta que da última vez — o
+        # executor da Rota 2 troca os waypoints depois que o Centro é
+        # registrado. O índice velho estourava a lista, o IndexError era
+        # engolido pelo chamador e virava NOOP: um bot congelado no meio da
+        # cidade sem mensagem nenhuma.
+        index = min(index, limite)
+        if index > progress.get(route_id, -1):
+            progress[route_id] = index
+        return index
+
     def _door_to(self, destinations):
         """Nearest door on this map leading into one of these maps, or None.
 
@@ -2395,23 +2440,7 @@ class ScriptedAgent(BaseAgent):
                 # waypoint is deliberately one tile past the border.
                 self.trail_plan = None
 
-        if getattr(self, "route_id", None) != route_id:
-            self.route_id = route_id
-            self.route_index = min(
-                range(len(waypoints)),
-                key=lambda i: abs(x - waypoints[i][0]) + abs(y - waypoints[i][1]),
-            )
-        while self.route_index < len(waypoints) - 1 and (
-            x, y
-        ) == tuple(waypoints[self.route_index]):
-            self.route_index += 1
-
-        # The same route id can be handed a shorter list than last time — the
-        # Route 2 executor swaps its waypoints once the Center is registered.
-        # The stale index then indexed past the end, IndexError, and the caller
-        # swallowed it and returned NOOP: a bot frozen mid-city with no message
-        # anywhere. Clamping is the whole fix.
-        self.route_index = min(self.route_index, len(waypoints) - 1)
+        self.route_index = self._select_route_index(route_id, waypoints, (x, y))
         target_x, target_y = waypoints[self.route_index]
         blocked = self._tile_truth()
         for (bumped_map, bumped_x, bumped_y, direction) in getattr(self, "route_bumped", {}):
@@ -2573,6 +2602,11 @@ class ScriptedAgent(BaseAgent):
 
     def begin_death_cycle(self, cycle):
         """A whiteout closes the attempt; report what it cost before dropping it."""
+        # O avanço de rota morre com a tentativa. O cartucho levou o treinador
+        # de volta a um Centro, então "já passei por aqui" deixou de valer: a
+        # travessia recomeça, e mirar o waypoint do meio a partir da porta é
+        # planejar por cima de terreno que esta tentativa não andou.
+        self.route_progress = {}
         recorder = getattr(self, "trail_recorder", None)
         if recorder is None:
             return 0
