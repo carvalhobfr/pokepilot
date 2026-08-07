@@ -105,10 +105,6 @@ BAG_FIRST_ITEM_ADDRESS = 0xD31E
 BAG_CAPACITY = 20
 # One operator order: throw a ball at whatever is on screen right now.
 MANUAL_THROW_BALL_TASK = "MANUAL: THROW_BALL"
-# Predicados que o jogo nunca desfaz: bandeira de evento, insígnia, item na
-# mochila. "Estar no mapa X" fica de fora — estar em algum lugar é temporário.
-DURABLE_QUEST_PREDICATES = {"event_flag", "badge", "bag_item"}
-
 # Centres are the only rooms a run may ever be resumed into. The set lives with
 # the route controller that walks to them; a second copy here would be a second
 # thing to keep in step, and this session has already paid for that mistake
@@ -427,7 +423,18 @@ class HybridGymEnv(RedGymEnv):
             if self.resume_state
             else set()
         )
-        
+        # Two clocks used to run apart: a quest was marked done the instant the
+        # RAM confirmed it, while a state was only written after a heal in a
+        # Center. Kill the process in between and the emulator came back before
+        # Mt. Moon while journey.json still swore it had been crossed — the
+        # graph then skipped straight to Bill with the trainer standing in
+        # Pewter. The generation ties them together: a completion is only
+        # trusted on resume if some checkpoint was written *after* it, which is
+        # the only proof that the saved state actually contains it.
+        self.checkpoint_generation = 0
+        self.quest_generations = {}
+        self._checkpoint_loaded_from_disk = False
+
         # Reward State
         self.last_event_count = 0
         self.last_pokedex_count = 0
@@ -630,31 +637,40 @@ class HybridGymEnv(RedGymEnv):
         still claimed five quests. The Forest executor then ran upstairs at
         home, where it has no route and nothing to do, forever.
 
-        Only irreversible story facts are rechecked: an event flag or an item
-        the game never takes back. Map predicates stay sticky, because being
-        somewhere is temporary by nature.
+        The stamp decides who gets asked, not the predicate type. A quest
+        observed while generation N was running is only inside a checkpoint
+        numbered above N; below that it is a claim the loaded state cannot
+        back, and it faces the RAM again whether it reads a badge or a map.
+        Sealed quests stay sticky, the transient ones included — the checkpoint
+        is the proof that the bot really did walk past there.
+
+        Checking only once per process was its own trap: `reset` reloads from
+        disk more than once, and a later rewind to an older Center found the
+        latch already closed.
         """
-        if getattr(self, "checked_remembered_progress", False):
+        if not self._checkpoint_loaded_from_disk:
             return
-        self.checked_remembered_progress = True
+        self._checkpoint_loaded_from_disk = False
+        sealed = int(getattr(self, "checkpoint_generation", 0))
         denied = set()
         for quest_id in list(self.quest_completed_ids):
             node = self.quest_graph.nodes_by_id.get(quest_id)
             if node is None:
                 continue
-            if not all(
-                str(rule.get("type")) in DURABLE_QUEST_PREDICATES
-                for rule in getattr(node, "success", []) or []
-            ):
+            observed_at = self.quest_generations.get(quest_id)
+            if observed_at is not None and int(observed_at) < sealed:
                 continue
             if not self.quest_graph.node_matches(node, state):
                 denied.add(quest_id)
         if not denied:
             return
         self.quest_completed_ids -= denied
+        for quest_id in denied:
+            self.quest_generations.pop(quest_id, None)
         self._persist_journey_memory()
         self._log_event("progress_reset", {
             "dropped": sorted(denied),
+            "checkpoint_generation": sealed,
             "reason": "save carregado não confirma estas quests na RAM",
         })
 
@@ -722,6 +738,12 @@ class HybridGymEnv(RedGymEnv):
                     except Exception as error:
                         print(f"[{self.agent_name}] Trail Error: {error}")
                 self.quest_completed_ids.add(candidate.id)
+                # Observed now, under the generation currently loaded. It stops
+                # being a mere observation once a checkpoint above this number
+                # is written.
+                self.quest_generations[candidate.id] = int(
+                    getattr(self, "checkpoint_generation", 0)
+                )
                 progress_changed = True
                 continue
             # `stop_at` bounds the story: nodes past the target are not this
@@ -1736,6 +1758,17 @@ class HybridGymEnv(RedGymEnv):
                 str(quest_id) for quest_id in memory.get("completed_quests", [])
                 if str(quest_id) in self.quest_graph.nodes_by_id
             )
+            # A journey written before generations existed carries no proof that
+            # any checkpoint contains these quests. Leaving them unstamped is
+            # the conservative reading: they face the RAM again on the next
+            # load, and only what the cartridge still confirms survives.
+            self.quest_generations.update({
+                str(quest_id): int(generation)
+                for quest_id, generation in (
+                    memory.get("quest_generations") or {}
+                ).items()
+                if str(quest_id) in self.quest_graph.nodes_by_id
+            })
             if memory.get("head_start_served"):
                 self.head_start_served = True
                 self.delay_steps = 0
@@ -1777,6 +1810,17 @@ class HybridGymEnv(RedGymEnv):
                         node.id for node in self.quest_graph.nodes
                         if node.id in self.quest_completed_ids
                     ],
+                    # Which checkpoint generation was running when each quest
+                    # was observed. Read back on resume to tell a completion the
+                    # saved state contains from one it does not.
+                    "quest_generations": {
+                        node.id: int(self.quest_generations[node.id])
+                        for node in self.quest_graph.nodes
+                        if node.id in self.quest_generations
+                    },
+                    "checkpoint_generation": int(
+                        getattr(self, "checkpoint_generation", 0)
+                    ),
                     "head_start_served": bool(
                         getattr(self, "head_start_served", False)
                     ),
@@ -3669,6 +3713,13 @@ class HybridGymEnv(RedGymEnv):
                     state_file.flush()
                     os.fsync(state_file.fileno())
                 os.replace(temporary, destination)
+            # The bytes above already contain every quest observed so far, so
+            # stamping the manifest one generation ahead is what seals them:
+            # a completion recorded at generation N is proven by any checkpoint
+            # numbered above N.
+            self.checkpoint_generation = int(
+                getattr(self, "checkpoint_generation", 0)
+            ) + 1
             manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
             manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
             with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
@@ -3677,6 +3728,7 @@ class HybridGymEnv(RedGymEnv):
                         "checkpoint": milestone,
                         "state": "current.state",
                         "sha256": hashlib.sha256(state_bytes).hexdigest(),
+                        "generation": self.checkpoint_generation,
                     },
                     manifest_file,
                 )
@@ -3685,6 +3737,9 @@ class HybridGymEnv(RedGymEnv):
             os.replace(manifest_temporary, manifest_path)
             print(f"[{self.agent_name}] Checkpoint saved: {milestone}")
             self.saved_checkpoint_milestones.add(milestone)
+            # Persist the sealed generation with the journey: the manifest and
+            # journey.json have to come back from a crash agreeing on it.
+            self._persist_journey_memory()
             return True
         except Exception as e:
             print(f"[{self.agent_name}] Checkpoint save failed: {e}")
@@ -3724,6 +3779,10 @@ class HybridGymEnv(RedGymEnv):
                 return False
             with BytesIO(state_bytes) as state_file:
                 self.pyboy.load_state(state_file)
+            # The manifest travels with the bytes, so it — not journey.json —
+            # says which generation this emulator is actually at.
+            self.checkpoint_generation = int(manifest.get("generation", 0) or 0)
+            self._checkpoint_loaded_from_disk = True
             print(f"[{self.agent_name}] ✅ Loaded explicit current checkpoint")
             return True
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
@@ -3753,6 +3812,11 @@ class HybridGymEnv(RedGymEnv):
                 self.pyboy.load_state(state_file)
         except (OSError, ValueError):
             return False
+        # A bare ``center_*.state`` has no manifest, so nothing here proves how
+        # far it got. Generation zero seals nothing: every remembered quest has
+        # to answer to the RAM again.
+        self.checkpoint_generation = 0
+        self._checkpoint_loaded_from_disk = True
         print(f"[{self.agent_name}] ♻️ Retomando do último Centro: {newest.name}")
         return True
     
@@ -4073,6 +4137,9 @@ class HybridGymEnv(RedGymEnv):
                 state_file.flush()
                 os.fsync(state_file.fileno())
             os.replace(temporary, destination)
+            self.checkpoint_generation = int(
+                getattr(self, "checkpoint_generation", 0)
+            ) + 1
             manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
             manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
             with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
@@ -4081,6 +4148,7 @@ class HybridGymEnv(RedGymEnv):
                         "checkpoint": label,
                         "state": "current.state",
                         "sha256": hashlib.sha256(state_bytes).hexdigest(),
+                        "generation": self.checkpoint_generation,
                     },
                     manifest_file,
                 )
@@ -4094,8 +4162,10 @@ class HybridGymEnv(RedGymEnv):
 
     def close(self):
         """Persist the journey and where it stopped, so the next run resumes."""
-        self._persist_journey_memory()
+        # State first: writing it seals a new generation, and journey.json has
+        # to go to disk carrying that number, not the one before it.
         self._write_resume_state("session_end")
+        self._persist_journey_memory()
         print(f"[{self.agent_name}] 💾 Estado final salvo para retomada")
         return super().close()
 
