@@ -123,6 +123,47 @@ class ExtracaoCompletaTests(unittest.TestCase):
         floresta = self.maps[str(FLORESTA)]
         self.assertIn("17,46", floresta["walkable"])
 
+class NavegacaoPeloCartuchoTests(unittest.TestCase):
+    """Os quatro travamentos desta sessão, com o mapa da ROM ligado."""
+
+    @classmethod
+    def setUpClass(cls):
+        from src.map_memory import MapMemory
+        cls.memoria = MapMemory()
+        if not cls.memoria.static:
+            raise unittest.SkipTest("static_maps.json ausente")
+
+    def test_carrega_o_mundo_inteiro(self):
+        self.assertGreater(len(self.memoria.static), 200)
+
+    def test_o_alvo_que_o_aaron_nao_alcancava(self):
+        # `path_to_target: None` por 1.500 passos, com o terreno lido da tela.
+        caminho = self.memoria.find_path(FLORESTA, (8, 30), (7, 22))
+        self.assertIsNotNone(caminho, "a ROM conhece a volta")
+        self.assertGreater(len(caminho), 50, "é volta longa, e é por isso que existe")
+
+    def test_da_porta_do_ginasio_ao_brock_sao_onze_passos(self):
+        # O bot passou horas entrando e saindo deste mapa.
+        caminho = self.memoria.find_path(GINASIO_PEWTER, (4, 13), (4, 2))
+        self.assertEqual(11, len(caminho))
+        self.assertEqual(set("U"), set(caminho), "é reto para cima")
+
+    def test_da_porta_da_floresta_ao_mato_do_corredor(self):
+        caminho = self.memoria.find_path(FLORESTA, (17, 46), (18, 41))
+        self.assertIsNotNone(caminho)
+        self.assertLessEqual(len(caminho), 8)
+
+    def test_parede_do_cartucho_e_parede_de_verdade(self):
+        # (3,3) em Viridian: o quadrante inteiro é o tile 0x11, que o tileset
+        # não lista como passável. O terreno aprendido dizia que dava.
+        self.assertTrue(self.memoria.is_solid(1, (3, 3)))
+
+    def test_a_tela_nao_reescreve_o_que_veio_do_cartucho(self):
+        # Em batalha o mapa de tiles guarda a arena e todo tile lê como parede.
+        antes = set(self.memoria.static[FLORESTA])
+        self.memoria.observe(FLORESTA, (17, 46), {(0, 0): False, (0, -1): False})
+        self.assertEqual(antes, self.memoria.static[FLORESTA])
+        self.assertFalse(self.memoria.is_solid(FLORESTA, (17, 46)))
 
 if __name__ == "__main__":
     unittest.main()

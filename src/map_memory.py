@@ -21,16 +21,55 @@ from pathlib import Path
 
 DIRECTIONS = {"U": (0, -1), "D": (0, 1), "L": (-1, 0), "R": (1, 0)}
 
+# Mapa estático extraído do cartucho por `tools/extract_map_data.py`: 238 mapas
+# e 49.412 células andáveis, contra 21 mapas aprendidos em dias de jogo.
+STATIC_MAPS_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "blue-agents" / "knowledge" / "maps" / "static_maps.json"
+)
+
+
+def _load_static_maps(path):
+    """`{map_id: {células andáveis}}` lido do cartucho, ou vazio se ausente."""
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError):
+        return {}
+    maps = {}
+    for map_key, data in payload.items():
+        cells = set()
+        for tile in data.get("walkable", ()):
+            try:
+                x, y = (int(part) for part in str(tile).split(","))
+            except ValueError:
+                continue
+            cells.add((x, y))
+        if cells:
+            maps[int(map_key)] = cells
+    return maps
+
 
 class MapMemory:
-    """Walkable and solid tiles per map, as observed on screen."""
+    """Onde dá para pisar, segundo o cartucho — e o que sobrou de aprendido.
 
-    def __init__(self, path=None):
+    A leitura de tela continua existindo para os mapas que a extração não
+    cobre, mas onde o cartucho responde é ele quem manda. A diferença não é de
+    grau: aprender esbarrando gravou 4067 paredes que nunca existiram, e uma
+    batalha na tela faz todo tile ler como parede.
+    """
+
+    def __init__(self, path=None, static_path=STATIC_MAPS_PATH):
         self.path = Path(path) if path else None
         self.walkable = {}
         self.solid = {}
         self.dirty = False
+        self.static = _load_static_maps(static_path) if static_path else {}
         self._load()
+
+    def known_from_rom(self, map_id):
+        """Este mapa saiu do cartucho? Se saiu, não há o que adivinhar nele."""
+        return int(map_id) in self.static
 
     def _load(self):
         if self.path is None or not self.path.exists():
@@ -68,6 +107,11 @@ class MapMemory:
     def observe(self, map_id, origin, grid):
         """Store a screenful of terrain, given as offsets from ``origin``."""
         map_id = int(map_id)
+        if self.known_from_rom(map_id):
+            # Onde o cartucho já respondeu, a tela não acrescenta e pode
+            # estragar: em batalha o mapa de tiles guarda a arena, e todo tile
+            # lê como parede. Foi assim que a Floresta virou um bolsão fechado.
+            return
         walkable = self.walkable.setdefault(map_id, set())
         solid = self.solid.setdefault(map_id, set())
         for (dx, dy), is_walkable in grid.items():
@@ -80,7 +124,11 @@ class MapMemory:
             self.dirty = True
 
     def is_solid(self, map_id, tile):
-        return tuple(tile) in self.solid.get(int(map_id), ())
+        map_id = int(map_id)
+        cells = self.static.get(map_id)
+        if cells is not None:
+            return tuple(tile) not in cells
+        return tuple(tile) in self.solid.get(map_id, ())
 
     def nearest_frontier(self, map_id, start, blocked=(), limit=4000):
         """Closest walkable tile that still touches something never seen.
@@ -133,16 +181,22 @@ class MapMemory:
             self.dirty = True
 
     def find_path(self, map_id, start, goal, blocked=(), limit=4000, ignore_solid=False):
-        """Shortest known path, treating unseen tiles as worth trying.
+        """Caminho mais curto: pelo mapa do cartucho, ou pelo que se viu.
 
-        Optimism about the unseen is what lets a bot walk off the edge of what
-        it has already looked at; every step it takes replaces that optimism
-        with a reading.
+        Onde o cartucho respondeu não há incógnita — a busca anda só por célula
+        andável, e um alvo inalcançável é inalcançável de verdade em vez de um
+        buraco no que ainda não foi olhado.
+
+        Nos mapas que a extração não cobre vale a regra antiga: tile nunca visto
+        conta como livre, e cada passo troca esse otimismo por uma leitura. O
+        último waypoint de uma rota fica de propósito fora da grade, então o
+        alvo nunca é exigido como andável.
         """
         map_id = int(map_id)
         start, goal = tuple(start), tuple(goal)
         if start == goal:
             return []
+        cells = None if ignore_solid else self.static.get(map_id)
         solid = set() if ignore_solid else self.solid.get(map_id, set())
         avoid = {tuple(tile) for tile in blocked}
         came = {start: None}
@@ -153,7 +207,12 @@ class MapMemory:
                 break
             for direction, (dx, dy) in DIRECTIONS.items():
                 neighbour = (tile[0] + dx, tile[1] + dy)
-                if neighbour in came or neighbour in solid or neighbour in avoid:
+                if neighbour in came or neighbour in avoid:
+                    continue
+                if cells is not None:
+                    if neighbour != goal and neighbour not in cells:
+                        continue
+                elif neighbour in solid:
                     continue
                 if not (0 <= neighbour[0] <= 255 and 0 <= neighbour[1] <= 255):
                     continue

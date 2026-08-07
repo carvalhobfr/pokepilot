@@ -62,4 +62,8 @@ blue-agents/knowledge/maps/terrain.json
 # (blue-agents/tools/forget_walls.py). São rede de segurança local, não dado
 # do projeto — o terrain.json em si já é ignorado logo acima.
 blue-agents/knowledge/maps/.envenenado/
-blue-agents/knowledge/maps/static_maps.json
+
+# `static_maps.json` **não** entra aqui de propósito: é derivado da ROM, como
+# warps.json e pokemon_centers.json, e como eles é autoridade em tempo de
+# execução. Sem ele a navegação cai de volta na leitura de tela, que é o que
+# se está substituindo. Regenerar: tools/extract_map_data.py --write
