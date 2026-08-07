@@ -157,6 +157,19 @@ class CheckpointGenerationTests(unittest.TestCase):
         env._drop_progress_the_cartridge_denies(FakeState(map_id=3))
         self.assertEqual(env.quest_completed_ids, set())
 
+    def test_retomada_recusada_tambem_reconfere(self):
+        # O caso perigoso, e o único que escapava: o resume falha, o emulador
+        # fica com o estado de partida — o mais rebobinado que existe — e o
+        # journey continua alegando a jornada inteira. CARON acordou no quarto
+        # inicial com zero insígnias jurando ter atravessado Mt. Moon.
+        env = self.make_env(
+            generation=0,
+            completed=("mt_moon_nav", "cerulean_gym_quest"),
+            generations={"mt_moon_nav": 3, "cerulean_gym_quest": 3},
+        )
+        env._drop_progress_the_cartridge_denies(FakeState(map_id=38, badges_mask=0))
+        self.assertEqual(set(), env.quest_completed_ids)
+
     def test_reset_sem_carga_de_disco_nao_mexe_no_progresso(self):
         # Um `reset` que só continua de onde estava não pode desfazer uma
         # travessia recém-feita só porque o bot já saiu do mapa.

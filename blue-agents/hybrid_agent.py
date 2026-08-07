@@ -595,8 +595,26 @@ class HybridGymEnv(RedGymEnv):
 
         # `--resume` may restore only the explicitly recorded current
         # checkpoint. It never scans older Center files or arbitrary states.
-        if self.resume_state and not carry_journey and self._load_current_checkpoint():
-            obs = self.refresh_after_external_state_load()
+        if self.resume_state and not carry_journey:
+            if self._load_current_checkpoint():
+                obs = self.refresh_after_external_state_load()
+            else:
+                # Retomada pedida e negada: o emulador ficou com o estado de
+                # partida, que é o mais rebobinado que existe, e `journey.json`
+                # continua alegando a jornada inteira. Este é o caso perigoso,
+                # e era o único que escapava — a verificação só rodava quando um
+                # checkpoint *tinha* sido carregado.
+                #
+                # Acontece de verdade: matar o processo entre gravar
+                # `current.state` e gravar o manifesto deixa os dois sem bater,
+                # o hash é recusado, e CARON acordou no quarto inicial com zero
+                # insígnias enquanto o journey jurava Mt. Moon.
+                self.checkpoint_generation = 0
+                self._checkpoint_loaded_from_disk = True
+                print(
+                    f"[{self.agent_name}] ⚠️ Retomada recusada: "
+                    "progresso será reconferido na RAM"
+                )
 
         # Establish baselines only after every save-state load. This prevents
         # a resumed team from being announced as a fresh capture.
