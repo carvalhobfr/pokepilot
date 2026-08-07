@@ -412,36 +412,28 @@ class FaintedLeadTests(unittest.TestCase):
             "moves": [{"id": 33, "pp": pp}, {"id": 45, "pp": 30}],
         }
 
-    def test_the_prompt_is_answered_instead_of_run_from(self):
-        # Lead down, nobody with a damaging move: escaping used to win the
-        # ordering and press B at "Use next POKéMON?" forever.
+    def test_o_pedido_de_troca_continua_sendo_respondido(self):
+        # Líder caído: "Use next POKéMON?" é pergunta, não menu.
         env = self.make_env([self.mon(hp=0, pp=0), self.mon(hp=18, pp=0)])
-        self.assertIsNone(env._next_escape_action(), "não se foge de um pedido")
         self.assertEqual("A", env._next_switch_action(), "responde ao aviso")
         self.assertTrue(env.switch_menu_open)
 
-    def test_a_worn_out_team_runs_from_wild_fights_on_the_way(self):
-        # Two Pokémon, half the pool gone: fighting the next Caterpie costs
-        # more than the turn it takes to leave. Four round trips to Viridian
-        # in twelve minutes came from fighting these.
+    def test_time_machucado_nao_foge_mais(self):
+        # Fugir era a alternativa barata à viagem de cura. Cancelada a cura,
+        # fugir com pouco HP não leva a lugar nenhum: AARON fugiu 2.093 vezes
+        # dentro de Mt. Moon sem andar um passo. Agora luta, e perde se for.
         env = self.make_env([self.mon(hp=5, pp=20), self.mon(hp=6, pp=20)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
-        self.assertTrue(env._party_is_worn_out())
-        self.assertIsNotNone(env._next_escape_action())
+        self.assertFalse(hasattr(env, "_next_escape_action"))
 
-    def test_a_healthy_team_still_fights(self):
-        env = self.make_env([self.mon(hp=20, pp=20), self.mon(hp=18, pp=20)],
-                            prompt_open=False)
-        env._switch_target_slot = lambda: None
-        self.assertFalse(env._party_is_worn_out())
-        self.assertIsNone(env._next_escape_action())
-
-    def test_with_everyone_standing_escape_is_still_allowed(self):
+    def test_sem_pp_de_dano_tambem_luta(self):
+        # Struggle machuca e acaba matando — e morrer é a recuperação: o
+        # cartucho devolve o time inteiro, com PP, num Centro.
         env = self.make_env([self.mon(hp=20, pp=0), self.mon(hp=18, pp=0)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
-        self.assertIsNotNone(env._next_escape_action())
+        self.assertFalse(hasattr(env, "_next_escape_action"))
 
 
 if __name__ == "__main__":

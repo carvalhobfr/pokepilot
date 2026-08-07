@@ -82,7 +82,14 @@ class QuestGraph:
         if kind == "pokeballs":
             return state.pokeballs >= int(condition["minimum"])
         # "Estocado" = tem o alvo, ou não tem como comprar mais. Sem o segundo
-        # ramo um treinador sem dinheiro ficaria preso no nó para sempre.
+        # ramo um treinador sem dinheiro ficaria preso no nó para sempre: em
+        # Gen I dinheiro vem de treinador derrotado, e o executor deste nó só
+        # sabe andar até o balcão. Exigir uma bola aqui troca um bot que segue
+        # sem capturar por um bot parado no Mart, que é pior.
+        #
+        # Sair daqui com zero bolas tem custo, e ele é real: todo encontro
+        # selvagem vira uma decisão de captura que termina em "não há bola".
+        # Isso é ruído de diário, e está tratado no log, não no predicado.
         if kind == "pokeballs_stocked":
             return (
                 state.pokeballs >= int(condition["minimum"])

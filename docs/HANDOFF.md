@@ -1,9 +1,83 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-06 (Europe/Madrid)**.
+Última atualização: **2026-08-07 (Europe/Madrid)**.
 
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
+
+## 2026-08-07 — cura cancelada, e o que isso arrastou junto
+
+Ordem do operador: **a viagem de volta ao Centro está cancelada; fica até
+morrer.** A dança da enfermeira travava o personagem, e um apagão durante o
+treino não é problema — o cartucho já devolve o time inteiro, com PP, num
+Centro. O que não pode se perder é o **Centro como ponto de retomada**.
+
+Isso derrubou uma cadeia inteira de regras que só existiam para sustentar a
+cura:
+
+| saiu | por quê |
+|---|---|
+| desvio até a porta do Centro por HP baixo | era a viagem de cura |
+| desvios de Rota 4, Cerulean (bill e ginásio) e volta a Viridian na Floresta | idem |
+| `_next_escape_action` — fugir de selvagem | fugir era a alternativa **barata à viagem**; sem viagem, sobra só ficar preso |
+| `FLEE_HP_FRACTION`, `_party_is_worn_out` | só alimentavam a fuga |
+
+E forçou desacoplar o checkpoint, que dependia de cura confirmada mais time
+cheio. Sem cura o time nunca mais fica cheio, então a exigência não deixaria
+sobrar nenhum ponto de retomada. Agora **estar dentro de um Centro basta**, e a
+gravação rearma ao sair — antes era uma vez por Centro por jornada, o que
+congelava a retomada na primeira visita.
+
+### O travamento que originou tudo isso, medido
+
+AARON, dentro de Mt. Moon (mapa 59), lido do diário e do relatório:
+
+| sinal | valor |
+|---|---|
+| eventos no diário | 14.275, **0 ids duplicados** |
+| fugas por `no_pokeballs` | **2.093** |
+| Zubats (espécie 41) | 1.643 |
+| `steps_without_progress` | **2.176** |
+| HP do Ivysaur | **1 / 59** |
+| `path_to_target` | `RRRRRRRRUURRRRRRRRRRUUUUUUUR` — existia |
+
+A rota do mapa 59 nunca foi o problema: o bot jamais chegou a andá-la. A 1 HP
+ele estava abaixo do limiar de 50%, fugia de todo encontro, e não havia Centro
+alcançável de dentro de uma caverna. O "diário em loop" era sintoma fiel disso,
+não bug de log — zero ids duplicados.
+
+O diário agora **colapsa repetição idêntica em sequência**: a primeira sai na
+hora, as seguintes viram uma linha `<tipo>_repeated` com o total.
+
+## 2026-08-07 — dados de golpe vêm do cartucho
+
+`MOVE_POWER`/`MOVE_TYPES` escritos à mão tinham 30 golpes de 165. Quem faltava
+valia potência 0, e potência 0 é lido como "não serve para atacar" — o golpe era
+descartado e a vez ia para um de status. Um Pikachu com Thundershock escolhia
+Growl, porque a tabela tinha o 85 (Thunderbolt) e não o 84.
+
+`src/move_data.py` lê o banco `0x0E`, 6 bytes por golpe, `{animação, efeito,
+potência, tipo, precisão, PP}`. Conferido contra dez golpes canônicos e contra o
+próprio PyBoy. Desconhecido responde `None`, não 0: 0 é afirmação do cartucho,
+`None` é ausência de leitura.
+
+## 2026-08-07 — conclusão de quest carimbada por geração
+
+`journey.json` e o checkpoint andavam em relógios separados, e a conclusão era
+sticky. Morrer entre "quest confirmada na RAM" e "checkpoint gravado" devolvia
+um emulador antes de Mt. Moon com o journey jurando a caverna atravessada.
+
+Cada checkpoint carimba `generation` no manifesto; cada conclusão guarda a
+geração em que foi observada. Na retomada só continua de pé quem tem checkpoint
+numerado acima. Isso tornou desnecessário o `DURABLE_QUEST_PREDICATES`, que
+deixava `map_in` e `pokeballs_stocked` de fora — **cinco nós de navegação nunca
+eram rechecados** e viravam verdade permanente.
+
+### Limitação declarada
+
+Os testes provam a lógica de selagem em nível de unidade, com estado falso. O
+teste de SIGKILL real no emulador, nos três momentos (antes do feito, depois do
+feito e antes do Centro, depois do Centro), **ainda não foi rodado**.
 
 ## A rota à mão é o caminho principal
 

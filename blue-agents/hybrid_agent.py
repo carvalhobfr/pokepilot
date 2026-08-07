@@ -112,10 +112,6 @@ MANUAL_THROW_BALL_TASK = "MANUAL: THROW_BALL"
 # head start and once for the death cycle.
 CURRENT_STATE_MANIFEST = "current.state.meta.json"
 
-# Abaixo disso, um encontro selvagem no caminho não vale o turno: fugir custa
-# um turno, voltar para o Centro custa a etapa inteira.
-FLEE_HP_FRACTION = 0.5
-
 CAPTURE_RESULT_ADVANCE_STEPS = 18
 # Reaching ITEM from anywhere in the 2x2 takes two presses. The rest of this
 # budget is patience with battle text; past it, the screen is not the menu.
@@ -1036,12 +1032,6 @@ class HybridGymEnv(RedGymEnv):
                 battle_action_str = self._next_switch_action()
                 if battle_action_str is not None:
                     self.battle_action_mode = "switch"
-            if battle_action_str is None:
-                # Nobody left who can hurt anything: leave, and let the quest
-                # walk to a Center for PP instead of grinding Struggle.
-                battle_action_str = self._next_escape_action()
-                if battle_action_str is not None:
-                    self.battle_action_mode = "escape"
             if battle_action_str is None:
                 self.battle_action_mode = "attack"
                 battle_action_str = self.battle_agent.get_action(self.emulator_adapter)
@@ -3067,59 +3057,6 @@ class HybridGymEnv(RedGymEnv):
             return "B"
         return step
 
-    def _party_is_worn_out(self):
-        """Combined party HP under the travelling threshold."""
-        party = self.get_party_info()
-        total = sum(int(mon.get("max_hp") or 0) for mon in party)
-        if total <= 0:
-            return False
-        current = sum(int(mon.get("hp") or 0) for mon in party)
-        return current < total * FLEE_HP_FRACTION
-
-    def _party_has_no_damage(self):
-        """True when nobody standing has a damaging move with PP left."""
-        for mon in self.get_party_info():
-            if int(mon.get("hp") or 0) <= 0:
-                continue
-            if self._has_damaging_pp(mon):
-                return False
-        return True
-
-    def _next_escape_action(self):
-        """Run from a wild fight there is no way to win, and go get PP back.
-
-        With every damaging move at zero PP a battle is Growl and Struggle: it
-        cannot be won, it cannot be lost quickly, and it hands the trainer
-        another encounter the moment it ends. Only a Center restores PP in
-        Gen I, so the useful move is to leave — and RUN is one tile from PKMN
-        in the same 2x2 menu that is now read rather than remembered.
-
-        Trainer battles have no exit; those are still fought, Struggle and all.
-        """
-        if not self.in_battle or self.capture_forced:
-            return None
-        try:
-            if (int(self.read_m(0xD057)) & 0b10) != 0:
-                return None
-        except Exception:
-            return None
-        # Two reasons to leave a wild fight. One is having nothing to hit with.
-        # The other is being on a journey with a hurt team: BARON walked up
-        # Route 2, fought everything in the grass with two Pokémon, dropped
-        # below the emergency line and turned around — four round trips to
-        # Viridian in twelve minutes, never reaching the Forest. Running costs
-        # a turn; the round trip costs the whole stretch.
-        if not self._party_has_no_damage() and not self._party_is_worn_out():
-            return None
-        # A faint is a question, not a menu: "Use next POKéMON?" has to be
-        # answered before anything else can be chosen. Running from it pressed
-        # B at the prompt forever, and the run sat there with a dead lead.
-        if self._battle_prompt_open() or self._switch_target_slot() is not None:
-            return None
-        return self._battle_menu_step(
-            BATTLE_MENU_ITEM_ROW, BATTLE_MENU_RIGHT_COLUMN
-        )
-
     def _battle_menu_step_to_pokemon(self):
         """One step toward PKMN. RUN sits next to it, so nothing is guessed."""
         return self._battle_menu_step(BATTLE_MENU_FIGHT_ROW, BATTLE_MENU_RIGHT_COLUMN)
@@ -3256,6 +3193,51 @@ class HybridGymEnv(RedGymEnv):
     # Legacy _get_llm_action removed
     
     def _log_event(self, event_type, data, live=True):
+        """Registrar um evento, colapsando repetição idêntica em sequência.
+
+        O diário de uma corrida do AARON tinha 14.275 eventos e 11,8 MB, e
+        2.093 deles eram o mesmo ciclo: encontrou Zubat, decidiu não capturar
+        por falta de bola, terminou a batalha. Nenhum id duplicado — o bot
+        estava mesmo repetindo, e o diário relatava com fidelidade. Fidelidade
+        aqui é ruído: quem lê precisa ver "fugiu de Zubat ×1.643", não 1.643
+        linhas iguais para rolar.
+
+        A primeira ocorrência sai na hora, para o painel não ficar mudo. As
+        seguintes são contadas, e quando a sequência quebra sai uma linha só
+        com o total.
+        """
+        import json
+
+        signature = (event_type, json.dumps(data, sort_keys=True, default=str))
+        if signature == getattr(self, "_repeat_signature", None):
+            self._repeat_count = getattr(self, "_repeat_count", 0) + 1
+            return
+        self._flush_repeated_event()
+        self._repeat_signature = signature
+        self._repeat_count = 0
+        self._write_event(event_type, data, live)
+
+    def _flush_repeated_event(self):
+        """Fechar uma sequência repetida com uma linha que diz quantas foram."""
+        count = getattr(self, "_repeat_count", 0)
+        if not count:
+            return
+        event_type, raw = self._repeat_signature
+        self._repeat_count = 0
+        self._repeat_signature = None
+        import json
+
+        try:
+            data = dict(json.loads(raw))
+        except (ValueError, TypeError):
+            data = {}
+        data["repeated"] = count
+        data["reason"] = (
+            f"mesma decisão repetida {count}× seguidas sem nada mudar"
+        )
+        self._write_event(f"{event_type}_repeated", data, live=True)
+
+    def _write_event(self, event_type, data, live=True):
         """Log events to shared feed for visualization"""
         import json
 
@@ -4174,6 +4156,8 @@ class HybridGymEnv(RedGymEnv):
 
     def close(self):
         """Persist the journey and where it stopped, so the next run resumes."""
+        # Uma sequência repetida em aberto perderia a contagem no fim da sessão.
+        self._flush_repeated_event()
         # State first: writing it seals a new generation, and journey.json has
         # to go to disk carrying that number, not the one before it.
         self._write_resume_state("session_end")
