@@ -7,6 +7,8 @@ import os
 from pathlib import Path
 import time
 
+from src.warp_memory import DYNAMIC_DESTINATION
+
 class HiveMind:
     def __init__(self, knowledge_root=None):
         if knowledge_root:
@@ -79,7 +81,11 @@ class HiveMind:
         from_map = str(from_map)
         key = f"{x},{y}"
 
-        if self.known_warps.get(from_map, {}).get(key) is not None:
+        # `-1` é o destino que o cartucho resolve em tempo de execução, e é
+        # exatamente o que andar até aqui acabou de descobrir. Tratá-lo como
+        # "já sei" fazia a descoberta ser jogada fora.
+        conhecido = self.known_warps.get(from_map, {}).get(key)
+        if conhecido is not None and int(conhecido) != DYNAMIC_DESTINATION:
             return
 
         memory = self._warp_memory()

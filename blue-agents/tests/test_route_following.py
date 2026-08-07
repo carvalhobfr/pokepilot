@@ -99,13 +99,28 @@ class RouteFollowingTests(unittest.TestCase):
             WindowEvent.PRESS_ARROW_UP, agent._follow_route("f", [(1, 5), (1, -1)])
         )
 
-    def test_a_door_is_recorded_when_the_map_changes(self):
+    def test_o_destino_dinamico_e_resolvido_ao_atravessar(self):
+        # Onde há porta é fato de ROM. O que andar acrescenta é para onde vai
+        # um warp que o cartucho marca como dinâmico.
         agent = self.make_agent((3, 11), map_id=13)
+        agent.warp_memory.doors["13"] = {"3,11": -1}
         agent._follow_route("f", [(3, 8)])
         agent.memory_probe.map_id = 47
         agent.memory_probe.position = (4, 7)
         agent._follow_route("f", [(4, 1)])
         self.assertEqual((3, 11), agent.warp_memory.door_to(13, 47))
+
+    def test_chao_comum_nunca_vira_porta(self):
+        # A regra antiga gravava o tile onde o bot estava quando o mapa mudava.
+        # Num apagão isso inventa uma porta no meio do chão: Mt. Moon 1F juntou
+        # 62, das quais o cartucho reconhece 5.
+        agent = self.make_agent((3, 11), map_id=13)
+        agent.warp_memory.doors["13"] = {}
+        agent._follow_route("f", [(3, 8)])
+        agent.memory_probe.map_id = 47
+        agent.memory_probe.position = (4, 7)
+        agent._follow_route("f", [(4, 1)])
+        self.assertEqual({}, agent.warp_memory.doors_from(13))
 
     def test_viridian_resume_approaches_the_old_man_before_heading_north(self):
         agent = self.make_agent((17, 3), map_id=1)

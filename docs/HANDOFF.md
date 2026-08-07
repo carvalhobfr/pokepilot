@@ -49,6 +49,51 @@ não bug de log — zero ids duplicados.
 O diário agora **colapsa repetição idêntica em sequência**: a primeira sai na
 hora, as seguintes viram uma linha `<tipo>_repeated` com o total.
 
+## 2026-08-07 — `warps.json` estava envenenado, e eu piorei antes de ver
+
+`WarpMemory.record` gravava "o tile onde o bot estava quando o mapa mudou". A
+regra parece boa e se envenena sozinha: num apagão o mapa muda sem que ninguém
+tenha pisado em porta, e o chão vira porta para sempre.
+
+| | portas |
+|---|---|
+| Mt. Moon 1F, arquivo aprendido | **62** |
+| Mt. Moon 1F, cartucho | **5** |
+| Kanto inteiro, arquivo aprendido | 205 em 30 mapas |
+| Kanto inteiro, cartucho | **963 em 224 mapas** |
+
+Tiles de chão como `(7,24)`, `(6,21)` e `(10,23)` estavam registrados como
+portas para a Rota 4 — e são exatamente onde BARON e CARON ficavam parados.
+
+O agravante foi meu: a correção de "em cima da porta, atravessar" passou a
+apertar para baixo em cima desses tiles inventados. Dado envenenado virou
+movimento, e daí saiu o vaivém 15↔59.
+
+`blue-agents/tools/extract_warps.py` lê os warps do bloco de objetos de cada
+cabeçalho de mapa — quantidade e depois `{y, x, índice, mapa de destino}`, com
+`0xFF` gravado como `-1` para o destino que o cartucho resolve em tempo de
+execução. Conferido contra cinco portas conhecidas.
+
+A regra nova: **onde há porta é fato de ROM; a observação só resolve para onde
+vai um warp dinâmico.** `record` recusa tile que o cartucho não lista.
+
+```bash
+cd blue-agents && ../.venv/bin/python tools/extract_warps.py --write
+```
+
+## 2026-08-07 — retomada que sobrevive a um kill
+
+A ordem antiga era renomear `current.state` e depois o manifesto. Morrer entre
+os dois deixava estado novo com manifesto velho, o sha256 não batia, a retomada
+era recusada e o emulador caía no estado de partida. CARON perdeu a jornada
+assim duas vezes num dia, as duas quando derrubei a corrida para aplicar
+conserto.
+
+Agora o estado vai para `resume-<sha16>.state` e o **manifesto é o único ponto
+de commit**: enquanto ele não troca, o par antigo continua inteiro e válido.
+`current.state` continua sendo escrito para ferramentas e sondas, mas deixou de
+ser autoridade. Estados antigos são podados, os três mais recentes ficam.
+
 ## 2026-08-07 — o renascimento é o checkpoint que faltava
 
 Sem parar num Centro, todo apagão devolve a corrida a **Pallet**, e o jogo vira

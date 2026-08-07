@@ -3722,6 +3722,74 @@ class HybridGymEnv(RedGymEnv):
             "steps_in_cycle": steps,
         }
 
+    def _commit_resume_state(self, label, state_bytes):
+        """Gravar o par estado+manifesto de forma que matar no meio não custe o save.
+
+        A ordem antiga era: renomeia `current.state`, depois renomeia o
+        manifesto. Matar o processo **entre os dois** deixa o estado novo com o
+        manifesto velho, o sha256 não bate, a retomada é recusada, e o
+        emulador cai no estado de partida. CARON perdeu a jornada assim duas
+        vezes num dia — as duas quando eu derrubei a corrida para aplicar
+        conserto.
+
+        Agora o estado vai para um arquivo com o nome derivado do próprio
+        conteúdo, e o manifesto é o **único** ponto de commit: enquanto ele não
+        troca, o par antigo continua inteiro e válido. Um arquivo órfão custa
+        160 KB; um save perdido custa a corrida.
+        """
+        digest = hashlib.sha256(state_bytes).hexdigest()
+        state_name = f"resume-{digest[:16]}.state"
+        state_path = self.trainer_dir / state_name
+
+        if not state_path.exists():
+            temporary = state_path.with_suffix(state_path.suffix + ".tmp")
+            with open(temporary, "wb") as state_file:
+                state_file.write(state_bytes)
+                state_file.flush()
+                os.fsync(state_file.fileno())
+            os.replace(temporary, state_path)
+
+        manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
+        manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
+        with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
+            json.dump({
+                "checkpoint": label,
+                "state": state_name,
+                "sha256": digest,
+                "generation": self.checkpoint_generation,
+            }, manifest_file)
+            manifest_file.flush()
+            os.fsync(manifest_file.fileno())
+        os.replace(manifest_temporary, manifest_path)
+
+        # `current.state` continua existindo para quem lê de fora — ferramentas,
+        # sondas, o operador. Ele não é mais a autoridade, então escrevê-lo
+        # depois do commit não arrisca nada.
+        try:
+            (self.trainer_dir / "current.state").write_bytes(state_bytes)
+        except OSError:
+            pass
+        self._prune_resume_states(keep=state_name)
+        return True
+
+    def _prune_resume_states(self, keep, survivors=3):
+        """Apagar estados antigos, menos o vigente e os poucos mais recentes."""
+        try:
+            arquivos = sorted(
+                self.trainer_dir.glob("resume-*.state"),
+                key=lambda path: path.stat().st_mtime,
+                reverse=True,
+            )
+        except OSError:
+            return
+        for path in arquivos[survivors:]:
+            if path.name == keep:
+                continue
+            try:
+                path.unlink()
+            except OSError:
+                pass
+
     def _invalidate_current_checkpoint(self):
         """Prevent a pre-death checkpoint from being loaded on restart."""
         trainer_dir = getattr(self, "trainer_dir", None)
@@ -3759,13 +3827,12 @@ class HybridGymEnv(RedGymEnv):
             state = BytesIO()
             self.pyboy.save_state(state)
             state_bytes = state.getvalue()
-            for destination in (checkpoint_file, self.trainer_dir / "current.state"):
-                temporary = destination.with_suffix(destination.suffix + ".tmp")
-                with open(temporary, "wb") as state_file:
-                    state_file.write(state_bytes)
-                    state_file.flush()
-                    os.fsync(state_file.fileno())
-                os.replace(temporary, destination)
+            temporary = checkpoint_file.with_suffix(checkpoint_file.suffix + ".tmp")
+            with open(temporary, "wb") as state_file:
+                state_file.write(state_bytes)
+                state_file.flush()
+                os.fsync(state_file.fileno())
+            os.replace(temporary, checkpoint_file)
             # The bytes above already contain every quest observed so far, so
             # stamping the manifest one generation ahead is what seals them:
             # a completion recorded at generation N is proven by any checkpoint
@@ -3773,21 +3840,7 @@ class HybridGymEnv(RedGymEnv):
             self.checkpoint_generation = int(
                 getattr(self, "checkpoint_generation", 0)
             ) + 1
-            manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
-            manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
-            with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
-                json.dump(
-                    {
-                        "checkpoint": milestone,
-                        "state": "current.state",
-                        "sha256": hashlib.sha256(state_bytes).hexdigest(),
-                        "generation": self.checkpoint_generation,
-                    },
-                    manifest_file,
-                )
-                manifest_file.flush()
-                os.fsync(manifest_file.fileno())
-            os.replace(manifest_temporary, manifest_path)
+            self._commit_resume_state(milestone, state_bytes)
             print(f"[{self.agent_name}] Checkpoint saved: {milestone}")
             self.saved_checkpoint_milestones.add(milestone)
             # Persist the sealed generation with the journey: the manifest and
@@ -3818,15 +3871,20 @@ class HybridGymEnv(RedGymEnv):
         milestone. A stale ``current.state`` is ignored before PyBoy sees it,
         so a death can never be replaced by a historical position.
         """
-        current_state = self.trainer_dir / "current.state"
         manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
-        if not current_state.exists() or not manifest_path.exists():
+        if not manifest_path.exists():
             return self._load_last_center_checkpoint()
         try:
             with open(manifest_path, "r", encoding="utf-8") as manifest_file:
                 manifest = json.load(manifest_file)
-            if manifest.get("state") != "current.state":
+            # O manifesto nomeia o arquivo, e o nome vem do conteúdo. Jornadas
+            # antigas apontam para `current.state`, que continua servindo.
+            state_name = str(manifest.get("state") or "")
+            if not state_name or "/" in state_name or state_name.startswith("."):
                 return False
+            current_state = self.trainer_dir / state_name
+            if not current_state.exists():
+                return self._load_last_center_checkpoint()
             state_bytes = current_state.read_bytes()
             if hashlib.sha256(state_bytes).hexdigest() != manifest.get("sha256"):
                 return False
@@ -4190,32 +4248,10 @@ class HybridGymEnv(RedGymEnv):
             with BytesIO() as state:
                 self.pyboy.save_state(state)
                 state_bytes = state.getvalue()
-            destination = self.trainer_dir / "current.state"
-            temporary = destination.with_suffix(destination.suffix + ".tmp")
-            with open(temporary, "wb") as state_file:
-                state_file.write(state_bytes)
-                state_file.flush()
-                os.fsync(state_file.fileno())
-            os.replace(temporary, destination)
             self.checkpoint_generation = int(
                 getattr(self, "checkpoint_generation", 0)
             ) + 1
-            manifest_path = self.trainer_dir / CURRENT_STATE_MANIFEST
-            manifest_temporary = manifest_path.with_suffix(manifest_path.suffix + ".tmp")
-            with open(manifest_temporary, "w", encoding="utf-8") as manifest_file:
-                json.dump(
-                    {
-                        "checkpoint": label,
-                        "state": "current.state",
-                        "sha256": hashlib.sha256(state_bytes).hexdigest(),
-                        "generation": self.checkpoint_generation,
-                    },
-                    manifest_file,
-                )
-                manifest_file.flush()
-                os.fsync(manifest_file.fileno())
-            os.replace(manifest_temporary, manifest_path)
-            return True
+            return self._commit_resume_state(label, state_bytes)
         except Exception as error:
             print(f"[{self.agent_name}] Resume state save failed: {error}")
             return False

@@ -19,6 +19,11 @@ import os
 from pathlib import Path
 
 
+# O cartucho marca assim os warps cujo destino ele resolve em tempo de execução
+# — "volta para o mapa de fora de onde vim". `tools/extract_warps.py` grava -1.
+DYNAMIC_DESTINATION = -1
+
+
 class WarpMemory:
     """Tile → destination map, per map, persisted as JSON."""
 
@@ -63,12 +68,30 @@ class WarpMemory:
         os.replace(temporary, self.path)
 
     def record(self, map_id, x, y, destination_map):
-        """Remember that leaving this tile lands on that map."""
+        """Resolver para onde uma porta leva — nunca inventar uma porta nova.
+
+        A regra antiga era "o tile onde o bot estava quando o mapa mudou é uma
+        porta". Parece boa e se envenena sozinha: num apagão o mapa muda sem
+        que ninguém tenha pisado em porta nenhuma, e o chão onde o bot estava
+        vira porta para sempre. Mt. Moon 1F juntou **62 portas**, das quais o
+        cartucho reconhece 5. Com elas, o controlador de saída passou a
+        atravessar paredes imaginárias no meio da caverna.
+
+        Onde há porta é fato de ROM, e `tools/extract_warps.py` já leu os 963
+        warps do jogo inteiro. O que a observação ainda acrescenta é o destino
+        dos warps que o cartucho marca como dinâmico (`-1`, "volta para o mapa
+        de fora de onde vim"): esses só se sabem andando.
+        """
         map_key, tile = str(int(map_id)), f"{int(x)},{int(y)}"
         destination = int(destination_map)
-        if self.doors.get(map_key, {}).get(tile) == destination:
+        known = self.doors.get(map_key, {})
+        if tile not in known:
+            # Não é porta segundo o cartucho. Foi apagão, ledge ou um passo
+            # que mudou o mapa por outro motivo.
             return False
-        self.doors.setdefault(map_key, {})[tile] = destination
+        if known[tile] != DYNAMIC_DESTINATION:
+            return False
+        self.doors[map_key][tile] = destination
         self.save()
         return True
 
