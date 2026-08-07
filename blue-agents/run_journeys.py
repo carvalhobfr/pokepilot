@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import atexit
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -14,6 +15,7 @@ import sys
 
 from journey_roster import load_or_create_roster, rotate_completed_slots
 from rom_identity import require_blue
+from run_lock import RunLock, RunLockBusy
 
 
 DEFAULT_SLOT_COUNT = 2
@@ -74,6 +76,17 @@ def main() -> int:
     requested_rom = Path(args.rom).expanduser()
     rom_path = requested_rom if requested_rom.is_absolute() else project_root / "roms" / requested_rom
     rom_identity = require_blue(rom_path).as_dict()
+
+    # Duas corridas escrevem nos mesmos trainers/ e knowledge/, e uma
+    # sobrescreve a outra. A trava impede antes de qualquer emulador subir.
+    lock = RunLock(agent_root / "tasks" / "journey.lock", label=f"{slot_count} slots")
+    try:
+        lock.acquire()
+    except RunLockBusy as busy:
+        print(f"\n❌ {busy}\n", flush=True)
+        return 1
+    atexit.register(lock.release)
+
     load_or_create_roster(roster_path, slot_count)
 
     stop_requested = False

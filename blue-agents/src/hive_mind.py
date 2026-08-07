@@ -35,13 +35,41 @@ class HiveMind:
         return {}
 
     def _save_json(self, path, data):
+        """Gravar substituindo, nunca truncando o arquivo bom antes da hora.
+
+        `open(path, 'w')` esvazia o arquivo no instante em que abre. Um
+        `SIGKILL` no meio — e nesta máquina de 8 GB a falta de memória mata
+        processo sem rastro — deixava `warps.json` vazio ou pela metade, e o
+        conhecimento compartilhado de todas as corridas ia junto. Escrever num
+        temporário e trocar por `os.replace` é atômico: ou o arquivo antigo
+        inteiro, ou o novo inteiro.
+        """
         try:
-            with open(path, 'w') as f:
+            path = Path(path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = path.with_suffix(path.suffix + ".tmp")
+            with open(temporary, 'w') as f:
                 json.dump(data, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temporary, path)
         except Exception as e:
             print(f"HiveMind Save Error: {e}")
 
     # --- WARP SYSTEM (Strategy #1) ---
+    def _warp_memory(self):
+        """O único escritor de `warps.json`.
+
+        Havia dois, com garantias diferentes: `WarpMemory` relê o arquivo,
+        funde e troca atomicamente; este aqui guardava a cópia carregada na
+        partida e regravava tudo por cima. Com dois agentes no mesmo processo,
+        cada um com a sua cópia velha, o segundo a gravar apagava as portas que
+        o primeiro tinha descoberto. Delegar mata o segundo escritor.
+        """
+        from src.warp_memory import WarpMemory
+
+        return WarpMemory(self.maps_dir / "warps.json")
+
     def _load_warps(self):
         warp_file = self.maps_dir / "warps.json"
         self.known_warps = self._load_json(warp_file)
@@ -50,14 +78,16 @@ class HiveMind:
         """Register a discovered portal/warp"""
         from_map = str(from_map)
         key = f"{x},{y}"
-        
-        if from_map not in self.known_warps:
-            self.known_warps[from_map] = {}
-            
-        if key not in self.known_warps[from_map]:
-            self.known_warps[from_map][key] = to_map
-            print(f"🌀 HIVE MIND: New Warp Discovered! Map {from_map} ({x},{y}) -> Map {to_map}")
-            self._save_json(self.maps_dir / "warps.json", self.known_warps)
+
+        if self.known_warps.get(from_map, {}).get(key) is not None:
+            return
+
+        memory = self._warp_memory()
+        memory.record(from_map, x, y, to_map)
+        # Reler o que ficou no disco depois da fusão: o que outro agente achou
+        # entra aqui também, em vez de ficar só no arquivo.
+        self.known_warps = self._load_json(self.maps_dir / "warps.json")
+        print(f"🌀 HIVE MIND: New Warp Discovered! Map {from_map} ({x},{y}) -> Map {to_map}")
 
     def get_warp_to(self, current_map, target_zone_maps):
         """Find a warp in current map that leads to a target zone"""

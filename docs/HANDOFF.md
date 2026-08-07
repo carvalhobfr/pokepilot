@@ -49,6 +49,47 @@ não bug de log — zero ids duplicados.
 O diário agora **colapsa repetição idêntica em sequência**: a primeira sai na
 hora, as seguintes viram uma linha `<tipo>_repeated` com o total.
 
+## 2026-08-07 — dois escritores em `warps.json`, e um truncava
+
+`knowledge/maps/warps.json` tinha dois escritores com garantias diferentes:
+
+| escritor | como gravava |
+|---|---|
+| `WarpMemory.save` | relê, funde, `os.replace` — atômico |
+| `HiveMind._save_json` | `open(path,'w')` direto — **trunca ao abrir** |
+
+`open(path, 'w')` esvazia o arquivo no instante em que abre. Um `SIGKILL` por
+falta de memória no meio — que esta máquina de 8 GB dá sem rastro — deixava o
+conhecimento compartilhado de todas as corridas vazio. E o `HiveMind` guardava
+a cópia carregada na partida, então com dois agentes no mesmo processo o
+segundo a gravar apagava as portas do primeiro.
+
+`HiveMind` passou a delegar para `WarpMemory`: um escritor só, que funde. O
+`_save_json` virou atômico de qualquer forma.
+
+### Trava de corrida
+
+`blue-agents/tasks/journey.lock` guarda o PID do dono. Uma segunda corrida é
+recusada com o PID e o comando para matar a primeira. Trava de processo morto é
+assumida automaticamente — uma trava que sobrevive ao dono trocaria um problema
+por outro nesta máquina.
+
+## 2026-08-07 — o diário colapsa ciclo, não só repetição
+
+O primeiro filtro só via repetição **consecutiva** e não pegava o formato que um
+bot preso realmente produz: um punhado de eventos *diferentes* em ordem
+repetida. Em Mt. Moon eram seis — `battle_started → capture_decision →
+battle_decision → battle_end → capture_outcome → battle_escaped` — 2.093 voltas,
+12.558 linhas, nenhuma assinatura consecutiva igual.
+
+`blue-agents/event_stream.py` detecta período de 2 a 8. As duas primeiras voltas
+saem por extenso, para quem lê ver o padrão; o resto vira uma linha
+`ciclo_repetido` com o total. Nenhum evento some da contagem, e progresso real
+no meio de um ciclo nunca é suprimido.
+
+O vaivém entre dois mapas é ciclo de período 2 e passa a colapsar também — é a
+mesma assinatura que o relatório de travamento procura.
+
 ## 2026-08-07 — dados de golpe vêm do cartucho
 
 `MOVE_POWER`/`MOVE_TYPES` escritos à mão tinham 30 golpes de 165. Quem faltava

@@ -35,6 +35,7 @@ from src.navigation_system import NavigationSystem  # Zone saturation logic
 from src.hive_mind import HiveMind  # Shared Intelligence
 from gymnasium import spaces
 from collections import Counter
+from event_stream import EventCollapser
 from game_actions import GameAction, NOOP_ACTION, event_to_action, name_to_action
 from quest_graph import LiveQuestState, QuestGraph
 from src.move_data import MoveTable
@@ -3209,33 +3210,56 @@ class HybridGymEnv(RedGymEnv):
         import json
 
         signature = (event_type, json.dumps(data, sort_keys=True, default=str))
-        if signature == getattr(self, "_repeat_signature", None):
-            self._repeat_count = getattr(self, "_repeat_count", 0) + 1
-            return
-        self._flush_repeated_event()
-        self._repeat_signature = signature
-        self._repeat_count = 0
-        self._write_event(event_type, data, live)
+        collapser = self._event_collapser()
+        action, summary = collapser.observe(signature)
+        if summary is not None:
+            self._write_summary_event(summary)
+        if action == "emit":
+            self._write_event(event_type, data, live)
+
+    def _event_collapser(self):
+        collapser = getattr(self, "_collapser", None)
+        if collapser is None:
+            collapser = EventCollapser()
+            self._collapser = collapser
+        return collapser
 
     def _flush_repeated_event(self):
-        """Fechar uma sequência repetida com uma linha que diz quantas foram."""
-        count = getattr(self, "_repeat_count", 0)
-        if not count:
-            return
-        event_type, raw = self._repeat_signature
-        self._repeat_count = 0
-        self._repeat_signature = None
+        """Fechar o que estiver em aberto — fim de sessão, por exemplo."""
+        summary = self._event_collapser().flush()
+        if summary is not None:
+            self._write_summary_event(summary)
+
+    def _write_summary_event(self, summary):
+        """A linha que substitui uma sequência: diz o padrão e quantas foram."""
         import json
 
+        event_type, raw = summary["signature"] if summary["kind"] == "repeat" else (
+            "diario", "{}"
+        )
         try:
             data = dict(json.loads(raw))
         except (ValueError, TypeError):
             data = {}
-        data["repeated"] = count
-        data["reason"] = (
-            f"mesma decisão repetida {count}× seguidas sem nada mudar"
-        )
-        self._write_event(f"{event_type}_repeated", data, live=True)
+        count = int(summary["count"])
+        if summary["kind"] == "repeat":
+            data["repeated"] = count
+            data["reason"] = (
+                f"mesma decisão repetida {count}× seguidas sem nada mudar"
+            )
+            self._write_event(f"{event_type}_repeated", data, live=True)
+            return
+        # Ciclo: eventos diferentes que se repetem em ordem. É o formato que um
+        # bot preso produz, e o que enchia 12.558 linhas em Mt. Moon.
+        self._write_event("ciclo_repetido", {
+            "period": int(summary["period"]),
+            "events_suppressed": count,
+            "turns": int(summary["turns"]),
+            "reason": (
+                f"a mesma sequência de {summary['period']} eventos se repetiu "
+                f"{summary['turns']}× sem nada mudar"
+            ),
+        }, live=True)
 
     def _write_event(self, event_type, data, live=True):
         """Log events to shared feed for visualization"""

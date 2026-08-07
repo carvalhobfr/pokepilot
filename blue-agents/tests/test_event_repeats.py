@@ -60,14 +60,21 @@ class EventRepeatTests(unittest.TestCase):
         env._log_event("battle_started", {**self.ZUBAT, "enemy_species_id": 74})
         self.assertEqual(2, len(env.written))
 
-    def test_alternar_entre_dois_nao_colapsa_nada(self):
-        # Só sequência idêntica colapsa. Vaivém continua visível, porque é
-        # exatamente o sintoma que o relatório de travamento procura.
+    def test_o_vaivem_entre_dois_mapas_colapsa_como_ciclo(self):
+        # Ida e volta é ciclo de período 2, e é exatamente a assinatura de
+        # travamento que o relatório procura. As primeiras voltas saem por
+        # extenso; o resto vira uma linha com o total.
         env = self.make_env()
-        for _ in range(4):
+        for _ in range(60):
             env._log_event("map_changed", {"map": 59})
             env._log_event("map_changed", {"map": 15})
-        self.assertEqual(8, len(env.written))
+        env._flush_repeated_event()
+
+        tipos = [kind for kind, _ in env.written]
+        self.assertIn("ciclo_repetido", tipos)
+        self.assertLess(len(env.written), 20, "120 eventos não viram 120 linhas")
+        resumo = next(d for k, d in env.written if k == "ciclo_repetido")
+        self.assertEqual(2, resumo["period"])
 
     def test_o_fim_da_sessao_nao_perde_a_contagem(self):
         env = self.make_env()
