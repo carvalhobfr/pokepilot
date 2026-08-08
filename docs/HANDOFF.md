@@ -1,6 +1,126 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-07 (Europe/Madrid)**.
+Última atualização: **2026-08-08 (Europe/Madrid)**.
+
+## Continuar daqui (2026-08-08)
+
+O bot chega ao Ginásio de Pewter em ~2 minutos de relógio partindo de save novo.
+A navegação está resolvida. O que falta ver é a **primeira insígnia**.
+
+### Onde estava a corrida quando esta sessão acabou
+
+Corrida de save limpo, 1 slot (AARON, arquétipo `speedrunner`, Bulbasaur), com o
+conserto do adaptador já dentro. Ainda não tinha reencontrado o Brock — precisa
+refazer o caminho e treinar até o Vine Whip.
+
+```bash
+tail -f runtime/journey.log                      # a corrida
+tail -f runtime/marcos.log                       # marcos com tempo de parede
+cd blue-agents && ../.venv/bin/python tools/watch_milestones.py AARON --until 3
+```
+
+### O que observar
+
+1. **O Vine Whip é usado contra o Geodude?** Era o bug do dia. Se voltar a sair
+   Growl, o sintoma é `battle_decision` com `candidates` vazio — procure isso no
+   diário antes de qualquer outra hipótese.
+2. **O treino para quando o golpe chega?** O portão é o golpe, não o nível.
+3. **O apagão devolve para Pewter, não para Pallet?** `0xD719` tem de valer 2
+   depois da primeira visita ao Centro de Pewter.
+
+### O que ainda trava, em ordem
+
+| # | o quê | onde |
+|---|---|---|
+| 1 | **Sprite parado bloqueia corredor.** No lab do Oak o corredor tem duas casas e as duas ficam ocupadas por gente; o controlador espera em vez de andar contra o NPC para abrir diálogo. Mesmo caso do CARON parado 450 passos em Mt. Moon. | `_tile_truth`, `SPRITE_PATIENCE_STEPS` |
+| 2 | **Saguão do Indigo (174)** precisa de tratamento próprio: tileset e planta diferentes, o controlador genérico de Centro não serve. | `_run_pokemon_center` |
+| 3 | **Ownership por corrida em `trainers/`** — item 2 da auditoria, nunca feito. | `run_journeys.py` |
+| 4 | **7 executores até o Champion**, mais o Mewtwo fora do caminho crítico. | `docs/QUEST_GRAPH.md` |
+
+## 2026-08-08 — o adaptador de batalha não sabia ler a ROM
+
+O bot chegou ao Brock **com Vine Whip aprendido** e passou a batalha inteira
+usando Growl. Não era escolha errada: o seletor de golpe nunca rodou.
+
+`EmulatorAdapter` — o objeto que o controlador de batalha recebe — tinha
+`read_byte` e não tinha `read_rom`. `MoveTable.from_memory` devolvia tabela
+vazia, e a cadeia inteira desanda a partir daí:
+
+```
+tabela vazia → toda potência desconhecida
+             → nenhum golpe passa pelo filtro de dano
+             → lista de candidatos vazia
+             → cai no desempate de status
+             → Growl vale 9; Tackle e Vine Whip caem no padrão 50
+             → Growl ganha por ser o menor
+```
+
+| medido no Brock | |
+|---|---|
+| decisões de batalha | 203 |
+| decisões **com dados de golpe** | **0** |
+| Growl escolhido | 110× |
+| Vine Whip escolhido | 5× |
+| PP de Vine Whip gastos | **0 de 10** |
+| HP do Geodude | 33/33, intacto |
+
+Tabela vazia passa a **avisar**. Era o pior modo de falha possível: silencioso e
+plausível — o bot parecia estar decidindo, e não estava.
+
+**Lição que vale além deste bug:** um adaptador que implementa parte de uma
+interface degrada calado. `EmulatorAdapter` responde `read_byte` e o resto do
+sistema assume que ele é uma `Memory`. Ao acrescentar leitura de ROM em
+`blue_gym_env`, o adaptador ficou para trás e ninguém notou por um dia inteiro.
+
+## 2026-08-08 — treinar até ter o golpe, não até um nível
+
+Bulbasaur nível 10 perdeu **269 vezes** para o Brock, sempre chegando curado do
+Centro — o apagão restaura o time e o log confirma "cura automática". O HP nunca
+foi o problema: Tackle é Normal, Rocha resiste, e não existia vitória possível.
+
+O portão é o golpe. Grama, Água ou Luta **com potência** encerra o treino; o
+nível 14 é só teto de paciência, para um time que nunca aprende o golpe certo
+não ficar preso na grama. Um número de nível é fácil de errar de cabeça — tentei
+ler o learnset da ROM nesta sessão e **errei o endereço da tabela**, saiu lixo. O
+slot de golpe na RAM não tem esse risco.
+
+### Onde treinar, enfim medido
+
+Era o que tinha errado cinco vezes. A grama e a posição de cada treinador saem de
+`static_maps.json`. Na Floresta: **365 células de mato**, todas alcançáveis da
+porta sul, e o par escolhido fica a 6-7 passos da porta com os três bug catchers
+a mais de vinte casas.
+
+O par é fixado uma vez e não se refaz. "Pisar na grama mais próxima" é rumo fixo
+disfarçado — foi assim que uma versão anterior subiu quatorze casas pela coluna
+de mato até esbarrar no treinador.
+
+## 2026-08-08 — a ROM está versionada (temporário)
+
+Decisão do operador: repositório privado (confirmado por `gh`: `isPrivate: true`),
+só ele e um colega mexem. A regra 1 do `AGENTS.md` fica suspensa e anotada.
+
+**Ao reverter:** tirar `roms/*.gb` do **histórico**, não só do índice. Remover
+num commit seguinte deixa o arquivo acessível em todo clone.
+
+A ROM rápida e suas ferramentas (`measure_rom.py`, `patch_rom.py`,
+`verify_save_compat.py`, `benchmarks/`) vivem em **`feat/rom-fast-blue`**, não no
+master.
+
+## 2026-08-08 — grafo de conhecimento do repositório
+
+`/graphify .` gera `graphify-out/` (ignorado pelo git): **2.299 nós, 4.364
+arestas, 140 comunidades**, sendo 2.011 do AST determinístico.
+
+God nodes: `HybridGymEnv` (175 arestas), `ScriptedAgent` (133), `SimpleBattleAgent`
+(51). Aparecem **dois `RedGymEnv` distintos** com 48 e 43 arestas — duplicação
+real, a mesma classe de problema que fez escrever um `_planned_step` que já
+existia.
+
+Serve para perguntar antes de mexer, em vez de ler um bloco e concluir sobre o
+arquivo. Aviso registrado: **463 arestas com ponta solta** — os subagentes
+geraram ids que o AST não criou.
+
 
 Este documento registra o estado executável do projeto. Progresso só é
 considerado real quando confirmado na RAM de Pokémon Blue e persistido no save.
