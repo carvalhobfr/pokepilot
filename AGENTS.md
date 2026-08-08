@@ -25,6 +25,36 @@ planejado, executor implementado e trecho validado no cartucho.
 7. Atualize `docs/HANDOFF.md` **junto do commit**, sempre. Se a cobertura de uma
    quest mudou, atualize também `docs/QUEST_GRAPH.md`.
 8. Sem `Co-Authored-By` nas mensagens de commit.
+9. **Confira a branch antes de commitar.** `git branch --show-current`. Uma
+   sessão inteira de trabalho foi para `feat/rom-fast-blue` em vez do `master`
+   por ninguém ter olhado (2026-08-08).
+10. **Nunca `git add -A`.** Adicione caminhos explícitos. Um `add -A` levou
+    junto trabalho de outra pessoa que estava sem versionar, com uma ROM de
+    1 MB dentro. O guarda de pré-commit barra o caso óbvio, mas ele é rede,
+    não regra:
+
+    ```bash
+    cd blue-agents && ../.venv/bin/python tools/pre_commit_guard.py --install
+    ```
+11. **Antes de ensinar o bot a aprender algo, veja se o cartucho já responde.**
+    É a regra que mais rendeu neste projeto. Aprender geometria esbarrando deu
+    21 mapas e 4067 paredes inventadas em dias; ler a ROM deu 238 mapas e
+    49.412 células em segundos. O mesmo valeu para golpes, Centros e portas.
+    Quando o bot erra sobre o **mundo**, a pergunta é onde o cartucho já diz
+    isso — não como fazer o palpite errar menos. Extratores em
+    `blue-agents/tools/extract_*.py`.
+12. **Antes de escrever uma função nova num arquivo grande, pergunte ao grafo.**
+    `scripted_agent.py` tem 3.100 linhas e `hybrid_agent.py` 4.200. Um
+    `_planned_step` foi escrito do zero sem ver que já existia um mais
+    completo, e o seguidor de rota foi diagnosticado como guloso quando já
+    consultava a busca em largura — os dois por ler um bloco e concluir sobre o
+    arquivo.
+
+    ```bash
+    /graphify .                                  # constrói (uma vez)
+    graphify explain "_planned_step"
+    graphify path "_follow_route" "find_path"
+    ```
 
 ## Retomada mínima
 
@@ -39,31 +69,39 @@ roteiro completo; o executor ausente mais próximo está anotado no handoff.
 
 ## Como este projeto navega
 
-É o que mais confunde quem chega: **não existe leitura de colisão da RAM**. As
-paredes são aprendidas jogando — apertou uma direção e não saiu do lugar, logo
-aquela aresta é bloqueada — e o caminho até o próximo waypoint sai de uma busca
-em largura sobre esse conhecimento.
+**A geometria vem do cartucho, não de esbarrar.** Isto mudou em 2026-08-08 e a
+descrição antiga — "as paredes são aprendidas jogando" — está morta: ela rendeu
+21 mapas e 4067 paredes que nunca existiram, porque NPC parado vira parede e uma
+batalha na tela faz todo tile ler como parede.
 
 | Caminho | Papel |
 |---|---|
-| `src/collision_memory.py` | arestas bloqueadas + BFS |
-| `blue-agents/knowledge/maps/collision.json` | mapa aprendido, **compartilhado entre treinadores** |
-| `src/scripted_agent.py` | executores de quest e `_follow_route` |
+| `blue-agents/tools/extract_map_data.py` | lê parede, mato, treinador, item e porta dos 248 mapas |
+| `blue-agents/knowledge/maps/static_maps.json` | 238 mapas, 49.412 células — **autoridade**, versionado |
+| `src/map_memory.py` | carrega o estático e faz a busca em largura |
+| `src/scripted_agent.py` | executores de quest, `_follow_route`, `_planned_step` |
+
+A leitura de tela ainda existe para o que **muda**: sprites são lidos ao vivo,
+nunca guardados. Onde o cartucho já respondeu, `observe()` não escreve.
 
 Regras que custaram caro para descobrir e são fáceis de quebrar de novo:
 
-- aresta desconhecida conta como **livre**; o primeiro plano num mapa novo é a
-  linha reta, e cada colisão o estreita;
 - **o plano é guardado e seguido tile a tile.** Recalcular a cada passo faz o
-  bot oscilar entre dois desvios de custo igual, nunca colidir e, portanto,
-  nunca aprender;
-- atravessar uma aresta bloqueada a **esquece**: NPC parado é indistinguível de
-  parede enquanto está lá;
-- deslocamento diferente do esperado (ledge) e troca de mapa no meio da rota
-  (warp) viram aresta bloqueada — o planejador só modela passo unitário;
-- mapa sem rota não é motivo para apertar `A`: sai-se pela porta de entrada;
+  bot oscilar entre dois desvios de custo igual e nunca comprometer-se;
+- **waypoint já passado é waypoint gasto.** O índice da rota não retrocede ao
+  reentrar num mapa — sair e voltar zerava o avanço, e deu 18 travessias de
+  Mt. Moon sem progresso. Mas ele **solta** depois de 120 passos sem encurtar
+  distância, senão quem sai da rota mira para sempre o que não alcança;
+- **porta nunca é alvo de rota, exceto a última.** A rota de um interior começa
+  no tile da porta, e mirar isso de dentro é sair do prédio;
+- **o mais perto tem de ser o mais perto alcançável.** Distância em linha reta
+  escolhe pontos do outro lado da parede;
+- mapa sem rota não é motivo para apertar `A`: sai-se pela porta de entrada, e
+  em cima da porta se **atravessa** (para baixo), não se anda para outra porta;
 - o flag de menu (`0xCFC4`) já ficou preso em `1`; o orçamento de `A` só é
-  reposto por deslocamento real.
+  reposto por deslocamento real;
+- **sprite não é parede** e não se aprende: é lido ao vivo. Pessoa parada na
+  frente é o travamento aberto mais antigo — ver o handoff.
 
 Para separar controlador de geometria, use a sonda em vez de adivinhar:
 
