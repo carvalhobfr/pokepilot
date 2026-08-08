@@ -28,6 +28,32 @@ cd blue-agents && ../.venv/bin/python tools/watch_milestones.py AARON --until 3
 3. **O apagão devolve para Pewter, não para Pallet?** `0xD719` tem de valer 2
    depois da primeira visita ao Centro de Pewter.
 
+### O Growl ainda não está resolvido na raiz
+
+Dois consertos já entraram e nenhum ataca a causa:
+
+1. `EmulatorAdapter` ganhou `read_rom` — a tabela de golpes chegava vazia;
+2. no desempate, golpe de dano passa à frente de Growl.
+
+**A causa real:** o controlador de batalha é chamado com **texto ainda na
+tela**. Medido em 10 decisões seguidas do mesmo encontro:
+
+```
+battle_text: 1   em 10 de 10
+battle_menu:     172, 10, 54, 95, 247, 144, 54, 54, 10 ...
+column:          15, 5, 12, 1 ...
+```
+
+Nesse estado `0xD01C` não é o menu de golpes — é o que estiver na memória —, a
+leitura de `player_moves` sai lixo, a lista de candidatos fica vazia e a escolha
+inteira cai no desempate. Os valores de `battle_menu` não são de um menu
+desenhado; são de uma tela de texto.
+
+**O conserto certo:** `_choose_move` só deve rodar quando o menu de golpes
+estiver de fato aberto. Enquanto houver texto, a única ação válida é avançá-lo.
+O sintoma para confirmar é sempre o mesmo — `battle_decision` com `move: {}` e
+`candidates` vazio.
+
 ### O que ainda trava, em ordem
 
 | # | o quê | onde |
