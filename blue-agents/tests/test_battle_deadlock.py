@@ -106,5 +106,49 @@ class TrocaSoQuandoAlguemCaiTests(unittest.TestCase):
         self.assertIsNone(env._switch_target_slot())
 
 
+class DanoNuncaPerdeParaStatusTests(unittest.TestCase):
+    """No desempate, golpe de dano vem antes de Growl — sempre.
+
+    A tabela de prioridade ordena *entre* golpes de status: Growl vale 9, e um
+    golpe de ataque sem entrada cai no padrão 50. Growl ganhava de Tackle e de
+    Vine Whip.
+
+    Isso só entra em cena quando a lista de candidatos vem vazia por leitura
+    ruim — o controlador é chamado com texto ainda na tela e `0xD01C` não é o
+    menu de golpes ainda. Medido: 10 decisões seguidas, todas com
+    `battle_text: 1`, `battle_menu` em 172/10/54/95/247, e Growl escolhido em 8.
+    """
+
+    def cenario(self, moves, pps, tipo_inimigo=(0, 0)):
+        valores = {
+            0xCFE5: 165, 0xCFE7: 20,
+            0xCFEA: tipo_inimigo[0], 0xCFEB: tipo_inimigo[1],
+            0xD014: 153, 0xD019: 22, 0xD01A: 3,
+            0xCC50: 106, 0xCC26: 1,
+        }
+        for i, (mid, pp) in enumerate(zip(moves, pps)):
+            valores[0xD01C + i] = mid
+            valores[0xD02D + i] = pp
+        return FakeMemory(valores)
+
+    def test_tackle_ganha_de_growl_no_desempate(self):
+        agent = SimpleBattleAgent()
+        # Leech Seed já plantada força o caminho do desempate.
+        agent.leech_seed_used = True
+        agent.get_action(self.cenario([45, 33, 73], [40, 35, 10]))
+        self.assertEqual(33, agent.last_decision["selected_move_id"])
+
+    def test_o_mais_forte_ganha_entre_dois_de_dano(self):
+        agent = SimpleBattleAgent()
+        agent.leech_seed_used = True
+        agent.get_action(self.cenario([45, 33, 22], [40, 35, 10]))
+        self.assertIn(agent.last_decision["selected_move_id"], (33, 22))
+
+    def test_sem_golpe_de_dano_o_status_ainda_decide(self):
+        agent = SimpleBattleAgent()
+        agent.get_action(self.cenario([45, 73], [40, 10]))
+        self.assertEqual(73, agent.last_decision["selected_move_id"],
+                         "Leech Seed vale mais que Growl")
+
 if __name__ == "__main__":
     unittest.main()

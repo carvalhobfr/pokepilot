@@ -485,10 +485,26 @@ class SimpleBattleAgent:
                 usable = preferidos or com_pp
                 fallback = None
                 if usable:
-                    fallback = min(
-                        usable,
-                        key=lambda entry: STATUS_MOVE_PRIORITY.get(entry[1], 50),
-                    )[0]
+                    # Golpe de dano nunca perde para um de status aqui. A
+                    # tabela de prioridade ordena *entre* golpes de status —
+                    # Growl vale 9, e um golpe de ataque sem entrada cai no
+                    # padrão 50, então Growl ganhava de Tackle e de Vine Whip.
+                    #
+                    # Isso só importa quando a lista de candidatos veio vazia
+                    # por leitura ruim: o controlador é chamado com texto ainda
+                    # na tela, `0xD01C` não é o menu de golpes ainda, e a
+                    # escolha inteira desanda. Ordenar dano primeiro faz o
+                    # desempate errar para o lado certo.
+                    def rank(entry):
+                        move_id = entry[1]
+                        damaging = bool(moves.power(move_id))
+                        return (
+                            0 if damaging else 1,
+                            -(moves.power(move_id) or 0) if damaging
+                            else STATUS_MOVE_PRIORITY.get(move_id, 50),
+                        )
+
+                    fallback = min(usable, key=rank)[0]
                 # None means every move is spent: the cartridge substitutes
                 # Struggle on its own, so confirming the menu is correct.
                 best_move_idx = fallback if fallback is not None else best_move_idx
