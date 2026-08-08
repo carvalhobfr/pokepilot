@@ -147,3 +147,53 @@ class RouteFollowingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TudoFechadoPorGenteTests(unittest.TestCase):
+    """Com as quatro direções fechadas, falar com quem está na frente.
+
+    AARON ficou preso em (5,1) no lab do Oak: paredes acima e à direita, o Oak
+    abaixo e alguém à esquerda. As quatro entravam em `blocked`, o último
+    recurso não achava nenhuma livre e devolvia None — o bot não apertava nada,
+    39 passos sem progresso e sem sair.
+    """
+
+    def agente(self, bloqueado, alvo=(4, 1), pos=(5, 1)):
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        agent.route_progress = {}
+        memoria = type("M", (), {
+            "get_map_id": staticmethod(lambda: 40),
+            "get_player_pos": staticmethod(lambda: pos),
+            "read_byte": staticmethod(lambda a: 0),
+        })()
+        agent.emulator = type("E", (), {"memory": memoria})()
+        agent._tile_truth = lambda: dict(bloqueado)
+        agent._menu_is_open = lambda: False
+        agent._map_memory = lambda: None
+        agent._planned_step = lambda *a: None
+        agent._visible_step = lambda dx, dy: None
+        agent._recently_walked_steps = lambda *a: set()
+        agent._warp_steps = lambda *a: {}
+        agent._tile_reader = lambda: None
+        agent._report_if_stuck = lambda *a, **k: None
+        agent.movido = []
+        agent._route_move = lambda step: agent.movido.append(step) or step
+        agent.alvo = alvo
+        return agent
+
+    def test_anda_contra_o_sprite_em_vez_de_parar(self):
+        agent = self.agente({"U": "terrain", "R": "terrain",
+                             "D": "sprite", "L": "bumped"})
+        passo = agent._follow_route("lab", [agent.alvo])
+        self.assertEqual("D", passo, "vira para o Oak e abre a fala dele")
+
+    def test_parede_de_verdade_nao_vira_alvo_de_conversa(self):
+        # Sem sprite nenhum, continua devolvendo None — não há com quem falar.
+        agent = self.agente({"U": "terrain", "R": "terrain",
+                             "D": "terrain", "L": "terrain"})
+        self.assertIsNone(agent._follow_route("lab", [agent.alvo]))
+
+    def test_direcao_livre_sempre_ganha_do_sprite(self):
+        agent = self.agente({"U": "terrain", "R": "terrain", "D": "sprite"})
+        passo = agent._follow_route("lab", [agent.alvo])
+        self.assertEqual("L", passo, "andar para o alvo vem antes de falar")

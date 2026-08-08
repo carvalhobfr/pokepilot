@@ -2667,6 +2667,20 @@ class ScriptedAgent(BaseAgent):
         for candidate in wanted + list(detours):
             if candidate not in blocked:
                 return self._route_move(candidate)
+
+        # Nada livre em direção nenhuma. Se o que fecha o caminho é gente,
+        # andar contra ela é a jogada: em Gen I isso vira o personagem para o
+        # NPC e dispara a fala dele, e o avanço de texto cuida do resto. Muitos
+        # saem do caminho depois de falar; os de história precisam ser falados
+        # de qualquer forma.
+        #
+        # AARON ficou preso em (5,1) no lab do Oak com as quatro direções
+        # fechadas — duas paredes, o Oak abaixo e alguém à esquerda — e este
+        # ramo devolvia None, então ele não apertava nada. Parado para sempre é
+        # pior que falar com quem está na frente.
+        for candidate in wanted + list(detours):
+            if blocked.get(candidate) == "sprite":
+                return self._route_move(candidate)
         return None
 
     def _route_role(self):
