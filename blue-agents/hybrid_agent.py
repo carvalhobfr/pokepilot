@@ -212,6 +212,20 @@ class EmulatorAdapter:
         
     def read_byte(self, addr):
         return self.env.read_m(addr)
+
+    def read_rom(self, bank, address):
+        """Um byte de um banco da ROM, para as tabelas que o cartucho já traz.
+
+        Sem isto o controlador de batalha recebia uma tabela de golpes vazia:
+        toda potência vinha desconhecida, nenhum golpe passava pelo filtro de
+        dano, e a escolha caía no desempate de status — onde Growl vale 9 e
+        Tackle e Vine Whip caem no padrão 50, então Growl ganhava sempre.
+
+        Medido no Brock: 203 decisões de batalha, **nenhuma** com dados de
+        golpe, Vine Whip com os 10 PP intactos e o Geodude em 33/33. O bot
+        tinha o golpe que resolve o ginásio e nunca o usou.
+        """
+        return self.env.read_rom(bank, address)
         
     def read_event_flag(self, byte_addr, bit_index):
         val = self.env.read_m(byte_addr)

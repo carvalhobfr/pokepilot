@@ -99,6 +99,7 @@ class SimpleBattleAgent:
         # Preenchida no primeiro turno, direto do banco 0x0E. Vazia significa
         # que ninguém perguntou ao cartucho ainda, não que os golpes valem zero.
         self.move_table = MoveTable()
+        self.move_table_warned = False
         self.last_decision = {
             "kind": "uninitialized",
             "reason": "battle controller has not observed a turn yet",
@@ -131,9 +132,23 @@ class SimpleBattleAgent:
 
         É ROM: não muda enquanto o jogo roda. Reler a cada turno seria mil
         acessos por encontro para receber sempre a mesma resposta.
+
+        Tabela vazia é bug, não estado válido, e degrada em silêncio da pior
+        maneira: sem potência nenhuma, todo golpe some do filtro de dano e a
+        escolha cai no desempate de status, onde Growl vale 9 e Vine Whip cai
+        no padrão 50. Foi assim que um Bulbasaur nível 14 encarou o Geodude do
+        Brock 203 vezes com os 10 PP de Vine Whip intactos. O aviso sai uma vez
+        por controlador, para não virar ruído dentro do laço de batalha.
         """
         if not len(self.move_table):
             self.move_table = MoveTable.from_memory(emulator)
+            if not len(self.move_table) and not self.move_table_warned:
+                self.move_table_warned = True
+                print(
+                    "[batalha] AVISO: tabela de golpes vazia — "
+                    f"{type(emulator).__name__} não sabe ler ROM. "
+                    "Todo golpe vai contar como status."
+                )
         return self.move_table
 
     def _replacement_slot(self, player_moves):

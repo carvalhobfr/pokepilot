@@ -106,5 +106,73 @@ class GrowlNoLongerWinsTests(unittest.TestCase):
         self.assertEqual(45, agent.last_decision["selected_move_id"])
 
 
+class AdaptadorLeROMTests(unittest.TestCase):
+    """O controlador de batalha só vê a ROM através do adaptador.
+
+    Medido no Brock: 203 decisões de batalha, nenhuma com dados de golpe, Vine
+    Whip com os 10 PP intactos e o Geodude em 33/33. `EmulatorAdapter` tinha
+    `read_byte` e não tinha `read_rom`, então a tabela vinha vazia, todo golpe
+    saía do filtro de dano e o desempate de status escolhia Growl — que vale 9
+    contra o padrão 50 de Tackle e Vine Whip.
+    """
+
+    def test_o_adaptador_expoe_read_rom(self):
+        from hybrid_agent import EmulatorAdapter
+        self.assertTrue(hasattr(EmulatorAdapter, "read_rom"))
+
+    def test_o_adaptador_entrega_a_tabela_inteira(self):
+        from hybrid_agent import EmulatorAdapter
+
+        class EnvFalso:
+            pyboy = None
+            def read_m(self, addr): return 0
+            def read_rom(self, bank, address): return read_rom(bank, address)
+
+        tabela = MoveTable.from_memory(EmulatorAdapter(EnvFalso()))
+        self.assertEqual(MOVE_COUNT, len(tabela))
+        self.assertEqual(35, tabela.power(22), "Vine Whip tem potência")
+
+    def test_tabela_vazia_avisa_em_vez_de_degradar_calado(self):
+        agent = SimpleBattleAgent()
+        agent._load_move_table(object())
+        self.assertTrue(agent.move_table_warned)
+
+
+class VineWhipGanhaDoGrowlTests(unittest.TestCase):
+    """Com a tabela do cartucho, o Geodude do Brock leva Vine Whip."""
+
+    def cenario(self):
+        return FakeMemory({
+            0xCFE5: 169,   # Geodude (interno) -> National #74
+            0xCFE7: 33,
+            0xCFEA: 5,     # Rock
+            0xCFEB: 4,     # Ground
+            0xD014: 153,   # Bulbasaur (interno) -> National #1
+            0xD019: 22,    # Grass
+            0xD01A: 3,     # Poison
+            0xD01C: 33, 0xD01D: 45, 0xD01E: 73, 0xD01F: 22,
+            0xD02D: 35, 0xD02E: 21, 0xD02F: 10, 0xD030: 10,
+            0xCC50: 106,
+            0xCC26: 1,
+        })
+
+    def test_escolhe_vine_whip_e_nao_growl(self):
+        agent = SimpleBattleAgent()
+        agent.get_action(self.cenario())
+        self.assertEqual(22, agent.last_decision["selected_move_id"])
+
+    def test_a_vantagem_e_quadrupla(self):
+        # Grama bate 2x em Rocha e 2x em Terra.
+        agent = SimpleBattleAgent()
+        agent.get_action(self.cenario())
+        self.assertEqual(4.0, agent.last_decision["selected"]["effectiveness"])
+
+    def test_a_decisao_carrega_os_candidatos(self):
+        # Zero de 203 decisões traziam candidatos — era esse o sintoma.
+        agent = SimpleBattleAgent()
+        agent.get_action(self.cenario())
+        self.assertTrue(agent.last_decision["candidates"])
+
+
 if __name__ == "__main__":
     unittest.main()
