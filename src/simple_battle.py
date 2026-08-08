@@ -83,6 +83,19 @@ STATUS_MOVE_PRIORITY = {
     43: 9,    # Leer
 }
 
+# Golpe de status vale **uma vez por batalha**, e só isso.
+#
+# Dormir já está dormindo; paralisado já está lento; a semente já drena todo
+# turno depois de plantada. Repetir não acrescenta nada e gasta o turno. Com
+# rebaixamento de atributo é pior: Growl tem 40 PP e o estágio de ataque para
+# de descer no mínimo, então o bot passava a batalha inteira baixando um
+# atributo que já estava no fundo, perdia, e não subia de nível. Foi o que o
+# operador viu em 2026-08-08.
+#
+# Fica de fora quem some sozinho do jogo: nada aqui precisa de exceção hoje,
+# mas a regra é essa — só entra o que o cartucho torna redundante na segunda vez.
+ONE_SHOT_STATUS_MOVES = frozenset(STATUS_MOVE_PRIORITY)
+
 # A Gen I Pokémon holds at most four moves, so the move list has at most four
 # rows and they are numbered from one. Anything outside that is the cursor byte
 # holding something that is not this menu.
@@ -96,6 +109,8 @@ class SimpleBattleAgent:
         self.text_advance_with_a = False
         self.move_learning = None
         self.leech_seed_used = False
+        # Golpes de status já gastos nesta batalha. Cada um vale uma vez.
+        self.status_moves_used = set()
         # Preenchida no primeiro turno, direto do banco 0x0E. Vazia significa
         # que ninguém perguntou ao cartucho ainda, não que os golpes valem zero.
         self.move_table = MoveTable()
@@ -112,6 +127,7 @@ class SimpleBattleAgent:
         self.text_advance_with_a = False
         self.move_learning = None
         self.leech_seed_used = False
+        self.status_moves_used = set()
 
     def _advance_text(self):
         """Alternate B/A like the cartridge-aware PokeBot text handler.
@@ -467,9 +483,10 @@ class SimpleBattleAgent:
                 ]
                 preferidos = [
                     (slot, move_id) for slot, move_id in com_pp
-                    if not (
+                    if move_id not in self.status_moves_used
+                    and not (
                         move_id == LEECH_SEED_MOVE_ID
-                        and (self.leech_seed_used or "GRASS" in opponent_types)
+                        and "GRASS" in opponent_types
                     )
                 ]
                 # A preferência é sobre *qual* golpe de status vale o turno. Ela
@@ -517,10 +534,14 @@ class SimpleBattleAgent:
                 ),
                 0,
             )
-            if selected_move_id == LEECH_SEED_MOVE_ID:
-                # Planted once, it drains every turn on its own. A second cast
-                # replaces nothing and costs the turn.
-                self.leech_seed_used = True
+            if selected_move_id in ONE_SHOT_STATUS_MOVES:
+                # Vale uma vez por batalha. A semente drena sozinha depois de
+                # plantada; quem dorme já está dormindo; e o estágio de atributo
+                # para de descer no mínimo — Growl tem 40 PP e o bot gastava a
+                # batalha inteira baixando um ataque que já estava no fundo.
+                self.status_moves_used.add(selected_move_id)
+                if selected_move_id == LEECH_SEED_MOVE_ID:
+                    self.leech_seed_used = True
             selected_candidate = next(
                 (candidate for candidate in candidates if candidate["slot"] == best_move_idx),
                 None,

@@ -150,5 +150,69 @@ class DanoNuncaPerdeParaStatusTests(unittest.TestCase):
         self.assertEqual(73, agent.last_decision["selected_move_id"],
                          "Leech Seed vale mais que Growl")
 
+
+class StatusValeUmaVezPorBatalhaTests(unittest.TestCase):
+    """Growl tem 40 PP e o atributo para de descer no mínimo.
+
+    O bot passava a batalha inteira baixando um ataque que já estava no fundo,
+    perdia, e não subia de nível. A ordem que o operador pediu em 2026-08-08:
+    dano primeiro, depois efeito no inimigo uma vez, depois o resto.
+    """
+
+    def cenario(self, moves, pps):
+        valores = {
+            0xCFE5: 165, 0xCFE7: 20, 0xCFEA: 0, 0xCFEB: 0,
+            0xD014: 153, 0xD019: 22, 0xD01A: 3,
+            0xCC50: 106, 0xCC26: 1,
+        }
+        for i, (mid, pp) in enumerate(zip(moves, pps)):
+            valores[0xD01C + i] = mid
+            valores[0xD02D + i] = pp
+        return FakeMemory(valores)
+
+    def test_nenhum_status_repete_antes_de_todos_terem_vez(self):
+        # A garantia real. Depois que todos foram usados a batalha já está
+        # perdida — repetir é melhor que escolher slot vazio, que foi o
+        # travamento de 7.650 passos.
+        agent = SimpleBattleAgent()
+        memoria = self.cenario([45, 73], [40, 10])
+        escolhidos = []
+        for _ in range(2):
+            agent.get_action(memoria)
+            escolhidos.append(agent.last_decision["selected_move_id"])
+        self.assertEqual({45, 73}, set(escolhidos),
+                         f"cada um tem a sua vez antes de repetir: {escolhidos}")
+
+    def test_growl_nao_queima_quarenta_pp(self):
+        # O sintoma que o operador viu: Growl repetido até zerar.
+        agent = SimpleBattleAgent()
+        memoria = self.cenario([45, 73], [40, 10])
+        growls = 0
+        for _ in range(10):
+            agent.get_action(memoria)
+            if agent.last_decision["selected_move_id"] == 45:
+                growls += 1
+        self.assertLessEqual(growls, 5, "Growl não pode dominar a batalha")
+
+    def test_a_semente_vem_antes_do_growl(self):
+        agent = SimpleBattleAgent()
+        agent.get_action(self.cenario([45, 73], [40, 10]))
+        self.assertEqual(73, agent.last_decision["selected_move_id"])
+
+    def test_gastos_todos_ainda_devolve_um_golpe_com_pp(self):
+        # Sem opção nova, é melhor repetir que escolher slot vazio.
+        agent = SimpleBattleAgent()
+        memoria = self.cenario([45], [40])
+        for _ in range(3):
+            agent.get_action(memoria)
+        self.assertEqual(45, agent.last_decision["selected_move_id"])
+
+    def test_nova_batalha_zera_a_contagem(self):
+        agent = SimpleBattleAgent()
+        memoria = self.cenario([45, 73], [40, 10])
+        agent.get_action(memoria)
+        agent.reset_battle()
+        self.assertEqual(set(), agent.status_moves_used)
+
 if __name__ == "__main__":
     unittest.main()
