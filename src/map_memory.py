@@ -29,25 +29,38 @@ STATIC_MAPS_PATH = (
 )
 
 
+def _cells(tiles):
+    out = set()
+    for tile in tiles or ():
+        try:
+            x, y = (int(part) for part in str(tile).split(","))
+        except ValueError:
+            continue
+        out.add((x, y))
+    return out
+
+
 def _load_static_maps(path):
-    """`{map_id: {células andáveis}}` lido do cartucho, ou vazio se ausente."""
+    """Andável, mato e treinador por mapa, lidos do cartucho."""
     try:
         with open(path, "r", encoding="utf-8") as handle:
             payload = json.load(handle)
     except (OSError, ValueError):
-        return {}
-    maps = {}
+        return {}, {}, {}
+    walkable, grass, trainers = {}, {}, {}
     for map_key, data in payload.items():
-        cells = set()
-        for tile in data.get("walkable", ()):
-            try:
-                x, y = (int(part) for part in str(tile).split(","))
-            except ValueError:
-                continue
-            cells.add((x, y))
-        if cells:
-            maps[int(map_key)] = cells
-    return maps
+        cells = _cells(data.get("walkable"))
+        if not cells:
+            continue
+        map_id = int(map_key)
+        walkable[map_id] = cells
+        grass[map_id] = _cells(data.get("grass"))
+        trainers[map_id] = {
+            (int(o["x"]), int(o["y"]))
+            for o in data.get("objects", ())
+            if o.get("kind") == "trainer"
+        }
+    return walkable, grass, trainers
 
 
 class MapMemory:
@@ -64,12 +77,23 @@ class MapMemory:
         self.walkable = {}
         self.solid = {}
         self.dirty = False
-        self.static = _load_static_maps(static_path) if static_path else {}
+        if static_path:
+            self.static, self.grass, self.trainers = _load_static_maps(static_path)
+        else:
+            self.static, self.grass, self.trainers = {}, {}, {}
         self._load()
 
     def known_from_rom(self, map_id):
         """Este mapa saiu do cartucho? Se saiu, não há o que adivinhar nele."""
         return int(map_id) in self.static
+
+    def grass_cells(self, map_id):
+        """Células que rolam encontro selvagem, segundo o tileset do mapa."""
+        return self.grass.get(int(map_id), set())
+
+    def trainer_positions(self, map_id):
+        """Onde cada treinador do mapa começa, para se manter longe deles."""
+        return self.trainers.get(int(map_id), set())
 
     def _load(self):
         if self.path is None or not self.path.exists():

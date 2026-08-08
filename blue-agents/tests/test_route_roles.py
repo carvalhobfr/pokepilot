@@ -363,6 +363,12 @@ class HealForwardTests(unittest.TestCase):
         def get_player_pos(self): return self.pos
         def get_party_count(self): return len(self.party)
 
+        def read_rom(self, bank, address):
+            # Sem isto a tabela de golpes vem vazia e todo golpe conta como
+            # desconhecido — o duble mediria o duble, não o jogo.
+            from tests.rom_fixture import read_rom
+            return read_rom(bank, address)
+
         def read_byte(self, address):
             index, offset = divmod(address - 0xD16B, 44)
             if 0 <= index < len(self.party):
@@ -371,7 +377,11 @@ class HealForwardTests(unittest.TestCase):
                 if offset == 2: return hp & 0xFF
                 if offset == 34: return max_hp >> 8
                 if offset == 35: return max_hp & 0xFF
-                if 8 <= offset <= 11: return 33
+                # Vine Whip no primeiro slot: estes testes são sobre a
+                # rota, e um time sem golpe efetivo agora treina antes de
+                # andar. O portão de treino tem os seus próprios testes.
+                if offset == 8: return 22
+                if 9 <= offset <= 11: return 33
                 if 29 <= offset <= 32: return 20
             return 0
 

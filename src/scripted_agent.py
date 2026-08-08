@@ -90,6 +90,17 @@ VIRIDIAN_OLD_MAN_DIALOG_LIMIT = 48
 
 VIRIDIAN_FOREST_MAP_ID = 51
 
+# Rocha e Terra são o que o ginásio de Pewter põe na frente, e Tackle apanha dos
+# dois. Grama e Água batem 4× no Geodude; Luta bate na Rocha. Ter um destes na
+# mão é o que separa vencer o Brock de 269 apagões seguidos, medidos em corrida.
+GYM_EFFECTIVE_TYPES = {"GRASS", "WATER", "FIGHTING"}
+# Teto de paciência do treino: sem ele, um time que nunca aprende o golpe certo
+# treinaria para sempre. Não é o alvo — o alvo é o golpe.
+TRAINING_MAX_LEVEL = 14
+# Casas de distância mínima até qualquer treinador do mapa. Os três bug catchers
+# da Floresta ficam a 23-25 do trecho de mato perto da porta sul.
+TRAINING_TRAINER_CLEARANCE = 12
+
 # Steps spent waiting for a person to move before walking around them. People
 # in Gen I pace on their own; walls do not.
 SPRITE_PATIENCE_STEPS = 6
@@ -1442,12 +1453,13 @@ class ScriptedAgent(BaseAgent):
         ):
             return self._run_route_2_nav()
 
-        # Aqui ficava o treino na entrada da Floresta, desligado por padrão e
-        # removido em 2026-08-07 a pedido do operador. O portão em si estava
-        # certo — time nível 8 perde para o primeiro bug catcher, medido duas
-        # vezes — mas *onde* treinar errou cinco vezes seguidas na ROM, e cada
-        # erro custou uma corrida. Volta quando houver um seletor de área
-        # medido a partir de um save, não deduzido da rota.
+        # Treino antes de sair da Floresta. Cinco tentativas anteriores erraram
+        # *onde* treinar e cada uma custou uma corrida; a diferença agora é que
+        # a grama vem medida do cartucho, com a distância aos treinadores junto.
+        if map_id == VIRIDIAN_FOREST_MAP_ID and self._needs_training():
+            step = self._train_in_measured_grass(map_id)
+            if step is not None:
+                return step
 
         routes = {
             51: [
@@ -1464,6 +1476,105 @@ class ScriptedAgent(BaseAgent):
         if route:
             return self._follow_route(f"forest-{map_id}", route)
         return self._leave_unknown_map()
+
+    def _needs_training(self):
+        """Fraco demais para o Brock, medido pelo que o time tem na mão.
+
+        O portão não é um número que eu possa errar de cabeça. O que decide o
+        ginásio de Pewter é ter um golpe que **não seja resistido** por Rocha e
+        Terra: Tackle é Normal e apanha, Vine Whip é Grama e bate 4× no Geodude.
+        Medido em corrida: nível 10 com Tackle, Growl e Leech Seed perdeu 269
+        vezes seguidas para o Brock, sempre chegando curado do Centro.
+
+        O nível é só o teto de paciência — sem ele um time que nunca aprende o
+        golpe treinaria para sempre.
+        """
+        if self._party_has_effective_move():
+            return False
+        return self._party_max_level() < TRAINING_MAX_LEVEL
+
+    def _party_has_effective_move(self):
+        """Alguém do time tem golpe que Rocha e Terra não resistem?"""
+        table = self._move_table()
+        count = min(int(self.emulator.memory.get_party_count()), 6)
+        read = self.emulator.memory.read_byte
+        for index in range(count):
+            struct = 0xD16B + index * 44
+            for slot in range(4):
+                move_id = int(read(struct + 8 + slot))
+                if not move_id:
+                    continue
+                move = table.get(move_id)
+                if move and move.power and move.type in GYM_EFFECTIVE_TYPES:
+                    return True
+        return False
+
+    def _move_table(self):
+        """Potência e tipo de cada golpe, lidos do cartucho uma vez."""
+        table = getattr(self, "move_table", None)
+        if table is None or not len(table):
+            from src.move_data import MoveTable
+
+            table = self.move_table = MoveTable.from_memory(self.emulator.memory)
+        return table
+
+    def _train_in_measured_grass(self, map_id):
+        """Ir e voltar entre duas células de mato longe de todo treinador.
+
+        A grama, a distância até a porta e a posição de cada treinador saem de
+        `static_maps.json`, extraído da ROM. É a única das seis tentativas com
+        medição por trás: na Floresta são 365 células de mato, todas alcançáveis
+        da porta sul, e os três bug catchers ficam a mais de vinte casas do
+        trecho escolhido.
+
+        O par de células é fixado uma vez e não se refaz: "pisar na grama mais
+        próxima" parece local e não é — escolher sempre o mesmo canto do trecho
+        é um rumo fixo, e foi assim que uma versão anterior subiu quatorze casas
+        pela coluna de mato até esbarrar no bug catcher.
+        """
+        pair = getattr(self, "training_pair", None)
+        if pair is None:
+            pair = self._pick_training_pair(map_id)
+            if pair is None:
+                return None
+            self.training_pair = pair
+        position = tuple(self.emulator.memory.get_player_pos())
+        home, away = pair
+        target = away if position == home else home
+        return self._follow_route(f"treino-{map_id}", [target])
+
+    def _pick_training_pair(self, map_id):
+        """Duas células de mato vizinhas, perto da porta e longe de treinador."""
+        memory = self._map_memory()
+        grass = memory.grass_cells(map_id)
+        if not grass:
+            return None
+        trainers = memory.trainer_positions(map_id)
+        position = tuple(self.emulator.memory.get_player_pos())
+
+        def distancia_treinador(cell):
+            if not trainers:
+                return 999
+            return min(abs(cell[0] - t[0]) + abs(cell[1] - t[1]) for t in trainers)
+
+        candidates = [
+            cell for cell in grass
+            if distancia_treinador(cell) >= TRAINING_TRAINER_CLEARANCE
+        ]
+        if not candidates:
+            return None
+        # Perto de onde o bot está, para a caminhada até lá não ser a viagem.
+        candidates.sort(
+            key=lambda c: abs(c[0] - position[0]) + abs(c[1] - position[1])
+        )
+        for cell in candidates:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                neighbour = (cell[0] + dx, cell[1] + dy)
+                if neighbour in grass and distancia_treinador(neighbour) >= (
+                    TRAINING_TRAINER_CLEARANCE
+                ):
+                    return (cell, neighbour)
+        return None
 
     def _party_max_level(self):
         """Highest level in the party, read from the cartridge."""
