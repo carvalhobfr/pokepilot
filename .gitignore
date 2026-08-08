@@ -67,3 +67,9 @@ blue-agents/knowledge/maps/.envenenado/
 # warps.json e pokemon_centers.json, e como eles é autoridade em tempo de
 # execução. Sem ele a navegação cai de volta na leitura de tela, que é o que
 # se está substituindo. Regenerar: tools/extract_map_data.py --write
+
+# Grafo de conhecimento do graphify: 5 MB derivados do próprio repo.
+graphify-out/
+
+# Trava de corrida: estado de execução, recriada a cada corrida.
+blue-agents/tasks/journey.lock
