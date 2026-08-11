@@ -1766,19 +1766,19 @@ class ScriptedAgent(BaseAgent):
                 (27, 5), (27, 9), (37, 8), (37, 5), (49, 5),
                 (49, 10), (57, 10), (57, 8), (59, 8), (59, -1),
             ],
+            # Medida a partir da travessia real que chegou a Cerulean
+            # (arquivo 20260805T101255.414852Z-AARON, quest_advanced em
+            # mt_moon_nav). A rota antiga passava por (35,31) — item ball
+            # sólida em Gen I — e o bot quicava numa caixa de 4 tiles até
+            # morrer de atrito. Esta sobe ao norte, corta oeste por cima,
+            # desce a coluna oeste (x=2) e entra na escada NW (5,5).
             59: [
-                (14, 35), (14, 22), (21, 22), (21, 15), (24, 15),
-                (24, 27), (25, 27), (25, 31), (25, 32), (33, 32),
-                (33, 31), (34, 31), (35, 31), (35, 23), (35, 7),
-                (30, 7), (28, 7), (16, 7), (16, 17), (2, 17),
-                (2, 3), (5, 3), (5, 5),
+                (14, 35), (14, 26), (21, 22), (24, 27), (25, 32),
+                (35, 7), (16, 15), (2, 16), (2, 5), (5, 5),
             ],
             61: [
-                (21, 17), (22, 17), (23, 17), (23, 14), (27, 14),
-                (27, 16), (33, 16), (33, 14), (36, 14), (36, 24),
-                (32, 24), (32, 31), (10, 31), (10, 18), (10, 17),
-                (12, 17), (12, 9), (13, 9), (13, 7), (13, 5),
-                (12, 5), (12, 4), (3, 4), (3, 7), (5, 7),
+                (21, 17), (26, 31), (10, 26), (13, 8), (3, 4),
+                (7, 4), (11, 4), (16, 4), (5, 7),
             ],
         }
         if map_id in routes:
@@ -2377,6 +2377,19 @@ class ScriptedAgent(BaseAgent):
     def _menu_is_open(self):
         return int(self.emulator.memory.read_byte(0xCFC4)) == 1
 
+    def _in_battle_screen(self):
+        """True while the battle screen owns the tilemap.
+
+        Em batalha o tilemap (0xC3A0) guarda os gráficos da batalha, não o
+        mapa: todo tile lê como parede, e planejar caminho nesse estado grava
+        geometria falsa. A batalha manda no passo; a rota só volta depois que
+        o flag 0xD057 cair.
+        """
+        try:
+            return int(self.emulator.memory.read_byte(0xD057)) != 0
+        except Exception:
+            return False
+
     def _bag_item_count(self, item_id):
         item_count = min(int(self.emulator.memory.read_byte(0xD31D)), 20)
         for index in range(item_count):
@@ -2400,6 +2413,12 @@ class ScriptedAgent(BaseAgent):
         two-tile pacing guard.
         """
         if not waypoints:
+            return None
+        # Em batalha o tilemap carrega os gráficos da batalha — todo tile lê
+        # como parede. Qualquer plano traçado aqui é lixo e, pior, alimenta o
+        # "load de batalha" que já gravou paredes falsas na Floresta. Quem
+        # manda no passo em batalha é o controlador de batalha; a rota espera.
+        if self._in_battle_screen():
             return None
         if self._menu_is_open():
             presses = getattr(self, "route_menu_presses", 0) + 1
@@ -2640,6 +2659,11 @@ class ScriptedAgent(BaseAgent):
             if step not in blocked and step not in stale:
                 return self._route_move(step)
 
+        # Item ball é objeto sólido em Gen I: não se pisa, e apertar A de
+        # frente não a pega — a colisão ao vivo a reporta como sprite e o
+        # waypoint em cima dela é inalcançável por construção. A rota tem de
+        # contornar o tile, não tentar coletar. Medido na sonda: (35,31) do
+        # 1F não entra no componente alcançável de (34,31).
         if wanted and all(blocked.get(step) == "sprite" for step in wanted):
             self.route_blocked_steps = getattr(self, "route_blocked_steps", 0) + 1
             if self.route_blocked_steps <= SPRITE_PATIENCE_STEPS:

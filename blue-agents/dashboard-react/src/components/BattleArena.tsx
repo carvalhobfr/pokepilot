@@ -1,33 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, Crosshair, Eye, Maximize2, Shield, Swords, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { speciesLabel, moveLabel as moveName } from '../pokemonNames';
 
 interface BattleArenaProps {
   agents: Record<string, any>;
   open: boolean;
   onClose: () => void;
 }
-
-const MOVE_NAMES: Record<number, string> = {
-  1: 'Pound',
-  10: 'Scratch',
-  15: 'Cut',
-  19: 'Fly',
-  33: 'Tackle',
-  39: 'Tail Whip',
-  44: 'Bite',
-  45: 'Growl',
-  52: 'Ember',
-  55: 'Water Gun',
-  57: 'Surf',
-  70: 'Strength',
-  73: 'Vine Whip',
-  75: 'Razor Leaf',
-  84: 'Thunder Shock',
-  85: 'Thunderbolt',
-  126: 'Fire Blast',
-  145: 'Bubble',
-  148: 'Flash',
-};
 
 const spriteUrl = (id: number) =>
   id > 0 ? 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + id + '.png' : '';
@@ -55,7 +34,7 @@ const encounterTone = (type: string) => {
 
 const moveLabel = (move: any) => {
   const id = Number(move?.id || 0);
-  const name = MOVE_NAMES[id] || 'Move #' + id;
+  const name = moveName(id);
   return move?.pp == null ? name : name + ' · PP ' + move.pp;
 };
 
@@ -78,15 +57,15 @@ function PokemonMatchup({ agent, compact = false }: { agent: any; compact?: bool
         <div className="flex justify-center">
           {activeId > 0 ? <img src={spriteUrl(activeId)} alt={`Pokémon ativo #${activeId}`} className={`${imageClass} object-contain pixelated`} /> : <div className={imageClass} />}
         </div>
-        <div className="truncate text-[9px] font-bold text-white">#{activeId || '?'} · Lv.{battle.active_pokemon?.level || agent.party?.[0]?.level || '?'}</div>
+        <div className="truncate text-[9px] font-bold text-white">{speciesLabel(activeId)} · Lv.{battle.active_pokemon?.level || agent.party?.[0]?.level || '?'}</div>
       </div>
       <div className={`${compact ? 'text-[9px]' : 'text-sm'} font-black text-red-300`}>VS</div>
       <div className="min-w-0 text-center">
         <div className="text-[8px] font-bold uppercase tracking-wider text-red-300">Adversário</div>
         <div className="flex justify-center">
-          {enemyId > 0 ? <img src={spriteUrl(enemyId)} alt={`Pokémon adversário #${enemyId}`} className={`${imageClass} object-contain pixelated`} /> : <div className={imageClass} />}
+          {enemyId > 0 ? <img src={spriteUrl(enemyId)} alt={`Pokémon adversário ${speciesLabel(enemyId)}`} className={`${imageClass} object-contain pixelated`} /> : <div className={imageClass} />}
         </div>
-        <div className="truncate text-[9px] font-bold text-white">#{enemyId || '?'} · Lv.{battle.enemy_level || '?'}</div>
+        <div className="truncate text-[9px] font-bold text-white">{speciesLabel(enemyId)} · Lv.{battle.enemy_level || '?'}</div>
       </div>
     </div>
   );
@@ -154,7 +133,7 @@ function BuildModal({ agent, onClose }: { agent: any; onClose: () => void }) {
                     {spriteUrl(Number(active.species_id)) && <img src={spriteUrl(Number(active.species_id))} alt="Pokémon ativo" className="h-20 w-20 object-contain pixelated" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-lg font-black">#{active.species_id || '?'}</div>
+                    <div className="text-lg font-black">{speciesLabel(active.species_id)}</div>
                     <div className="text-xs text-yellow-300">Lv.{active.level || '?'}</div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
                       <div className="h-full rounded-full bg-green-400" style={{ width: hpPercent(active) + '%' }} />
@@ -188,7 +167,7 @@ function BuildModal({ agent, onClose }: { agent: any; onClose: () => void }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold">#{pokemon.species_id || '?'}</span>
+                      <span className="font-bold">{speciesLabel(pokemon.species_id)}</span>
                       <span className="text-yellow-300">Lv.{pokemon.level || '?'}</span>
                     </div>
                     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
@@ -249,7 +228,7 @@ function BattleFocus({ agent, onClose, onBuild }: { agent: any; onClose: () => v
             <PokemonMatchup agent={agent} />
           </div>
           <div className="flex items-center gap-3 text-xs text-slate-400">
-            <Activity size={14} className="text-red-300" /> {battle.active_pokemon ? 'Ativo #' + battle.active_pokemon.species_id : 'Time carregado'} · {agent.party?.length || 0}/6 Pokémon
+            <Activity size={14} className="text-red-300" /> {battle.active_pokemon ? 'Ativo ' + speciesLabel(battle.active_pokemon.species_id) : 'Time carregado'} · {agent.party?.length || 0}/6 Pokémon
           </div>
         </div>
       </div>

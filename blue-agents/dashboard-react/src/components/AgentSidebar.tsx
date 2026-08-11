@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, MapPin, Award, Activity, MessageSquare, Zap, Brain, Target, Crosshair, BookOpen } from 'lucide-react';
+import { moveLabel, speciesLabel } from '../pokemonNames';
 
 interface AgentSidebarProps {
   agent: any | null;
@@ -36,7 +37,7 @@ const AgentSidebar: React.FC<AgentSidebarProps> = ({ agent, onClose }) => {
     };
 
     fetchPokemon();
-  }, [agent?.party]);
+  }, [agent?.user]);
 
   if (!agent) return null;
 
@@ -115,7 +116,10 @@ const AgentSidebar: React.FC<AgentSidebarProps> = ({ agent, onClose }) => {
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold capitalize">{p.name || `Pokemon ${p.species_id}`}</span>
+                    <span className="text-sm font-bold capitalize">
+                      {p.name || speciesLabel(p.species_id)}
+                      {Number(p.hp) <= 0 && <span className="ml-1 text-[9px] text-red-400 font-bold uppercase">caído</span>}
+                    </span>
                     <span className="text-xs font-mono text-yellow-400">Lv.{p.level}</span>
                   </div>
                   <div className="flex gap-1 mt-1">
@@ -125,9 +129,28 @@ const AgentSidebar: React.FC<AgentSidebarProps> = ({ agent, onClose }) => {
                       </span>
                     ))}
                   </div>
-                </div>
-                <div className="w-1 h-8 bg-green-500/20 rounded-full overflow-hidden">
-                  <div className="w-full bg-green-500 h-[80%]" /> {/* Mock HP */}
+                  <div className="mt-1.5">
+                    <div className="flex justify-between text-[9px] text-gray-400 mb-0.5">
+                      <span>HP</span>
+                      <span className="font-mono">{p.hp ?? '?'}/{p.max_hp ?? '?'}</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${Number(p.hp) <= 0 ? 'bg-red-500' : Number(p.hp) / Math.max(Number(p.max_hp), 1) < 0.3 ? 'bg-yellow-400' : 'bg-green-500'}`}
+                        style={{ width: `${Math.max(0, Math.min(100, (Number(p.hp) / Math.max(Number(p.max_hp), 1)) * 100))}%` }}
+                      />
+                    </div>
+                  </div>
+                  {(p.moves || []).length > 0 && (
+                    <div className="mt-1.5 grid grid-cols-2 gap-x-2 gap-y-0.5">
+                      {(p.moves).map((m: any, mi: number) => (
+                        <div key={mi} className="flex items-center gap-1 text-[9px]">
+                          <span className="text-gray-400 truncate flex-1">{moveLabel(m.id)}</span>
+                          <span className={`font-mono ${Number(m.pp) <= 0 ? 'text-red-400' : 'text-gray-300'}`}>{m.pp}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )) : (

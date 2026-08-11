@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "slot_count": 1,
-  "next_agent_index": 4,
+  "slot_count": 2,
+  "next_agent_index": 6,
   "slots": [
     {
       "slot": 0,
@@ -12,6 +12,16 @@
       "status": "active",
       "archetype": "speedrunner",
       "route_role": "guide"
+    },
+    {
+      "slot": 1,
+      "agent_name": "FARON",
+      "identity_index": 5,
+      "profile_index": 1,
+      "generation": 1,
+      "status": "active",
+      "archetype": "completionist",
+      "route_role": "follower"
     }
   ],
   "completed_runs": [],
@@ -22,10 +32,6 @@
     },
     {
       "agent_name": "EARON",
-      "reason": "fora do roster; jornada preservada em trainers/"
-    },
-    {
-      "agent_name": "FARON",
       "reason": "fora do roster; jornada preservada em trainers/"
     },
     {
@@ -43,10 +49,6 @@
     {
       "agent_name": "DARON",
       "reason": "slot removido; treinador preservado em trainers/"
-    },
-    {
-      "agent_name": "BARON",
-      "reason": "fora do roster para cronometrar um bot sozinho"
     },
     {
       "agent_name": "CARON",

@@ -295,10 +295,10 @@ function App() {
       </div>
       */}
 
-      {/* Sidebar */}
+      {/* Sidebar: sempre espelha o dado vivo do agente, não o snapshot do clique */}
       {selectedAgent && (
         <AgentSidebar
-          agent={selectedAgent}
+          agent={allAgents[selectedAgent.user] || selectedAgent}
           onClose={() => setSelectedAgent(null)}
         />
       )}

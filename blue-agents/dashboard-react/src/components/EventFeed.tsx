@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Scroll, ArrowUpCircle, Archive, Zap, MapPin, Swords, Crosshair, Skull, Target, Sparkles, BookOpen, Award, Heart } from 'lucide-react';
+import { speciesLabel, moveLabel } from '../pokemonNames';
 
 interface EventLog {
   agent: string;
@@ -56,17 +57,24 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
     return () => ws.current?.removeEventListener('message', handleMessage);
   }, [ws, handleMessage, connected]);
 
-  // The live feed is a journey diary. Low-level map transitions and every
-  // battle-menu input remain available in JSONL, without flooding this view.
+  // The live feed is a journey diary: marcos de verdade, não cada decisão de
+  // batalha. Cada encontro selvagem gerava capture_decision + capture_outcome
+  // (52+ por travessia), e a janela de 30 do backend reenviava tudo — o feed
+  // parecia "atrasado" porque mostrava decisões antigas em lote. Aqui o feed
+  // só fica com o que importa: captura consumada, morte, nível, evolução,
+  // insígnia e marco de história. O resto fica no JSONL.
   const relevantEvents = events.filter(e => {
-    if (e.type === 'battle_started' || e.type === 'battle_win') {
+    if (e.type === 'battle_started' || e.type === 'battle_win' || e.type === 'battle_loss') {
       return e.data?.battle === 'trainer' || e.data?.type === 'trainer';
     }
+    if (e.type === 'capture_decision' || e.type === 'capture_outcome') {
+      return e.data?.outcome === 'captured';
+    }
     return [
-      'location_discovered', 'story_milestone', 'rare_encounter',
-      'capture_decision', 'capture_outcome', 'capture', 'capture_attempt', 'healed', 'starter_selected',
+      'capture', 'capture_attempt', 'healed', 'starter_selected',
       'level_up', 'move_learned', 'training_target', 'evolution', 'badge', 'pc_deposit',
-      'battle_loss', 'death', 'objective_changed',
+      'death', 'objective_changed',
+      'location_discovered', 'story_milestone', 'rare_encounter',
     ].includes(e.type);
   });
 
@@ -145,16 +153,16 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   )}
                   {e.type === 'move_learned' && (
                     <span className="text-cyan-200">
-                      Aprendeu o golpe <span className="font-bold">#{e.data.learned_move_id || '?'}</span>
+                      Aprendeu o golpe <span className="font-bold">{moveLabel(e.data.learned_move_id)}</span>
                       {e.data.replaced_move_id && (
-                        <span className="text-gray-400"> no lugar de #{e.data.replaced_move_id}</span>
+                        <span className="text-gray-400"> no lugar de {moveLabel(e.data.replaced_move_id)}</span>
                       )}
                       <div className="text-gray-500">Build: {(e.data.moves_after || []).map((id: number) => `#${id}`).join(' · ')}</div>
                     </span>
                   )}
                   {e.type === 'capture' && (
                     <>
-                      Capturou <span className="text-yellow-300 font-bold">{e.pokemon?.species_id ? `#${e.pokemon.species_id}` : 'Pokémon'}</span>!
+                      Capturou <span className="text-yellow-300 font-bold">{e.pokemon?.species_id ? speciesLabel(e.pokemon.species_id) : 'Pokémon'}</span>!
                       <div className="text-gray-500">{e.data.reason}</div>
                       <div className="text-gray-600">Pokédex: {e.data.count} · destino: {e.data.result === 'pc' ? 'PC' : 'time'}</div>
                       {e.data.shiny_candidate && <div className="font-bold text-fuchsia-300">Prioridade shiny confirmada</div>}
@@ -162,7 +170,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   )}
                   {e.type === 'starter_selected' && (
                     <span className="text-green-200">
-                      Starter escolhido: <span className="font-bold">#{e.data.pokemon?.species_id || '?'}</span>
+                      Starter escolhido: <span className="font-bold">{speciesLabel(e.data.pokemon?.species_id)}</span>
                     </span>
                   )}
                   {e.type === 'pc_deposit' && (
@@ -177,14 +185,14 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   )}
                   {e.type === 'battle_started' && (
                     <span className="text-red-200">
-                      {e.data.encounter_label || 'Batalha iniciada'} contra <span className="font-bold">#{e.data.enemy_species_id || e.data.enemy_id}</span>
+                      {e.data.encounter_label || 'Batalha iniciada'} contra <span className="font-bold">{speciesLabel(e.data.enemy_species_id || e.data.enemy_id)}</span>
                       <span className="text-gray-500"> · {e.data.map_name || e.data.battle}</span>
                     </span>
                   )}
                   {e.type === 'capture_decision' && (
                     <span className={e.data.choice === 'capture' ? 'text-yellow-200' : 'text-orange-200'}>
                       {e.data.choice === 'capture' ? 'Decidiu capturar' : 'Decidiu derrotar'}{' '}
-                      <span className="font-bold">#{e.data.enemy_species_id || e.data.enemy_id}</span>
+                      <span className="font-bold">{speciesLabel(e.data.enemy_species_id || e.data.enemy_id)}</span>
                       <div className="text-gray-400">{e.data.reason}</div>
                       <div className="text-gray-600">
                         motivo: {e.data.motivation || 'treino'} · Poké Balls: {e.data.pokeballs ?? 0}
@@ -194,7 +202,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   {e.type === 'capture_outcome' && (
                     <span className={e.data.outcome === 'captured' ? 'text-yellow-200' : 'text-gray-300'}>
                       {e.data.intent === 'capture' ? 'Quis capturar' : 'Quis derrotar'}{' '}
-                      <span className="font-bold">#{e.data.enemy_species_id}</span>
+                      <span className="font-bold">{speciesLabel(e.data.enemy_species_id)}</span>
                       {' → '}
                       <span className="font-bold">
                         {e.data.outcome === 'captured' && 'capturou'}
@@ -225,7 +233,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   )}
                   {e.type === 'training_target' && (
                     <span className="text-cyan-200">
-                      Training target: <span className="font-bold">#{e.data.active_pokemon?.species_id || '?'}</span>
+                      Training target: <span className="font-bold">{speciesLabel(e.data.active_pokemon?.species_id)}</span>
                       <div className="text-gray-500">{e.data.reason}</div>
                     </span>
                   )}
@@ -246,7 +254,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   )}
                   {e.type === 'rare_encounter' && (
                     <span className="text-fuchsia-200">
-                      <span className="font-bold">Compatível com shiny: #{e.data.enemy_species_id || e.data.enemy_id}</span>
+                      <span className="font-bold">Compatível com shiny: {speciesLabel(e.data.enemy_species_id || e.data.enemy_id)}</span>
                       <div className="text-gray-400">{e.data.reason}</div>
                       {!e.data.capture_unlocked && <div className="text-red-300">Captura ainda bloqueada pela história ou sem Poké Balls</div>}
                     </span>
@@ -258,7 +266,7 @@ const EventFeed: React.FC<{ ws: React.MutableRefObject<WebSocket | null>; connec
                   )}
                   {e.type === 'evolution' && (
                     <span className="text-fuchsia-200">
-                      Evolution: <span className="font-bold">#{e.data.old_pokemon?.species_id}</span> → <span className="font-bold">#{e.data.new_pokemon?.species_id}</span>
+                      Evolution: <span className="font-bold">{speciesLabel(e.data.old_pokemon?.species_id)}</span> → <span className="font-bold">{speciesLabel(e.data.new_pokemon?.species_id)}</span>
                     </span>
                   )}
                   {e.type === 'badge' && (

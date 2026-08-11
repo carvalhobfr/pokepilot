@@ -106,6 +106,10 @@ BAG_FIRST_ITEM_ADDRESS = 0xD31E
 BAG_CAPACITY = 20
 # One operator order: throw a ball at whatever is on screen right now.
 MANUAL_THROW_BALL_TASK = "MANUAL: THROW_BALL"
+
+# Abaixo disso, um encontro selvagem no caminho não vale o turno durante uma
+# travessia: fugir custa um turno, lutar até o fim drena o time inteiro.
+FLEE_HP_FRACTION = 0.5
 # Centres are the only rooms a run may ever be resumed into. The set lives with
 # the route controller that walks to them; a second copy here would be a second
 # thing to keep in step, and this session has already paid for that mistake
@@ -1073,6 +1077,13 @@ class HybridGymEnv(RedGymEnv):
                 self.current_task.strip().upper() == MANUAL_THROW_BALL_TASK
             )
             battle_action_str = self._next_capture_action()
+            if battle_action_str is None:
+                # Running from a wild fight that is not worth the turn comes
+                # before sending someone out: on a crossing, an encounter
+                # with a worn-out team drains HP toward the next whiteout.
+                battle_action_str = self._next_escape_action()
+                if battle_action_str is not None:
+                    self.battle_action_mode = "escape"
             if battle_action_str is None:
                 # Sending someone out comes first: a fainted lead is not a
                 # battle you may leave, it is a battle waiting on an answer.
@@ -2874,6 +2885,21 @@ class HybridGymEnv(RedGymEnv):
             active_slot = 0
         active = party[active_slot] if 0 <= active_slot < len(party) else None
         fainted = active is not None and int(active.get("hp") or 0) <= 0
+        if fainted:
+            # O slot ativo (0xCC2F) pode ler 0 durante uma transição de menu,
+            # enquanto o Pokémon de pé lutando está em 0xD014. Se o ativo de
+            # batalha real está de pé, não há troca a fazer — o "slot 0 caído"
+            # é leitura desatualizada, não um desmaio. AARON ficava num loop
+            # de switch contra o próprio Butterfree assim.
+            try:
+                battle_internal = int(self.read_m(0xD014))
+                for index, mon in enumerate(party):
+                    if int(mon.get("internal_id") or 0) == battle_internal:
+                        if int(mon.get("hp") or 0) > 0:
+                            return None
+                        break
+            except Exception:
+                pass
         if active is not None and not fainted:
             # Só troca quem caiu. A troca voluntária — ativo de pé, mas sem PP
             # de dano — exige abrir o menu de batalha, ir até PKMN, escolher e
@@ -2901,6 +2927,64 @@ class HybridGymEnv(RedGymEnv):
         if fainted and alive:
             return alive[0]
         return None
+
+    def _party_is_worn_out(self, fraction=FLEE_HP_FRACTION):
+        """Combined party HP under the travelling threshold."""
+        party = self.get_party_info()
+        total = sum(int(mon.get("max_hp") or 0) for mon in party)
+        if total <= 0:
+            return False
+        current = sum(int(mon.get("hp") or 0) for mon in party)
+        return current < total * fraction
+
+    def _party_has_no_damage(self):
+        """True when nobody standing has a damaging move with PP left."""
+        for mon in self.get_party_info():
+            if int(mon.get("hp") or 0) <= 0:
+                continue
+            if self._has_damaging_pp(mon):
+                return False
+        return True
+
+    def _next_escape_action(self):
+        """Run from a wild fight that is not worth the turn, during navigation.
+
+        Foi removida em 2026-08-07: com a cura automática cancelada, fugir com
+        o time machucado não levava a lugar nenhum — AARON fugiu 2.093 Zubats a
+        1 HP de 59 e ficou preso. Aquele motivo era o treino.
+
+        O motivo de agora é a travessia. Atravessar Mt. Moon exige ~5.000
+        passos de caverna com encontro a cada poucos tiles; lutar todos drena
+        HP e PP até o whiteout antes de Cerulean — medido: 10 mortes em 60.000
+        passos, todas por atrito. Um selvagem que não acrescenta nada à quest
+        custa o turno da fuga (1) e poupa o time inteiro. RUN é um tile do
+        PKMN no mesmo menu 2x2, lido, não decorado.
+
+        Batalha de treinador não tem saída; essas continuam sendo lutadas.
+        """
+        if not self.in_battle or self.capture_forced:
+            return None
+        try:
+            if (int(self.read_m(0xD057)) & 0b10) != 0:
+                return None
+        except Exception:
+            return None
+        # Fugir durante navegação, não durante treino. Uma quest de captura/
+        # treino quer os encontros; a navegação quer o caminho.
+        if not getattr(self, "current_task", "").startswith("QUEST"):
+            return None
+        # Só foge quem está sem saída na luta: time desgastado OU sem golpe
+        # de dano. Time inteiro lutando vale o encontro (PP e XP).
+        if not self._party_has_no_damage() and not self._party_is_worn_out():
+            return None
+        # Um desmaio é pergunta, não menu: "Use next POKéMON?" precisa ser
+        # respondido antes de qualquer outra coisa. Fugir daí apertava B no
+        # aviso para sempre.
+        if self._battle_prompt_open() or self._switch_target_slot() is not None:
+            return None
+        return self._battle_menu_step(
+            BATTLE_MENU_ITEM_ROW, BATTLE_MENU_RIGHT_COLUMN
+        )
 
     def _next_switch_action(self):
         """Send out a teammate that still has PP, driving the real menus."""
@@ -2981,7 +3065,7 @@ class HybridGymEnv(RedGymEnv):
             "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
             "target_slot": target,
             "party": self.get_party_info(),
-        })
+        }, live=False)
         self.switch_steps = 0
         action = self._battle_menu_step_to_pokemon()
         if action == "A":
@@ -3223,7 +3307,7 @@ class HybridGymEnv(RedGymEnv):
             "capture_unlocked": capture_policy.get("capture_unlocked", False),
             "controller": "SimpleBattleAgent",
             "capture_controller": self.battle_action_mode == "capture",
-        })
+        }, live=False)
 
     def _log_training_target(self, battle_info):
         """Record who is actually receiving XP in the current real battle."""
@@ -3358,7 +3442,7 @@ class HybridGymEnv(RedGymEnv):
             # Only semantic events enter the live window. Raw map transitions
             # remain in JSONL without evicting captures and story milestones.
             self.recent_events.append(event)
-            self.recent_events = self.recent_events[-30:]
+            self.recent_events = self.recent_events[-15:]
             print(f"[{self.agent_name}] 📡 Event logged: {event_type} (total in memory: {len(self.recent_events)})")
         
         # Also write to file for persistence
@@ -3667,14 +3751,17 @@ class HybridGymEnv(RedGymEnv):
                         "enemy_level": battle_info.get("enemy_level"),
                         "shiny_candidate": capture_policy.get("shiny_candidate", False),
                     }
+                    # Decisão de derrota de selvagem fica no JSONL, não no feed:
+                    # com a fuga ativa, cada novo inimigo "decidiu derrotar" e
+                    # enchia a janela de 30 — o feed parecia atrasado por reenviar
+                    # a mesma fila de decisões. Só captura e shiny merecem o feed.
                     self._log_event("capture_decision", {
                         "enemy_id": battle_info.get("enemy_id"),
                         "enemy_species_id": battle_info.get("enemy_species_id"),
                         "enemy_level": battle_info.get("enemy_level"),
                         **capture_policy,
                     }, live=(
-                        decision_is_new
-                        or capture_policy.get("choice") == "capture"
+                        capture_policy.get("choice") == "capture"
                         or capture_policy.get("shiny_candidate", False)
                     ))
                 self._log_training_target(battle_info)

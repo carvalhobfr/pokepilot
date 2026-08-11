@@ -1,6 +1,102 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-08 (Europe/Madrid)**.
+Última atualização: **2026-08-11**.
+
+## Continuar daqui (2026-08-11)
+
+### O que ficou: gate de texto em batalha (validado, mantido)
+
+O controlador de batalha era chamado com **texto ainda na tela**: `0xD01C` não é
+o menu de golpes, a lista de candidatos saía vazia e a escolha caía no desempate
+— e pior, o golpe "escolhido" entrava em `status_moves_used` sem nunca ter sido
+lançado, aposentando pelo resto da batalha o melhor golpe de status. Agora texto
+na tela (oponente de pé) → única ação é avançá-lo, **antes** de ler golpes.
+
+- `src/simple_battle.py:381` (`get_action`) — gate no topo, evolução e
+  aprendizado de golpe preservados (o fluxo de pós-batalha continua entrando).
+- Testes: `test_battle_controller.py` (`TextGateTests`, 3 novos).
+- **Medido no cartucho** (retomada do AARON, 12.000 passos, corrida de validação):
+  batalhas caíram de ~40 eventos/3.000 passos para ~16/12.000, **0 mortes**
+  (antes: morte a cada ciclo). O time mantém PP e atravessa mais sem morrer.
+- Suíte: **467 testes OK** (464 + 3).
+
+### O que foi tentado e descartado: pegar item ball com A
+
+Hipótese inicial: o waypoint (35,31) do 1F está em cima de uma item ball e o bot
+quicava numa caixa de 4 tiles até morrer de atrito. Testado no cartucho, **A de
+frente NÃO pega item ball em Gen I** (mochila ficou em 1, bola continuou no
+tile, nada mudou após vários A). Item ball é **objeto sólido**: não se pisa, não
+se pega por A, não se espera. A rota tem de **contornar** o tile. O código do
+pickup foi revertido; ficou só o comentário em `_follow_route` documentando a
+regra. `src/map_memory.py` voltou ao estado original.
+
+### O que a medição no cartucho revelou sobre Mt. Moon
+
+O ciclo de morte (death_cycle 217→221, todas em `mt_moon_nav`) **não é PP nem
+golpe sem efeito**. É navegação contra o mundo real do 1F:
+
+- A rota do mapa 59 tem waypoint em **(35,31)** — **item ball sólida**
+  (`item_id 40`). O bot quicava entre (33-35, 29-33) por **1.425 passos**,
+  ~78 batalhas por ciclo, até o time morrer de atrito (Butterfree 37 + Ivysaur
+  20 vs Zubat nível 8).
+- A sonda (colisão real por ramificação) confirma: **(35,31) e (36,31) não
+  entram no componente alcançável** de (34,31). Todas as 6 item balls do 1F são
+  inalcançáveis — sólidas mesmo.
+- **O mapa 1F está partido em componentes:** a entrada sul (690 tiles) não
+  alcança a escada NW (5,5) pelo chão; o oeste (x≤6, y≤19) só conecta vindo de
+  outro andar.
+- Medições de andares: escada 1F (25,15) → B1F desce num **poço cego** (66
+  tiles, sem escada B2F nem saída). Escada 1F (17,11) → B1F corredor de 47
+  tiles com escada B2F (17,11) → B2F **pocket de 36 tiles** que volta ao
+  corredor. Nenhum chega à saída leste (27,3) do B1F.
+
+### Inconsistência de colisão aberta: oeste do 1F
+
+Em (10,22), o passo L (para (9,22)) **não move no cartucho**, mas `TileCollision`
+ao vivo, `static_maps.json` E `terrain.json` todos dizem (9,22) caminhável. As
+três fontes concordam entre si e discordam do jogo. Não é NPC (tabela de sprites
+vazia na área) nem timing (CFC5=0). Suspeito de mapeamento de tileset do extrator
+para esta região. Precisa de investigação própria antes de medir rota a oeste.
+
+### Cuidado: os saves atuais estão doentes
+
+Todos os checkpoints de Centro (`center_41/58/68.state`) foram gravados
+**durante diálogo** — `0xCFC4` preso em 1, imune a A e B, imune a tempo.
+`current.state` tem `0xD125=1` residual (texto de batalha antigo). Nenhum dos
+dois serve para validar uma travessia limpa.
+
+Saves saudáveis para retomada diagnóstica: `trainers/AARON/resume-519e074e99e1f13b.state`
+(mapa 59, menu=0).
+
+### Confirmado por RL independente (2026-08-11)
+
+Rodei a política treinada do PokemonRedExperiments (`v2/runs/poke_26214400.zip`,
+26M passos, chegou ao S.S. Anne) em cima do save do AARON via `RedGymEnv`:
+
+- Do save `resume-519e...` (1F, perto da escada 25,15): cruzou 1F→B1F em 158
+  passos pela escada **(25,15)** e **parou no bolsão cego em (20,27)** por
+  50.000+ passos. A política conhece o jogo e mesmo assim desceu para o mesmo
+  beco que a medição manual encontrou.
+- Conclusão: a escada (25,15) do 1F é comprovadamente um **beco sem saída**
+  (medição por sonda + confirmação independente por RL treinada).
+- A política treinada não destrava o cruzamento a partir de um estado
+  arbitrário: ela foi treinada na própria trajetória, que cruza Mt. Moon por
+  outro caminho. Usá-la como oráculo de rota exigiria reiniciar da trajetória
+  dela (init.state), o que perde a jornada do AARON.
+
+**A fazer antes de declarar Mt. Moon resolvido:**
+1. Investigar a inconsistência de colisão no oeste do 1F (tileset × jogo real):
+   em (10,22) o passo L para (9,22) não move no cartucho, mas `TileCollision`,
+   `static_maps.json` e `terrain.json` todos dizem caminhável. É o que separa a
+   entrada sul da escada NW (5,5).
+2. Medir a travessia real por andares com a sonda a partir de um save limpo —
+   o cruzamento 1F→B1F→B2F→B1F norte→saída (27,3) usa escadas que ainda não
+   foram medidas. Candidatas reais: (13,27)/(23,3) do B1F (que conectam ao B2F
+   norte, onde ficam as escadas de volta ao B1F perto da saída), ou a NW (5,5)
+   do 1F (bloqueada pela inconsistência do item 1).
+3. O sprite em **(24,15)** — `_follow_route` espera 6 passos de paciência e
+   depois o fallback anda contra o sprite (abre diálogo, o NPC não sai). É o
+   **travamento aberto nº 1 do handoff** revisitado.
 
 ## Continuar daqui (2026-08-08)
 

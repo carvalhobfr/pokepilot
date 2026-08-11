@@ -201,6 +201,59 @@ class BattleControllerTests(unittest.TestCase):
         self.assertEqual(44, agent.last_decision["learned_move_id"])
 
 
+class TextGateTests(unittest.TestCase):
+    """Com texto na tela, a única ação honesta é avançá-lo.
+
+    O controlador era chamado com texto ainda na tela: 0xD01C não é o menu
+    de golpes, a lista de candidatos saía vazia e a escolha caía no desempate
+    — e pior, o golpe "escolhido" entrava em status_moves_used sem nunca ter
+    saído, aposentando pelo resto da batalha um golpe que nunca foi usado.
+    """
+
+    def test_texto_na_tela_nao_le_golpes_nem_marca_status(self):
+        agent = SimpleBattleAgent()
+        memory = FakeMemory({
+            0xD125: 1,     # texto na tela
+            0xCFE7: 30,    # oponente de pé
+            0xD01C: 73,    # Leech Seed legível — tem de ser ignorado agora
+            0xD02D: 10,
+        })
+
+        action = agent.get_action(memory)
+
+        self.assertIn(action, ("A", "B"))
+        self.assertEqual("advance_text", agent.last_decision["kind"])
+        self.assertEqual(set(), agent.status_moves_used,
+                         "nenhum golpe foi lançado: nada pode ser marcado")
+
+    def test_texto_com_oponente_caido_segue_o_fluxo_de_pos_batalha(self):
+        # Evolução chega com texto na tela e B a cancelaria. O gate não pode
+        # interceptar o pós-batalha.
+        agent = SimpleBattleAgent()
+        memory = FakeMemory({
+            0xD125: 1,
+            0xCFE7: 0,     # oponente caído
+            0xD01C: 44,
+            0xD02D: 25,
+            0xCC51: 144,   # evolução
+        })
+
+        self.assertEqual("A", agent.get_action(memory))
+        self.assertEqual("evolution", agent.last_decision["kind"])
+
+    def test_menu_aberto_sem_texto_continua_escolhendo(self):
+        agent = SimpleBattleAgent()
+        memory = FakeMemory({
+            0xCFE5: 169, 0xCFE7: 20, 0xCFEA: 5, 0xCFEB: 4,
+            0xD014: 177, 0xD019: 21, 0xD01A: 21,
+            0xD01C: 55, 0xD02D: 25,
+            0xCC50: 106, 0xCC26: 1,   # lista de golpes aberta, texto limpo
+        })
+
+        self.assertEqual("A", agent.get_action(memory))
+        self.assertEqual(55, agent.last_decision["selected_move_id"])
+
+
 
 
 class SwitchWhenOutOfPPTests(unittest.TestCase):
@@ -428,22 +481,50 @@ class FaintedLeadTests(unittest.TestCase):
         self.assertEqual("A", env._next_switch_action(), "responde ao aviso")
         self.assertTrue(env.switch_menu_open)
 
-    def test_time_machucado_nao_foge_mais(self):
-        # Fugir era a alternativa barata à viagem de cura. Cancelada a cura,
-        # fugir com pouco HP não leva a lugar nenhum: AARON fugiu 2.093 vezes
-        # dentro de Mt. Moon sem andar um passo. Agora luta, e perde se for.
+    def test_time_machucado_em_navegacao_foge(self):
+        # A fuga voltou para a travessia: atravessar Mt. Moon são ~5.000 passos
+        # de caverna; lutar todo Zubat com o time desgastado drena HP até o
+        # whiteout antes de Cerulean (medido: 10 mortes em 60.000 passos).
+        # Fugir custa um turno; a luta longa custa o time.
         env = self.make_env([self.mon(hp=5, pp=20), self.mon(hp=6, pp=20)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
-        self.assertFalse(hasattr(env, "_next_escape_action"))
+        env._battle_prompt_open = lambda: False
+        env.current_task = "QUEST: MT_MOON_NAV"
+        env._battle_menu_step = lambda row, col: f"MENU-{row}-{col}"
+        self.assertEqual("MENU-1-15", env._next_escape_action())
 
-    def test_sem_pp_de_dano_tambem_luta(self):
-        # Struggle machuca e acaba matando — e morrer é a recuperação: o
-        # cartucho devolve o time inteiro, com PP, num Centro.
+    def test_fora_de_quest_nao_foge(self):
+        # Fora de navegação a fuga não se aplica: quem está treinando quer os
+        # encontros, e o treino era exatamente o caso que a remoção original
+        # protegia (AARON fugiu 2.093 Zubats a 1 HP e ficou preso).
+        env = self.make_env([self.mon(hp=5, pp=20), self.mon(hp=6, pp=20)],
+                            prompt_open=False)
+        env._switch_target_slot = lambda: None
+        env._battle_prompt_open = lambda: False
+        env.current_task = "TRAIN"
+        self.assertIsNone(env._next_escape_action())
+
+    def test_sem_pp_de_dano_em_navegacao_foge(self):
+        # Sem golpe de dano não há como ganhar a luta; em travessia, o turno
+        # da fuga vale mais que o desgaste até o Struggle.
         env = self.make_env([self.mon(hp=20, pp=0), self.mon(hp=18, pp=0)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
-        self.assertFalse(hasattr(env, "_next_escape_action"))
+        env._battle_prompt_open = lambda: False
+        env.current_task = "QUEST: MT_MOON_NAV"
+        env._battle_menu_step = lambda row, col: f"MENU-{row}-{col}"
+        self.assertEqual("MENU-1-15", env._next_escape_action())
+
+    def test_time_inteiro_em_navegacao_luta(self):
+        # Time inteiro e com golpe de dano: o encontro vale (PP, XP), e fugir
+        # seria jogar a recompensa fora.
+        env = self.make_env([self.mon(hp=20, pp=20), self.mon(hp=18, pp=20)],
+                            prompt_open=False)
+        env._switch_target_slot = lambda: None
+        env._battle_prompt_open = lambda: False
+        env.current_task = "QUEST: MT_MOON_NAV"
+        self.assertIsNone(env._next_escape_action())
 
 
 if __name__ == "__main__":

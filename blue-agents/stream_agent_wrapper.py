@@ -132,7 +132,15 @@ class StreamWrapper(gym.Wrapper):
                     battle_info = None
             metadata["battle_info"] = battle_info or {"is_battle": False}
             metadata["status"] = "battle" if battle_info else "running"
-            frame = self._encode_battle_frame() if battle_info else None
+            # Encode only when someone is actually watching: without an
+            # audience the frame is PIL+WebP work done for nobody. The replay
+            # accumulator already gates on `_is_being_watched`; this gates the
+            # costly encode itself.
+            frame = (
+                self._encode_battle_frame()
+                if battle_info and self._is_being_watched()
+                else None
+            )
             metadata["battle_frame"] = frame
             self._record_replay_frame(battle_info, frame)
             metadata["build"] = {

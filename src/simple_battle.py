@@ -379,6 +379,33 @@ class SimpleBattleAgent:
         3. Avoid using status moves in important battles
         """
         try:
+            # Com texto na tela, 0xD01C não é o menu de golpes ainda — é o
+            # que estiver na memória — e qualquer escolha montada em cima
+            # dele é lixo. Pior que telemetria ruim: a lista de candidatos
+            # sai vazia, a escolha cai no desempate de status, e o golpe
+            # "escolhido" é marcado em status_moves_used sem nunca ter sido
+            # lançado, tirando da batalha o melhor golpe de status que
+            # restava. Enquanto houver texto, a única ação honesta é
+            # avançá-lo. Oponente caído segue para o fluxo de pós-batalha,
+            # que sabe tratar evolução e aprendizado; e um aprendizado em
+            # andamento precisa dos seus próprios UP/DOWN, não disto.
+            battle_text = int(emulator.read_byte(0xD125))
+            opponent_hp = (
+                (int(emulator.read_byte(0xCFE6)) << 8)
+                + int(emulator.read_byte(0xCFE7))
+            )
+            if (
+                battle_text == 1
+                and opponent_hp > 0
+                and self.move_learning is None
+            ):
+                self.last_decision = {
+                    "kind": "advance_text",
+                    "reason": "battle text on screen; move menu not drawn yet",
+                    "battle_text": battle_text,
+                }
+                return self._advance_text()
+
             # Battle RAM stores Gen I internal indexes, not National Dex IDs.
             # Keep both forms in telemetry, but use National IDs for matchup
             # logic (e.g. internal 177 is Squirtle #007).
