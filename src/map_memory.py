@@ -41,13 +41,13 @@ def _cells(tiles):
 
 
 def _load_static_maps(path):
-    """Andável, mato e treinador por mapa, lidos do cartucho."""
+    """Andável, mato, treinador e objetos por mapa, lidos do cartucho."""
     try:
         with open(path, "r", encoding="utf-8") as handle:
             payload = json.load(handle)
     except (OSError, ValueError):
-        return {}, {}, {}
-    walkable, grass, trainers = {}, {}, {}
+        return {}, {}, {}, {}
+    walkable, grass, trainers, objects = {}, {}, {}, {}
     for map_key, data in payload.items():
         cells = _cells(data.get("walkable"))
         if not cells:
@@ -60,7 +60,14 @@ def _load_static_maps(path):
             for o in data.get("objects", ())
             if o.get("kind") == "trainer"
         }
-    return walkable, grass, trainers
+        # Treinador parado, NPC, fóssil e item ball não andam nem saem por si:
+        # o plano deve contorná-los (e interagir com eles, nunca atravessá-los).
+        objects[map_id] = {
+            (int(o["x"]), int(o["y"]))
+            for o in data.get("objects", ())
+            if o.get("kind") in ("trainer", "npc", "item")
+        }
+    return walkable, grass, trainers, objects
 
 
 class MapMemory:
@@ -78,9 +85,11 @@ class MapMemory:
         self.solid = {}
         self.dirty = False
         if static_path:
-            self.static, self.grass, self.trainers = _load_static_maps(static_path)
+            self.static, self.grass, self.trainers, self.objects = _load_static_maps(
+                static_path
+            )
         else:
-            self.static, self.grass, self.trainers = {}, {}, {}
+            self.static, self.grass, self.trainers, self.objects = {}, {}, {}, {}
         self._load()
 
     def known_from_rom(self, map_id):
@@ -94,6 +103,15 @@ class MapMemory:
     def trainer_positions(self, map_id):
         """Onde cada treinador do mapa começa, para se manter longe deles."""
         return self.trainers.get(int(map_id), set())
+
+    def object_positions(self, map_id):
+        """Tiles ocupados por treinador, NPC, fóssil ou item ball.
+
+        Nada disso anda nem é atravessável: treinador some após a luta, fóssil
+        some após o pickup, mas o planejador não sabe quando — então o caminho
+        normal os contorna e o fallback otimista é o que cruza o que já abriu.
+        """
+        return self.objects.get(int(map_id), set())
 
     def _load(self):
         if self.path is None or not self.path.exists():

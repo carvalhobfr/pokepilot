@@ -105,6 +105,11 @@ TRAINING_TRAINER_CLEARANCE = 12
 # in Gen I pace on their own; walls do not.
 SPRITE_PATIENCE_STEPS = 6
 
+# Botões A gastos interagindo com um sprite que fecha a única passagem antes de
+# desistir. Treinador responde com batalha (vencer remove o sprite), fóssil
+# responde com pickup (some do tile) e NPC com diálogo (fica — o desvio assume).
+SPRITE_DIALOG_LIMIT = 12
+
 # Steps spent unable to get any closer before the route gives up on this anchor
 # and backs up to the previous one.
 UNREACHABLE_PATIENCE_STEPS = 8
@@ -2630,6 +2635,87 @@ class ScriptedAgent(BaseAgent):
             map_id, x, y, target_x, target_y, blocked, waypoints, route_id
         )
 
+        # Sprite que fecha a única passagem — treinador, fóssil ou NPC parado.
+        # Medido em Mt. Moon: o bot ficou 1000+ passos ao lado do mesmo
+        # treinador porque o fallback só virava o personagem — D-pad sozinho
+        # nunca abre diálogo em Gen I. Aqui, virar para o sprite e apertar A:
+        # treinador vira batalha (vencer remove o sprite e o tile abre), fóssil
+        # vira pickup (some do tile), NPC vira diálogo (avançado, o desvio
+        # assume). Os fósseis (12,6)/(13,6) do B2F são o portão da travessia:
+        # não há outro caminho da sala central para a escada oeste.
+        #
+        # Treinador derrotado em Gen I continua no tile para sempre, visível e
+        # bloqueando (o Youngster de Mt. Moon em (12,16) ficou com o texto
+        # pós-batalha, "I came down here to show off to girls", e a rota
+        # conversava com ele em ciclo). Conversa que não resolve em batalha ou
+        # pickup entra em `route_sprites_tried` e deixa de ser alvo: o desvio
+        # assume e o ghost vira parede permanente.
+        tried = getattr(self, "route_sprites_tried", None)
+        if tried is None:
+            tried = self.route_sprites_tried = set()
+        talk = getattr(self, "route_sprite_talk", None)
+        if talk is not None:
+            if (
+                talk["route"] != route_id
+                or talk["map"] != map_id
+                or talk["pos"] != (x, y)
+                or blocked.get(talk["direction"]) != "sprite"
+            ):
+                # O sprite saiu, saímos do tile, a rota mudou ou ele andou:
+                # a interação acabou e o resto da rota assume.
+                self.route_sprite_talk = None
+            else:
+                talk["steps"] = talk["steps"] + 1
+                if talk["steps"] <= SPRITE_DIALOG_LIMIT:
+                    # Texto de pickup/diálogo é avançado pelo mesmo A; menu
+                    # aberto já é atendido pelo topo do _follow_route.
+                    return WindowEvent.PRESS_BUTTON_A
+                # Limite estourado: diálogo que não remove o sprite — treinador
+                # já derrotado, NPC que não anda. B fecha o que estiver aberto,
+                # o tile entra no conjunto de "não conversar de novo" e o
+                # desvio assume.
+                dx, dy = ROUTE_STEP_OFFSETS[talk["direction"]]
+                tried.add((map_id, talk["pos"][0] + dx, talk["pos"][1] + dy))
+                self.route_sprite_talk = None
+                return WindowEvent.PRESS_BUTTON_B
+        else:
+            # Treinador, fóssil e item ball do ROM não andam: esperar é jogar
+            # tempo fora, falar já. NPC que anda mantém a paciência antiga
+            # (SPRITE_PATIENCE_STEPS) antes de qualquer interação.
+            memory = self._map_memory()
+            static_objects = (
+                memory.object_positions(map_id) if memory is not None else set()
+            )
+            sprite_blockers = []
+            for step in wanted:
+                if blocked.get(step) == "sprite":
+                    dx, dy = ROUTE_STEP_OFFSETS[step]
+                    tile = (x + dx, y + dy)
+                    if tile in static_objects and (map_id, tile[0], tile[1]) not in tried:
+                        sprite_blockers.append(step)
+            if not sprite_blockers and self.route_no_progress > SPRITE_PATIENCE_STEPS:
+                # Sem sprite no rumo do waypoint: quem fecha a passagem pode
+                # estar ao lado (o fóssil (12,6) fica à direita de quem chega
+                # pelo bolsão oeste, com o alvo a oeste).
+                sprite_blockers = []
+                for step in ("U", "D", "L", "R"):
+                    if blocked.get(step) != "sprite":
+                        continue
+                    dx, dy = ROUTE_STEP_OFFSETS[step]
+                    if (map_id, x + dx, y + dy) not in tried:
+                        sprite_blockers.append(step)
+            if sprite_blockers:
+                direction = sprite_blockers[0]
+                self.route_sprite_talk = {
+                    "route": route_id,
+                    "map": map_id,
+                    "pos": (x, y),
+                    "direction": direction,
+                    "steps": 0,
+                }
+                self.route_last_issue = "sprite_dialog"
+                return ROUTE_EVENTS[direction]
+
         # What the screen has already shown of this map, kept. A screenful is
         # enough to step around a tree and nowhere near enough to leave a
         # pocket whose exit is off screen — which is why two trainers spent an
@@ -2648,6 +2734,29 @@ class ScriptedAgent(BaseAgent):
             )
             if step not in blocked:
                 return self._route_move(step)
+
+        # Ledge: o alvo pode estar do outro lado de um penhasco — descer pula
+        # o tile do meio, que o planejador trata como parede. (79,8)->(79,10)
+        # da Rota 4 é exatamente isso (a faixa de penhasco em y=9). Apertar na
+        # parede comum não move nada, então tentar é de graça quando o alvo
+        # está alinhado a dois tiles na direção e o pouso é andável.
+        if (
+            (target_x == x or target_y == y)
+            and abs(target_x - x) + abs(target_y - y) == 2
+        ):
+            step = (
+                "R" if target_x > x else
+                "L" if target_x < x else
+                "D" if target_y > y else "U"
+            )
+            if blocked.get(step) == "terrain":
+                dx, dy = ROUTE_STEP_OFFSETS[step]
+                memory = self._map_memory()
+                if (
+                    memory is not None
+                    and not memory.is_solid(map_id, (x + 2 * dx, y + 2 * dy))
+                ):
+                    return self._route_move(step)
 
         # The plan outranks the eight-tile memory: that memory exists for when
         # there is nothing better than a guess, and a committed path is better.
@@ -2744,6 +2853,7 @@ class ScriptedAgent(BaseAgent):
         # travessia recomeça, e mirar o waypoint do meio a partir da porta é
         # planejar por cima de terreno que esta tentativa não andou.
         self.route_progress = {}
+        self.route_sprite_talk = None
         recorder = getattr(self, "trail_recorder", None)
         if recorder is None:
             return 0
@@ -2969,6 +3079,11 @@ class ScriptedAgent(BaseAgent):
             occupied = {
                 (x + dx, y + dy) for dx, dy in reader.occupied_offsets()
             }
+            # Treinador parado, NPC, fóssil e item ball não andam: o tile deles
+            # sai do ROM e não muda até a luta/pickup. O plano normal os
+            # contorna; o fallback abaixo é quem cruza o que já abriu.
+            static_objects = self._map_memory().object_positions(map_id)
+            occupied |= static_objects
             # A door is walkable and it is also a trapdoor. Planning *through*
             # one is what made the Mart feel like it had gravity: the path to a
             # waypoint two tiles away crossed the doorway, the bot stepped in,
@@ -3047,9 +3162,15 @@ class ScriptedAgent(BaseAgent):
                 # moment of the step, so trying is cheap and standing still is
                 # not. Without this the bot sat inside a pocket its own map had
                 # invented and had nothing left to explore.
+                #
+                # The static objects are left out of this last resort on
+                # purpose: the Rocket-gated fossil room has no path around its
+                # trainer, and a path that crosses his tile is exactly what
+                # lets the route continue after the battle removes him. The
+                # same for a picked-up fossil.
                 path = memory.find_path(
                     map_id, (x, y), (target_x, target_y),
-                    blocked=occupied, ignore_solid=True,
+                    blocked=occupied - static_objects, ignore_solid=True,
                 )
         except Exception:
             self.terrain_plan = None

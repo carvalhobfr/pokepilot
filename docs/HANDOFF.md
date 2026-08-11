@@ -1,8 +1,61 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-11**.
+Última atualização: **2026-08-12**.
 
-## Continuar daqui (2026-08-11)
+## Continuar daqui (2026-08-12)
+
+### Marco: Mt. Moon atravessado de novo, confirmado na RAM
+
+`mt_moon_nav` foi concluído no cartucho: AARON saiu de 1F (34,31), cruzou
+1F → B1F → B2F → B1F → Rota 4 e entrou em Cerulean em **m3 (0,18)** — o mesmo
+tile de entrada do BARON em 08-05. `completed_quests` inclui `mt_moon_nav`
+(generation 85) e o nó seguinte (`bill_quest`) ficou ativo. O estado final é
+saudável (mapa 88, menu=0) e o checkpoint do Centro da Rota 4 vale.
+
+**O que destravou** (a sequência de travamentos que a medição revelou):
+
+1. **O estático NÃO estava partido.** O diagnóstico anterior ("becos que o
+   estático diz conectados, ex.: (9,6)") veio de um diff viciado — células
+   inalcançáveis pela sonda foram contadas como "estático diz andável". Medido
+   de novo: a sonda do B2F leste (67 células) == estático menos warp (25,9) e
+   treinador (29,11); o corredor B1F (47 células) == estático; todos os tiles
+   pisados pelo BARON em 08-05 ⊆ estático. A fórmula do extrator (quadrante
+   inferior-esquerdo do bloco) confere com `CanWalkOntoTile` do disassembly.
+2. **Treinador parado no corredor nunca era enfrentado.** O fallback só virava
+   o personagem (D-pad); D-pad sozinho não abre diálogo em Gen I. AARON ficou
+   1.000+ passos ao lado do Youngster de 1F (12,16) e do Rocket-gate do B2F.
+3. **Treinador derrotado fica no tile para sempre** (comportamento real de Gen
+   I — o Youngster em (12,16) ficou com o texto pós-batalha "I came down here
+   to show off to girls" e bloqueando). Conversa que não resolve em batalha ou
+   pickup entra em `route_sprites_tried` e o desvio assume.
+4. **Os fósseis (12,6)/(13,6) do B2F são o portão da travessia** (SPRITE_FOSSIL
+   no bloco de objetos, não NPCs): a sala central só alcança a escada oeste
+   passando pelos tiles deles (e do Super Nerd (12,8)). Pickup com A abre o
+   caminho — e o planejador normal os contorna (fallback cruza o que abriu).
+5. **Ledge da Rota 4**: (79,8)→(79,10) é um pulo sobre o penhasco em y=9; o
+   planejador trata (79,9) como parede. Regra nova: alvo alinhado a 2 tiles
+   com pouso andável → tenta o passo (parede comum não move nada, ledge pula).
+
+Mudanças:
+
+- `src/map_memory.py`: `_load_static_maps` carrega `objects` (treinador + NPC +
+  fóssil + item ball) e `object_positions(map_id)`.
+- `src/scripted_agent.py`: `_planned_step` bloqueia objetos estáticos no plano
+  normal (o fallback `ignore_solid` cruza o que a luta/pickup abriu); máquina
+  `route_sprite_talk` (virar + A contra sprite que fecha a passagem, com limite
+  e `route_sprites_tried` para o ghost de treinador derrotado); regra de
+  pulo de ledge para alvo alinhado a 2 tiles; `begin_death_cycle` limpa o
+  estado da máquina.
+- `blue-agents/tools/probe_route.py`: settle de 120 frames após `--path` — o
+  warp tem dois estágios (~40+ frames de reposicionamento) e o snapshot
+  antigo pegava o jogador no meio, retornando "reachable=1".
+- Testes: 479 OK (12 novos: objetos do B2F, portão dos fósseis, rota conectada
+  com objetos bloqueados, máquina de sprite, ghost não re-triggerado, ledge).
+
+Retomada: AARON segue saudável em `trainers/AARON/` (jornada em
+`bill_quest`); o estado de validação da travessia ficou em
+`current.state` (o par antigo doente, Centro da Rota 4 com menu preso, foi
+preservado como `current.state.sick-route4center.bak`).
 
 ### O que ficou: gate de texto em batalha (validado, mantido)
 

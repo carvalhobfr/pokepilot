@@ -96,6 +96,14 @@ def main():
         pyboy.send_input(release)
         pyboy.tick(16, True, False)
 
+    # A warp lands the player in two phases: the tile appears at the source
+    # coordinates first, then the game repositions to the destination warp
+    # tile ~40+ frames later. Snapshoting 16 frames after the last press
+    # captures the player mid-warp, where every direction reads as blocked
+    # ("reachable=1"). Settle past the repositioning before branching.
+    if args.path:
+        pyboy.tick(120, True, False)
+
     if args.save_output:
         args.save_output.parent.mkdir(parents=True, exist_ok=True)
         with args.save_output.open("wb") as output:

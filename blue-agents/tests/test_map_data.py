@@ -158,6 +158,51 @@ class NavegacaoPeloCartuchoTests(unittest.TestCase):
         # não lista como passável. O terreno aprendido dizia que dava.
         self.assertTrue(self.memoria.is_solid(1, (3, 3)))
 
+    def test_objetos_do_b2f_incluem_os_fosseis_e_o_treinador(self):
+        # (12,6)/(13,6) são os fósseis DOME/HELIX (SPRITE_FOSSIL no bloco de
+        # objetos), (12,8) é o Super Nerd e (25,21)/(29,5) são item balls.
+        # Nenhum anda; o plano normal deve contorná-los.
+        objetos = self.memoria.object_positions(61)
+        for tile in ((12, 6), (13, 6), (12, 8), (25, 21), (29, 5)):
+            self.assertIn(tile, objetos)
+
+    def test_sala_dos_fosseis_so_e_alcancavel_atraves_dos_objetos(self):
+        # O portão da travessia do B2F: com treinador e fósseis bloqueados,
+        # o planejador normal não acha caminho da sala central para a sala dos
+        # fósseis — a interação (batalha/pickup) é obrigatória. O fallback
+        # otimista continua devolvendo um caminho (cruza o tile que abre).
+        bloqueados = self.memoria.object_positions(61)
+        self.assertIsNone(
+            self.memoria.find_path(61, (13, 8), (3, 4), blocked=bloqueados)
+        )
+        self.assertIsNotNone(
+            self.memoria.find_path(
+                61, (13, 8), (3, 4), blocked=bloqueados, ignore_solid=True
+            )
+        )
+
+    def test_rota_do_mt_moon_continua_conectada_com_objetos_bloqueados(self):
+        # As pernas reais das rotas 59/60/61 seguem válidas com treinadores,
+        # fósseis e item balls bloqueados no planejador; a única exceção é o
+        # portão do fóssil, coberto pelo fallback.
+        bloqueados = self.memoria.object_positions(61)
+        pernas_61 = [
+            ((21, 17), (26, 31)), ((26, 31), (10, 26)), ((10, 26), (13, 8)),
+            ((3, 4), (7, 4)), ((7, 4), (11, 4)), ((11, 4), (16, 4)),
+            ((16, 4), (5, 7)),
+        ]
+        for origem, destino in pernas_61:
+            self.assertIsNotNone(
+                self.memoria.find_path(61, origem, destino, blocked=bloqueados),
+                f"{origem} -> {destino} deveria seguir conectada",
+            )
+        for origem, destino in [
+            ((13, 8), (3, 4)),  # o portão dos fósseis, deliberadamente excluído
+        ]:
+            self.assertIsNone(
+                self.memoria.find_path(61, origem, destino, blocked=bloqueados)
+            )
+
     def test_a_tela_nao_reescreve_o_que_veio_do_cartucho(self):
         # Em batalha o mapa de tiles guarda a arena e todo tile lê como parede.
         antes = set(self.memoria.static[FLORESTA])
