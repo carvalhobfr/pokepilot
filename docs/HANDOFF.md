@@ -108,6 +108,23 @@ ginásio m65).
 da evolução (16) é uma reta longa na curva de XP da Gen I; o operador pode
 ajustar a meta ou trocar a missão pela UX a qualquer momento.
 
+### Farm validado no cartucho: Ivysaur 16, Pikachu 12, Pewter (2026-08-12)
+
+O loop do farm completou a meta no cartucho: o Bulbasaur do FARON
+**evoluiu para Ivysaur (nível 16)** — a primeira evolução na curva medium-
+slow levou ~2h de corrida com whiteouts curados no Centro — o Pikachu foi
+capturado e subiu ao 12, os Metapods evoluíram (3 evoluções no diário), a
+Floresta foi atravessada e o FARON está no Ginásio de Pewter (mapa 54),
+prestes a enfrentar o Brock. Checkpoint `center_58` preserva o time.
+
+**Flakiness conhecida do checkpoint**: o manifesto `current.state.meta.json`
+some a cada whiteout (o `_invalidate_current_checkpoint` o deleta antes de a
+gravação pós-morte confirmar) — quando a gravação falha, a retomada cai no
+último Centro (`center_58` — o mais novo — progresso preservado). A
+gravação pós-morte funciona quando o mapa já é o Centro no momento da
+detecção (medido: `center_58` gravado em 08:34); a investigação fina do
+timing fica como trabalho futuro.
+
 ### O que ficou: gate de texto em batalha (validado, mantido)
 
 O controlador de batalha era chamado com **texto ainda na tela**: `0xD01C` não é
