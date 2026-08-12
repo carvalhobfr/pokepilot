@@ -108,6 +108,29 @@ ginásio m65).
 da evolução (16) é uma reta longa na curva de XP da Gen I; o operador pode
 ajustar a meta ou trocar a missão pela UX a qualquer momento.
 
+### Gate de batalha corrigido: 0xD125 não é texto (2026-08-12)
+
+O gate "texto na tela" usava o `0xD125` — que **lê 1 em qualquer estado,
+inclusive fora de batalha** (medido: AARON e FARON parados, 0xD125=1) — e o
+controlador apertava A para sempre, sem nunca selecionar golpe: o time
+perdia toda batalha de treinador por atrito (FARON contra o Brock: 68
+derrotas em sequência, todas por não atacar).
+
+O sinal certo é o `0xCC50`: **106** com a lista de golpes desenhada
+(variante de coluna 5) e **94** no seletor 2x2; qualquer outro valor é
+texto/animação. A coluna sozinha não distingue (5 é tanto a lista quanto
+texto). Reproduzido no cartucho: batalha contra o Brock com C50=106/col=5
+= lista de golpes aberta. O gate agora avança só o texto de verdade.
+
+**Ainda aberto (próximo trabalho)**: o FARON continua perdendo o Brock —
+com o gate certo, o problema passou para a **escolha do ativo/troca**: a
+party dele tem Ivysaur 16 com Vine Whip (4×) mas a batalha termina com o
+Pikachu (Thundershock 0× no Onix Ground) ou o Metapod (Harden) no lugar —
+a regra de troca (`_next_switch_action`) precisa preferir quem tem golpe de
+dano eficaz. E a rota do vermilion (AARON em Cerulean, 11 quests) — a
+primeira perna (sair do ginásio) está feita; o caminho completo (Rota 5,
+Saffron, Rota 6, S.S. Anne, Cut, Lt. Surge) é o próximo executor.
+
 ### Farm validado no cartucho: Ivysaur 16, Pikachu 12, Pewter (2026-08-12)
 
 O loop do farm completou a meta no cartucho: o Bulbasaur do FARON
