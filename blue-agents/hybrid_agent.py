@@ -1834,6 +1834,14 @@ class HybridGymEnv(RedGymEnv):
             if memory.get("head_start_served"):
                 self.head_start_served = True
                 self.delay_steps = 0
+            # Última geração selada do journey: sem manifesto (Centro órfão),
+            # é o melhor sinal de até onde o save chegou. Zerá-la reabria
+            # quests que a RAM ainda prova (medido: FARON voltou ao
+            # buy_pokeballs com a mochila gasta e quicou entre Pewter e a
+            # Rota 2 indo comprar em Viridian).
+            self.journey_checkpoint_generation = int(
+                memory.get("checkpoint_generation", 0) or 0
+            )
             # Deaths outlive the process. A chunk is a fresh env with the
             # counter back at zero, so without this every whiteout logged
             # itself as cycle 1 and "attempt 1 versus attempt 2" — the whole
@@ -4010,10 +4018,16 @@ class HybridGymEnv(RedGymEnv):
                 self.pyboy.load_state(state_file)
         except (OSError, ValueError):
             return False
-        # A bare ``center_*.state`` has no manifest, so nothing here proves how
-        # far it got. Generation zero seals nothing: every remembered quest has
-        # to answer to the RAM again.
-        self.checkpoint_generation = 0
+        # Um `center_*.state` sem manifesto não prova o avanço por si — mas o
+        # journey carrega a última geração selada, e zerá-la reabria quests
+        # que a RAM ainda prova. Medido (2026-08-12): a retomada pelo Centro
+        # devolveu o FARON ao `buy_pokeballs` (bolas gastas no farm) e o bot
+        # quicou entre Pewter e a Rota 2 indo comprar em Viridian. A geração
+        # do journey é o melhor sinal disponível; cada quest lembrada continua
+        # tendo de responder à RAM de novo.
+        self.checkpoint_generation = int(
+            getattr(self, "journey_checkpoint_generation", 0) or 0
+        )
         self._checkpoint_loaded_from_disk = True
         print(f"[{self.agent_name}] ♻️ Retomando do último Centro: {newest.name}")
         return True

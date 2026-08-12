@@ -73,8 +73,12 @@ VIRIDIAN_CENTER_MAP_ID = 41
 # into and bought from. A Mart id that is wrong here sends a trainer through
 # the wrong door, so this set grows by measurement, never by memory. Until
 # then `_run_nearest_mart` simply finds no door in other cities and the caller
-# falls back to what it did before.
-POKE_MART_MAP_IDS = {42}
+# falls back to what it did before. Medido (2026-08-12): o Mart de Pewter é o
+# mapa 56 — planta idêntica ao 42 (mesma balconista, sprite 38, no mesmo
+# tile), confirmado no bloco de objetos da ROM e na constante PEWTER_MART do
+# disassembly. O FARON, devolvido ao `buy_pokeballs` pela retomada sem
+# manifesto, quicava entre Pewter e a Rota 2 indo comprar em Viridian.
+POKE_MART_MAP_IDS = {42, 56}
 SHOP_COUNTER_TILE = (2, 5)
 
 # The hand-drawn route is the path that finishes the game, so it drives.
@@ -305,15 +309,29 @@ class ScriptedAgent(BaseAgent):
             # Check if we need to switch tasks
             if not hasattr(self, 'current_task_name') or self.current_task_name != task_name:
                 native_controller = hasattr(self, f"_run_{task_name}")
-                if (
+                if native_controller:
+                    # Executor nativo manda: o walkthrough legado é lista de
+                    # teclas cega, e para as quests com executor ele só
+                    # desviou o bot (medido 2026-08-12: o buy_pokeballs do
+                    # FARON seguia "Go to Viridian City PokeMart" do
+                    # walkthrough e quicava entre Pewter e a Rota 2, e o
+                    # cerulean_gym_quest do AARON nunca chegava ao executor
+                    # que sabe sair do ginásio com a insígnia).
+                    self.steps = []
+                    self.current_step = 0
+                    self.current_task_name = task_name
+                    # Reset internal state variables for new task
+                    if hasattr(self, 'tick_counter'): del self.tick_counter
+                    if hasattr(self, 'seq_index'): del self.seq_index
+                    if hasattr(self, 'seq_timer'): del self.seq_timer
+                    if hasattr(self, 'route_id'): del self.route_id
+                    if hasattr(self, 'route_index'): del self.route_index
+                    print(f"[{self.player_name}] Switched to task: {task_name}")
+                elif (
                     "game_flow" in self.walkthrough
                     and task_name in self.walkthrough["game_flow"]
-                ) or native_controller:
-                    self.steps = (
-                        self.walkthrough["game_flow"][task_name]["actions"]
-                        if task_name in self.walkthrough.get("game_flow", {})
-                        else []
-                    )
+                ):
+                    self.steps = self.walkthrough["game_flow"][task_name]["actions"]
                     self.current_step = 0
                     self.current_task_name = task_name
                     # Reset internal state variables for new task
@@ -1033,8 +1051,12 @@ class ScriptedAgent(BaseAgent):
                 self.current_task_name = "start"
             self.current_step = 3
             
-        elif party_count > 0:  # Have Pokemon
-            print("[CHECKPOINT] Detected: Have Pokemon. Starting 'Rival fight'")
+        elif map_id == 40 and party_count > 0:  # Oak's Lab with a Pokemon
+            # A luta com o rival acontece no laboratório. O ramo antigo
+            # pegava *qualquer* mapa com time — o AARON, no ginásio de
+            # Cerulean (mapa 65), era reescrito para o oak_event e ficava
+            # parado apertando nada (medido 2026-08-12).
+            print("[CHECKPOINT] Detected: In Oak's Lab with a Pokemon. Starting 'Rival fight'")
             # This corresponds to 'oak_event' task usually
             if "game_flow" in self.walkthrough and "oak_event" in self.walkthrough["game_flow"]:
                 self.steps = self.walkthrough["game_flow"]["oak_event"]["actions"]
@@ -2409,6 +2431,15 @@ class ScriptedAgent(BaseAgent):
     def _run_cerulean_gym_quest(self):
         """Enter Cerulean Gym and defeat Misty after Bill is complete."""
         if int(self.emulator.memory.read_byte(0xD356)) & 0x02:
+            # Insígnia ganha: sair do ginásio pela porta sul — o executor
+            # antigo seguia a rota da abordagem até (4,2) e ficava apertando A
+            # na frente da Misty para sempre (medido: AARON parado no tile).
+            map_id = int(self.emulator.memory.get_map_id())
+            if map_id == 65:
+                return self._follow_route(
+                    "misty-exit",
+                    [(4, 12), (4, 13)],
+                )
             return None
         map_id = int(self.emulator.memory.get_map_id())
         if map_id == 88:

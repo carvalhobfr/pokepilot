@@ -135,10 +135,12 @@ class ShopCounterTests(unittest.TestCase):
 
 class KnownShopTests(unittest.TestCase):
     def test_only_measured_mart_ids_are_claimed(self):
-        # A wrong id sends a trainer through the wrong door. Viridian's is the
-        # one this project has walked into and bought from; the set grows by
-        # measurement, never by memory.
-        self.assertEqual({42}, POKE_MART_MAP_IDS)
+        # A wrong id sends a trainer through the wrong door. Viridian's (42) é
+        # o que o projeto atravessou e comprou primeiro; o de Pewter (56) foi
+        # medido em 2026-08-12 — planta idêntica ao 42 (mesma balconista no
+        # mesmo tile) e constante PEWTER_MART do disassembly. O conjunto
+        # cresce por medição, nunca por memória.
+        self.assertEqual({42, 56}, POKE_MART_MAP_IDS)
 
     def test_the_center_set_is_shared_rather_than_copied(self):
         from hybrid_agent import POKEMON_CENTER_MAP_IDS as from_env
