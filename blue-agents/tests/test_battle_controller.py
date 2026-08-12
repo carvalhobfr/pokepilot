@@ -16,6 +16,13 @@ class FakeMemory:
         self.values = values
 
     def read_byte(self, address):
+        # O gate de texto agora usa o cursor do menu: com o menu de golpes
+        # desenhado, a coluna 0xCC25 lê 9 ou 15; com texto, lê 5 (medido no
+        # handoff). O 0xD125 não serve — lê 1 em qualquer estado, inclusive
+        # fora de batalha (2026-08-12). O padrão aqui é 9 (menu aberto) para
+        # os testes de seleção; os testes de texto setam 5 explicitamente.
+        if address == 0xCC25 and address not in self.values:
+            return 9
         return self.values.get(address, 0)
 
     def read_rom(self, bank, address):
@@ -213,7 +220,7 @@ class TextGateTests(unittest.TestCase):
     def test_texto_na_tela_nao_le_golpes_nem_marca_status(self):
         agent = SimpleBattleAgent()
         memory = FakeMemory({
-            0xD125: 1,     # texto na tela
+            0xCC25: 5,     # coluna 5 = texto na tela (0xD125 lê 1 sempre!)
             0xCFE7: 30,    # oponente de pé
             0xD01C: 73,    # Leech Seed legível — tem de ser ignorado agora
             0xD02D: 10,
@@ -231,7 +238,7 @@ class TextGateTests(unittest.TestCase):
         # interceptar o pós-batalha.
         agent = SimpleBattleAgent()
         memory = FakeMemory({
-            0xD125: 1,
+            0xCC25: 5,     # coluna 5 = texto na tela
             0xCFE7: 0,     # oponente caído
             0xD01C: 44,
             0xD02D: 25,

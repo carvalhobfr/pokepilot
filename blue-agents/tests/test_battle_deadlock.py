@@ -26,6 +26,10 @@ class FakeMemory:
         self.values = values
 
     def read_byte(self, address):
+        # Gate de texto por cursor: menu de golpes desenhado = coluna 9/15;
+        # texto = 5. O 0xD125 lê 1 sempre (2026-08-12). Padrão: menu aberto.
+        if address == 0xCC25 and address not in self.values:
+            return 9
         return self.values.get(address, 0)
 
     def read_rom(self, bank, address):

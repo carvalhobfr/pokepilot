@@ -335,7 +335,10 @@ class SimpleBattleAgent:
 
         if opponent_hp == 0:
             return self._post_battle_action(emulator, player_moves, battle_text)
-        if battle_text == 1:
+        if battle_menu not in (94, 106):
+            # Texto/animacão: o menu de golpes não está desenhado. O 0xD125
+            # lê 1 sempre e o gate nele mantinha o bot apertando A sem
+            # selecionar nada (2026-08-12).
             return self._advance_text()
 
         move_list_open = battle_menu == 106 or (
@@ -389,20 +392,30 @@ class SimpleBattleAgent:
             # avançá-lo. Oponente caído segue para o fluxo de pós-batalha,
             # que sabe tratar evolução e aprendizado; e um aprendizado em
             # andamento precisa dos seus próprios UP/DOWN, não disto.
-            battle_text = int(emulator.read_byte(0xD125))
+            #
+            # O sinal de "texto na tela" é o estado do menu: 0xCC50 vale 106
+            # com a lista de golpes desenhada (variante de coluna 5) e 94 no
+            # seletor 2x2 — qualquer outro valor é texto/animacão. A coluna
+            # 0xCC25 sozinha não distingue (5 é tanto a lista de golpes quanto
+            # texto) e o 0xD125 lê 1 em qualquer estado, inclusive fora de
+            # batalha (medido 2026-08-12: AARON e FARON fora de batalha,
+            # 0xD125=1) — o gate nele fazia o controlador apertar A para
+            # sempre, sem nunca selecionar golpe: o time perdia toda batalha
+            # de treinador por atrito.
+            battle_menu = int(emulator.read_byte(0xCC50))
             opponent_hp = (
                 (int(emulator.read_byte(0xCFE6)) << 8)
                 + int(emulator.read_byte(0xCFE7))
             )
             if (
-                battle_text == 1
+                battle_menu not in (94, 106)
                 and opponent_hp > 0
                 and self.move_learning is None
             ):
                 self.last_decision = {
                     "kind": "advance_text",
                     "reason": "battle text on screen; move menu not drawn yet",
-                    "battle_text": battle_text,
+                    "battle_menu": battle_menu,
                 }
                 return self._advance_text()
 
