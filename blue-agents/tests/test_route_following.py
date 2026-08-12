@@ -99,6 +99,36 @@ class RouteFollowingTests(unittest.TestCase):
             WindowEvent.PRESS_ARROW_UP, agent._follow_route("f", [(1, 5), (1, -1)])
         )
 
+    def test_a_waypoint_consumes_only_its_step_budget(self):
+        # Alvo inalcançável com desvio longo encolhe a distância devagar e zera
+        # o contador de "sem progresso" a cada passo — sem o orçamento, o bot
+        # queimaria milhares de passos no mesmo waypoint. Estourado, o waypoint
+        # é gasto e o próximo vira alvo.
+        from src.scripted_agent import WAYPOINT_STEP_BUDGET
+        agent = self.make_agent((5, 5), map_id=51)
+        agent.route_progress = {}
+        agent._report_if_stuck = lambda *a, **k: None
+        agent._follow_route("r", [(9, 5), (12, 5)])
+        agent.route_waypoint_steps = WAYPOINT_STEP_BUDGET + 1
+        agent._follow_route("r", [(9, 5), (12, 5)])
+        self.assertEqual(
+            agent.route_progress.get("r"), 1,
+            "waypoint 0 estourou o orçamento: o avanço pula para o 1",
+        )
+        self.assertEqual(1, agent.route_index, "o próximo waypoint vira alvo")
+
+    def test_the_last_waypoint_release_restarts_the_route(self):
+        from src.scripted_agent import WAYPOINT_STEP_BUDGET
+        agent = self.make_agent((5, 5), map_id=51)
+        agent.route_progress = {}
+        agent.route_progress["r"] = 1
+        agent._report_if_stuck = lambda *a, **k: None
+        agent._follow_route("r", [(9, 5), (12, 5)])
+        agent.route_waypoint_steps = WAYPOINT_STEP_BUDGET + 1
+        agent._follow_route("r", [(9, 5), (12, 5)])
+        self.assertIsNone(agent.route_id, "último waypoint: a rota é solta")
+        self.assertNotIn("r", agent.route_progress)
+
     def test_a_ledge_jump_crosses_the_wall_tile_in_front(self):
         # (79,8)->(79,10) da Rota 4: descer por um penhasco pula o tile do
         # meio (79,9), que o planejador trata como parede. Medido no cartucho:

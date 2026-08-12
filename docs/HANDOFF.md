@@ -57,6 +57,27 @@ Retomada: AARON segue saudável em `trainers/AARON/` (jornada em
 `current.state` (o par antigo doente, Centro da Rota 4 com menu preso, foi
 preservado como `current.state.sick-route4center.bak`).
 
+### Orçamento de passos por waypoint
+
+`WAYPOINT_STEP_BUDGET = 300`: teto duro de passos de rota por waypoint. O
+contador de distância (`route_no_progress`) só vê "não encostou": um desvio
+longo que encolhe a distância devagar zera o contador a cada passo, e o bot
+queimava milhares de passos no mesmo alvo. Estourado o orçamento, o waypoint
+é gasto — mira o próximo; no último, solta a rota e reentra pelo mais
+próximo. Batalha e texto não contam (a rota nem roda neles). O relatório de
+travamento agora expõe `waypoint_steps` e `waypoint_budget` — dá para ver o
+avanço em janelas fixas de passos.
+
+### Aberto: o teclado do PC do Bill (bill_quest preso em m88 (0,4))
+
+A jornada está parada na casa do Bill: o waypoint final de
+`bill-lab-separator` é o teclado (1,4) — tile de parede por design — e o bot
+não tem interação de A para ativá-lo (RAM `D7F2.3`). O bot encosta em (1,5),
+não consegue subir, desvia e fica encurralado em (0,4). Pré-existente (o bot
+já estava lá antes desta sessão); o orçamento limita o ciclo a 300 passos por
+tentativa, mas a ativação exige o fluxo do PC (menu → "BILL's PC") que ainda
+não existe no executor. Próximo trabalho: o A-press no teclado + o menu do PC.
+
 ### O que ficou: gate de texto em batalha (validado, mantido)
 
 O controlador de batalha era chamado com **texto ainda na tela**: `0xD01C` não é

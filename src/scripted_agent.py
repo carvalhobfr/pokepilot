@@ -172,6 +172,15 @@ STUCK_GIVE_UP_STEPS = 40
 # admite que o trecho inteiro está errado.
 ROUTE_REPLAN_STEPS = 120
 
+# Teto duro de passos de rota por waypoint. O contador de distância só vê "não
+# encostou": um desvio longo que encolhe a distância devagar zera o contador a
+# cada passo, e o bot queimava milhares de passos no mesmo alvo. Estourou o
+# orçamento, o waypoint é gasto — mira o próximo; no último, solta a rota e
+# reentra pelo mais próximo. Alto de propósito: batalha e texto não contam
+# (a rota nem roda neles), mas um waypoint legítimo com encontros no caminho
+# precisa caber.
+WAYPOINT_STEP_BUDGET = 300
+
 # Passos que uma parede descoberta na marra vale. Curto de propósito: gente
 # some, e a leitura do cartucho continua sendo a fonte principal.
 BUMP_MEMORY_STEPS = 8
@@ -2565,6 +2574,34 @@ class ScriptedAgent(BaseAgent):
 
         self.route_index = self._select_route_index(route_id, waypoints, (x, y))
         target_x, target_y = waypoints[self.route_index]
+
+        # Orçamento de passos por waypoint. O contador de distância
+        # (`route_no_progress`) só vê "não encostou": um waypoint inalcançável
+        # com um desvio longo que encolhe a distância devagar zera o contador
+        # a cada passo, e o bot queima milhares de passos no mesmo alvo sem
+        # nunca liberá-lo. O orçamento é o teto duro: estourou, o waypoint é
+        # gasto — mira o próximo; no último, solta a rota e reentra pelo mais
+        # próximo. Passos de batalha e de texto não contam (a rota nem roda
+        # neles), e o relatório de travamento expõe o orçamento.
+        if getattr(self, "route_target_index", None) != self.route_index:
+            self.route_target_index = self.route_index
+            self.route_waypoint_steps = 0
+        else:
+            self.route_waypoint_steps = getattr(self, "route_waypoint_steps", 0) + 1
+        if self.route_waypoint_steps > WAYPOINT_STEP_BUDGET:
+            progress = getattr(self, "route_progress", None) or {}
+            if self.route_index < len(waypoints) - 1:
+                progress[route_id] = self.route_index + 1
+                self.route_index += 1
+                self.route_last_issue = "waypoint_budget"
+            else:
+                progress.pop(route_id, None)
+                self.route_id = None
+                self.route_last_issue = "route_budget"
+            self.route_progress = progress
+            self.route_no_progress = 0
+            self.route_waypoint_steps = 0
+            self.route_target_index = None
         blocked = self._tile_truth()
         for (bumped_map, bumped_x, bumped_y, direction) in getattr(self, "route_bumped", {}):
             if (bumped_map, bumped_x, bumped_y) == (map_id, x, y):
@@ -2854,6 +2891,8 @@ class ScriptedAgent(BaseAgent):
         # planejar por cima de terreno que esta tentativa não andou.
         self.route_progress = {}
         self.route_sprite_talk = None
+        self.route_target_index = None
+        self.route_waypoint_steps = 0
         recorder = getattr(self, "trail_recorder", None)
         if recorder is None:
             return 0
@@ -2979,6 +3018,8 @@ class ScriptedAgent(BaseAgent):
             ],
             "steps_on_this_tile": self.stuck_report_steps,
             "steps_without_progress": getattr(self, "route_no_progress", 0),
+            "waypoint_steps": getattr(self, "route_waypoint_steps", 0),
+            "waypoint_budget": WAYPOINT_STEP_BUDGET,
             "closest_it_got": getattr(self, "route_best_distance", None),
             "path_to_target": "".join(reachable) if reachable else None,
             "nearest_unexplored": list(frontier) if frontier else None,
