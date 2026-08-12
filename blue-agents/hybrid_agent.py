@@ -1275,16 +1275,15 @@ class HybridGymEnv(RedGymEnv):
                 try:
                     # Extract quest name (e.g., "QUEST: OAK_EVENT")
                     quest_name = self.current_task.split(":")[1].strip().lower()
-                    supported = (
-                        quest_name in self.scripted_agent.walkthrough.get("game_flow", {})
-                        or hasattr(self.scripted_agent, f"_run_{quest_name}")
-                    )
                     if not forced_quest_action:
-                        script_action = (
-                            self.scripted_agent.step(quest_name)
-                            if supported
-                            else None
-                        )
+                        # Sem gate de `supported`: um nó sem executor não pode
+                        # congelar o bot em NOOP — o `step` do ScriptedAgent
+                        # mantém a tarefa anterior (ex.: o cerulean_gym_quest
+                        # que sabe sair do ginásio com a insígnia). Medido
+                        # (2026-08-12): o AARON, no ginásio após a Misty,
+                        # ficava parado porque o vermilion_gym_quest não tinha
+                        # executor e o gate devolvia NOOP.
+                        script_action = self.scripted_agent.step(quest_name)
                     
                     if script_action is not None:
                         # Convert PyBoy WindowEvent to RL Action

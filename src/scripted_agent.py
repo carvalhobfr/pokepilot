@@ -545,6 +545,8 @@ class ScriptedAgent(BaseAgent):
             return self._run_bill_quest()
         if getattr(self, "current_task_name", None) == "cerulean_gym_quest":
             return self._run_cerulean_gym_quest()
+        if getattr(self, "current_task_name", None) == "vermilion_gym_quest":
+            return self._run_vermilion_gym_quest()
 
         if action_desc == "Start -> New Game":
             # Sequence: Press Start -> Wait -> Press A (New Game) -> Wait
@@ -2427,6 +2429,20 @@ class ScriptedAgent(BaseAgent):
         # any house on the way. An unknown map is not a cutscene to press
         # through: walk back out of it and let the route resume outside.
         return self._leave_unknown_map()
+
+    def _run_vermilion_gym_quest(self):
+        """Primeira perna do caminho até o Lt. Surge: sair do ginásio.
+
+        O nó vermilion_gym_quest ainda não tem o caminho completo (Rota 5,
+        Saffron, Rota 6, S.S. Anne, Cut, Surge). Este executor mínimo destrava
+        a saída do ginásio de Cerulean — sem ele o hybrid mandava NOOP e o
+        AARON ficava parado na frente do palco da Misty com a insígnia na mão
+        (medido 2026-08-12).
+        """
+        map_id = int(self.emulator.memory.get_map_id())
+        if map_id == 65:
+            return self._follow_route("misty-exit", [(4, 12), (4, 13)])
+        return None
 
     def _run_cerulean_gym_quest(self):
         """Enter Cerulean Gym and defeat Misty after Bill is complete."""
