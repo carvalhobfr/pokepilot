@@ -76,24 +76,37 @@ class PortaoDeTreinoTests(unittest.TestCase):
         agent = self.agente([(10, [TACKLE, GROWL, LEECH_SEED])])
         self.assertTrue(agent._needs_training())
 
-    def test_vine_whip_encerra_o_treino(self):
-        agent = self.agente([(13, [TACKLE, GROWL, LEECH_SEED, VINE_WHIP])])
+    def test_a_evolucao_inicial_encerra_o_treino(self):
+        # Metas definidas com o operador (2026-08-12): o inicial evolui uma
+        # vez no 16 — a evolução vale mais que o golpe solto no 13.
+        agent = self.agente([(16, [TACKLE, GROWL, LEECH_SEED, VINE_WHIP])])
         self.assertFalse(agent._needs_training())
 
-    def test_o_golpe_vale_mesmo_em_nivel_baixo(self):
-        # O portão é o golpe, não o nível: quem já tem com o que bater, vai.
+    def test_o_golpe_sozinho_em_nivel_baixo_nao_encerra(self):
+        # Vine Whip no 7 ainda deixa o inicial sem evoluir — a meta é a
+        # evolução, não o golpe.
         agent = self.agente([(7, [VINE_WHIP])])
-        self.assertFalse(agent._needs_training())
+        self.assertTrue(agent._needs_training())
 
-    def test_o_teto_de_nivel_impede_treinar_para_sempre(self):
-        # Um time que nunca aprende o golpe certo não pode ficar preso na grama.
+    def test_o_nivel_16_e_o_teto_do_treino(self):
+        # Nível 12 ainda é Bulbasaur: o treino continua até a evolução.
         agent = self.agente([(TRAINING_MAX_LEVEL, [TACKLE, GROWL])])
+        self.assertTrue(agent._needs_training())
+        agent = self.agente([(16, [TACKLE, GROWL])])
         self.assertFalse(agent._needs_training())
 
-    def test_agua_e_luta_tambem_servem(self):
-        # Squirtle com Bubble resolve o mesmo ginásio.
+    def test_agua_e_luta_tambem_evoluem(self):
+        # Squirtle com Bubble no 10 ainda é Squirtle: treina até o 16.
         self.assertIn("WATER", GYM_EFFECTIVE_TYPES)
         agent = self.agente([(10, [145])])   # Bubble
+        self.assertTrue(agent._needs_training())
+        agent = self.agente([(16, [145])])
+        self.assertFalse(agent._needs_training())
+
+    def test_mission_story_desliga_o_treino(self):
+        # Mesmo time fraco, a missão STORY corre a rota sem farmar.
+        agent = self.agente([(10, [TACKLE, GROWL, LEECH_SEED])])
+        agent.mission_type = "STORY"
         self.assertFalse(agent._needs_training())
 
     def test_golpe_de_status_nao_conta(self):

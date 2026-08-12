@@ -68,15 +68,45 @@ próximo. Batalha e texto não contam (a rota nem roda neles). O relatório de
 travamento agora expõe `waypoint_steps` e `waypoint_budget` — dá para ver o
 avanço em janelas fixas de passos.
 
-### Aberto: o teclado do PC do Bill (bill_quest preso em m88 (0,4))
+### Fuga desligada, metas de farm e tipo de missão (2026-08-12)
 
-A jornada está parada na casa do Bill: o waypoint final de
-`bill-lab-separator` é o teclado (1,4) — tile de parede por design — e o bot
-não tem interação de A para ativá-lo (RAM `D7F2.3`). O bot encosta em (1,5),
-não consegue subir, desvia e fica encurralado em (0,4). Pré-existente (o bot
-já estava lá antes desta sessão); o orçamento limita o ciclo a 300 passos por
-tentativa, mas a ativação exige o fluxo do PC (menu → "BILL's PC") que ainda
-não existe no executor. Próximo trabalho: o A-press no teclado + o menu do PC.
+**Fuga em todas as circunstâncias foi desligada** por decisão do operador:
+morrer destrava, fugir empaca. O whiteout é o mecanismo de cura projetado —
+o cartucho devolve o time curado ao Centro — e fugir o impede. Medido no
+FARON: 2.196 fugas de 2.224 batalhas com o time machucado, nunca morreu,
+nunca curou, nível 6 parado. `_next_escape_action` agora devolve `None`
+sempre.
+
+**Metas de farm por linha inicial** (operador):
+
+- Bulbasaur/Squirtle: treinar até a primeira evolução (nível 16 nas três
+  linhas — o inicial evolui no 16).
+- Charmander: além do Charmeleon (16), o time precisa de um Butterfree — a
+  linha Caterpie/Metapod evolui no 10 e Confusion no 12 carrega contra o
+  Brock.
+- Pikachu: ideal contra a Misty — no modo FARM o farm continua até ele
+  aparecer (5% na Floresta); no AUTO a captura é por prioridade natural.
+
+**Tipo de missão pela task file** (`blue-agents/tasks/<AGENTE>.txt`):
+
+```
+MISSION: AUTO        # recomendado (padrão): farma enquanto as metas faltam
+MISSION: STORY       # nunca farma, a rota corre
+MISSION: FARM        # farma até as metas (e o Pikachu); a saída é a UX
+```
+
+A linha MISSION não muda a tarefa atual; só a missão. O par de retomada do
+Bill também foi destravado: a rota `bill-lab-separator` terminava no teclado
+do PC (1,4), parede por design, e o bot ficava encurralado em (0,4) (8.160
+passos). Agora a rota termina em (1,5) e a interação é virada + A + A
+(menu → "BILL's PC" → separador, RAM `D7F2.3`). Validado no cartucho: AARON
+concluiu `bill_quest` (gen 93) e ainda venceu a Misty (11 quests, badge no
+ginásio m65).
+
+**Ritmo do farm (medido)**: o FARON saiu do nível 6 e está subindo (~8 após
+~35 min de corrida, com whiteouts devolvendo ao Centro de Viridian). A meta
+da evolução (16) é uma reta longa na curva de XP da Gen I; o operador pode
+ajustar a meta ou trocar a missão pela UX a qualquer momento.
 
 ### O que ficou: gate de texto em batalha (validado, mantido)
 

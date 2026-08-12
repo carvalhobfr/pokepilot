@@ -358,6 +358,9 @@ class HealForwardTests(unittest.TestCase):
             self.map_id = map_id
             self.pos = pos
             self.party = party
+            # Nível 16 (inicial evoluído): o portão de treino tem os próprios
+            # testes; estes são sobre a rota e não devem farmar.
+            self.level = 16
 
         def get_map_id(self): return self.map_id
         def get_player_pos(self): return self.pos
@@ -375,6 +378,7 @@ class HealForwardTests(unittest.TestCase):
                 hp, max_hp = self.party[index]
                 if offset == 1: return hp >> 8
                 if offset == 2: return hp & 0xFF
+                if offset == 33: return self.level
                 if offset == 34: return max_hp >> 8
                 if offset == 35: return max_hp & 0xFF
                 # Vine Whip no primeiro slot: estes testes são sobre a

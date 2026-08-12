@@ -129,6 +129,69 @@ class RouteFollowingTests(unittest.TestCase):
         self.assertIsNone(agent.route_id, "último waypoint: a rota é solta")
         self.assertNotIn("r", agent.route_progress)
 
+    def test_o_teclado_do_pc_do_bill_interage_de_baixo(self):
+        # O teclado do PC é o tile de fundo (1,4), parede por design — a rota
+        # terminava nele e o bot ficava encurralado em (0,4) (medido: 8.160
+        # passos). Agora a rota termina em (1,5) e a interação é virar para
+        # cima + A: o menu abre e A seleciona "BILL's PC" (a primeira opção),
+        # ativando o separador (D7F2.3).
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        memoria = type("M", (), {
+            "get_map_id": staticmethod(lambda: 88),
+            "get_player_pos": staticmethod(lambda: (1, 5)),
+            "read_byte": staticmethod(lambda a: 0x40 if a == 0xD7F2 else 0),
+        })()
+        agent.emulator = type("E", (), {"memory": memoria})()
+        agent._follow_route = lambda *a, **k: None
+        self.assertEqual(
+            WindowEvent.PRESS_ARROW_UP, agent._run_bill_quest(),
+            "vira para o teclado em (1,4)",
+        )
+        self.assertEqual(
+            WindowEvent.PRESS_BUTTON_A, agent._run_bill_quest(),
+            "e abre o menu do PC",
+        )
+        self.assertEqual(
+            WindowEvent.PRESS_BUTTON_A, agent._run_bill_quest(),
+            "e seleciona BILL's PC — o separador ativa",
+        )
+
+    def test_as_metas_de_farm_seguem_a_linha_inicial(self):
+        # Bulbasaur (interno 153) nível 6: falta a evolução inicial (16).
+        agent = self.make_agent((15, 41), map_id=51)
+        agent.emulator.memory.read_byte = lambda a: {
+            0xD163: 1, 0xD164: 153, 0xD18C: 6}.get(a, 0)
+        self.assertEqual(["evolucao_inicial"], agent._farm_goals())
+        self.assertTrue(agent._needs_training())
+
+    def test_mission_story_desliga_o_farm(self):
+        # Mesmo time fraco, a missão STORY não farma: a rota corre.
+        agent = self.make_agent((15, 41), map_id=51)
+        agent.emulator.memory.read_byte = lambda a: {
+            0xD163: 1, 0xD164: 153, 0xD18C: 6}.get(a, 0)
+        agent.mission_type = "STORY"
+        self.assertFalse(agent._needs_training())
+
+    def test_charmander_precisa_do_butterfree(self):
+        # Charmander (interno 176) nível 20: a evolução já veio, mas falta o
+        # Butterfree — Confusion no 12 carrega contra o Brock.
+        agent = self.make_agent((15, 41), map_id=51)
+        agent.emulator.memory.read_byte = lambda a: {
+            0xD163: 1, 0xD164: 176, 0xD18C: 20}.get(a, 0)
+        self.assertEqual(["butterfree"], agent._farm_goals())
+
+    def test_mission_farm_inclui_o_pikachu(self):
+        # Charmander com Butterfree (interno 125 no slot 1): no AUTO o time
+        # está pronto; no FARM falta o Pikachu (ideal contra a Misty).
+        agent = self.make_agent((15, 41), map_id=51)
+        agent.emulator.memory.read_byte = lambda a: {
+            0xD163: 2, 0xD164: 176, 0xD165: 125, 0xD18C: 20}.get(a, 0)
+        self.assertEqual([], agent._farm_goals())
+        self.assertFalse(agent._needs_training())
+        agent.mission_type = "FARM"
+        self.assertEqual(["pikachu"], agent._farm_goals(include_pikachu=True))
+        self.assertTrue(agent._needs_training())
+
     def test_a_ledge_jump_crosses_the_wall_tile_in_front(self):
         # (79,8)->(79,10) da Rota 4: descer por um penhasco pula o tile do
         # meio (79,9), que o planejador trata como parede. Medido no cartucho:

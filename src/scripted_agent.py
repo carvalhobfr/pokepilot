@@ -101,6 +101,25 @@ TRAINING_MAX_LEVEL = 14
 # da Floresta ficam a 23-25 do trecho de mato perto da porta sul.
 TRAINING_TRAINER_CLEARANCE = 12
 
+# Metas de farm por linha inicial, definidas com o operador (2026-08-12).
+# Os três iniciais evoluem no nível 16; o Charmander ainda precisa de um
+# Butterfree — a linha Caterpie/Metapod evolui no 10 e Confusion no 12
+# carrega contra o Brock. Pikachu é ideal contra a Misty: no modo FARM o
+# farm continua até ele aparecer (5% na Floresta); no AUTO a captura é por
+# prioridade natural (espécie nova + raridade). Ids internos da Gen I
+# (o índice interno ≠ dex nacional; ver `blue-agents/pokemon_ids.py`).
+FIRST_EVOLUTION_LEVEL = 16
+BUTTERFREE_INTERNAL = 125
+PIKACHU_INTERNAL = 84
+CHARMANDER_LINE_INTERNAL = {176, 178, 180}
+
+# Tipos de missão lidos da task file (`tasks/<AGENTE>.txt`, linha MISSION:).
+# - STORY (história): nunca farma — a rota corre.
+# - FARM: farma até as metas da linha inicial (e o Pikachu) — a saída é a UX.
+# - AUTO (recomendado, padrão): farma quando a linha inicial ainda não está
+#   pronta para a história.
+MISSION_TYPES = ("STORY", "FARM", "AUTO")
+
 # Steps spent waiting for a person to move before walking around them. People
 # in Gen I pace on their own; walls do not.
 SPRITE_PATIENCE_STEPS = 6
@@ -1492,20 +1511,60 @@ class ScriptedAgent(BaseAgent):
         return self._leave_unknown_map()
 
     def _needs_training(self):
-        """Fraco demais para o Brock, medido pelo que o time tem na mão.
+        """Fraco demais para a história, segundo as metas da linha inicial.
 
-        O portão não é um número que eu possa errar de cabeça. O que decide o
-        ginásio de Pewter é ter um golpe que **não seja resistido** por Rocha e
-        Terra: Tackle é Normal e apanha, Vine Whip é Grama e bate 4× no Geodude.
-        Medido em corrida: nível 10 com Tackle, Growl e Leech Seed perdeu 269
-        vezes seguidas para o Brock, sempre chegando curado do Centro.
+        As metas vieram do operador (2026-08-12): o inicial evolui uma vez
+        (nível 16 nas três linhas), e o Charmander ainda precisa de um
+        Butterfree no time — a linha Caterpie/Metapod evolui no 10 e
+        Confusion no 12 carrega contra o Brock. O tipo de missão da task
+        file decide o quanto farmar:
 
-        O nível é só o teto de paciência — sem ele um time que nunca aprende o
-        golpe treinaria para sempre.
+        - STORY: nunca farma, a rota corre;
+        - FARM: farma até as metas (inclusive o Pikachu da Misty) — a saída
+          é o operador trocar a missão pela UX;
+        - AUTO (padrão): farma enquanto as metas não estão cumpridas.
         """
-        if self._party_has_effective_move():
+        mission = getattr(self, "mission_type", "AUTO")
+        if mission == "STORY":
             return False
-        return self._party_max_level() < TRAINING_MAX_LEVEL
+        return bool(self._farm_goals(include_pikachu=(mission == "FARM")))
+
+    def _farm_goals(self, include_pikachu=False):
+        """Metas de farm não cumpridas — lista vazia quando o time está pronto.
+
+        Retorna os nomes das metas pendentes para o relatório e para o
+        operador ver o que falta (ex.: `evolucao_inicial`, `butterfree`,
+        `pikachu`).
+        """
+        goals = []
+        starter = self._starter_internal()
+        if starter in CHARMANDER_LINE_INTERNAL and \
+                BUTTERFREE_INTERNAL not in set(self._party_internal_ids()):
+            goals.append("butterfree")
+        if self._starter_level() < FIRST_EVOLUTION_LEVEL:
+            goals.append("evolucao_inicial")
+        if include_pikachu and \
+                PIKACHU_INTERNAL not in set(self._party_internal_ids()):
+            goals.append("pikachu")
+        return goals
+
+    def _starter_internal(self):
+        """Id interno da Gen I do primeiro Pokémon da party (o inicial)."""
+        try:
+            return int(self.emulator.memory.read_byte(0xD164))
+        except Exception:
+            return 0
+
+    def _starter_level(self):
+        try:
+            return int(self.emulator.memory.read_byte(0xD18C))
+        except Exception:
+            return 0
+
+    def _party_internal_ids(self):
+        read = self.emulator.memory.read_byte
+        count = min(int(read(0xD163)), 6)
+        return [int(read(0xD164 + index)) for index in range(count)]
 
     def _party_has_effective_move(self):
         """Alguém do time tem golpe que Rocha e Terra não resistem?"""
@@ -2311,16 +2370,28 @@ class ScriptedAgent(BaseAgent):
                 )
 
             if not used_separator:
-                # The PC keyboard is the blocked background tile at (1,4).
-                # Interact from below; RAM bit D7F2.3 verifies activation.
+                # O teclado do PC é o tile de fundo (1,4), parede por design:
+                # a rota termina em (1,5) e a interação é virada + A — o menu
+                # abre e A de novo seleciona "BILL's PC" (a primeira opção),
+                # ativando o separador (RAM D7F2.3). O bot ficava encurralado
+                # em (0,4) mirando o teclado inalcançável.
+                x, y = self.emulator.memory.get_player_pos()
+                if (x, y) == (1, 5):
+                    if getattr(self, "bill_pc_active", False):
+                        return WindowEvent.PRESS_BUTTON_A
+                    self.bill_pc_active = True
+                    self.route_last_issue = "bill_pc"
+                    return ROUTE_EVENTS["U"]
+                self.bill_pc_active = False
                 return self._follow_route(
                     "bill-lab-separator",
-                    [(6, 5), (1, 5), (1, 4)],
+                    [(6, 5), (1, 5)],
                 )
 
             if not met_human_bill:
                 # Bill's exit from the machine is an autonomous cutscene.
                 # A advances any text while ordinary ticks advance movement.
+                self.bill_pc_active = False
                 return WindowEvent.PRESS_BUTTON_A
 
             # Human Bill waits at (4,4). Talk from below to receive the ticket;

@@ -1,0 +1,44 @@
+{
+  "quest": "bill_quest",
+  "recorded_by": "AARON",
+  "recorded_at": 1786495047.3657348,
+  "waypoints": 7,
+  "dense": true,
+  "death_cycle": 0,
+  "steps": 7,
+  "legs": [
+    {
+      "map": 88,
+      "points": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          5
+        ],
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          5
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    }
+  ]
+}

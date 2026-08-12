@@ -963,21 +963,42 @@ class HybridGymEnv(RedGymEnv):
             if self.task_file.exists():
                 try:
                     with open(self.task_file, 'r') as f:
-                        task = f.read().strip().upper()
-                        if task and task != self.current_task:
-                            self.current_task = task
-                            # Check if it's a natural language query (not standard command)
-                            if not any(task.startswith(prefix) for prefix in ["QUEST", "MANUAL", "STOP", "EXPLORE"]):
-                                try:
-                                    print(f"[{self.agent_name}] Unknown command '{task}'. Consulting Knowledge Base...")
-                                    results = self.knowledge_base.search(task)
-                                    if results:
-                                        print(f"[{self.agent_name}] Knowledge found: {results[0]['content']}")
-                                        # TODO: Use LLM to convert this knowledge into a QUEST or Action
-                                    else:
-                                        print(f"[{self.agent_name}] No knowledge found.")
-                                except Exception as e:
-                                    print(f"[{self.agent_name}] Error consulting Knowledge Base: {e}")
+                        content = f.read().strip().upper()
+                    # `MISSION: STORY|FARM|AUTO` troca o modo de farm pela
+                    # UX (o mesmo arquivo das ordens MANUAL). Só a linha da
+                    # missão no arquivo não muda a tarefa atual.
+                    mission = next((
+                        line.split(":", 1)[1].strip()
+                        for line in content.splitlines()
+                        if line.startswith("MISSION:")
+                    ), None)
+                    if mission in ("STORY", "FARM", "AUTO"):
+                        self.scripted_agent.mission_type = mission
+                    task = next((
+                        line for line in content.splitlines()
+                        if line.startswith(("QUEST", "MANUAL", "STOP", "EXPLORE"))
+                    ), None)
+                    if task is None and not (
+                        mission and all(
+                            not line or line.startswith("MISSION:")
+                            for line in content.splitlines()
+                        )
+                    ):
+                        task = content
+                    if task and task != self.current_task:
+                        self.current_task = task
+                        # Check if it's a natural language query (not standard command)
+                        if not any(task.startswith(prefix) for prefix in ["QUEST", "MANUAL", "STOP", "EXPLORE"]):
+                            try:
+                                print(f"[{self.agent_name}] Unknown command '{task}'. Consulting Knowledge Base...")
+                                results = self.knowledge_base.search(task)
+                                if results:
+                                    print(f"[{self.agent_name}] Knowledge found: {results[0]['content']}")
+                                    # TODO: Use LLM to convert this knowledge into a QUEST or Action
+                                else:
+                                    print(f"[{self.agent_name}] No knowledge found.")
+                            except Exception as e:
+                                print(f"[{self.agent_name}] Error consulting Knowledge Base: {e}")
                 except Exception:
                     pass
 
@@ -1077,13 +1098,6 @@ class HybridGymEnv(RedGymEnv):
                 self.current_task.strip().upper() == MANUAL_THROW_BALL_TASK
             )
             battle_action_str = self._next_capture_action()
-            if battle_action_str is None:
-                # Running from a wild fight that is not worth the turn comes
-                # before sending someone out: on a crossing, an encounter
-                # with a worn-out team drains HP toward the next whiteout.
-                battle_action_str = self._next_escape_action()
-                if battle_action_str is not None:
-                    self.battle_action_mode = "escape"
             if battle_action_str is None:
                 # Sending someone out comes first: a fainted lead is not a
                 # battle you may leave, it is a battle waiting on an answer.
@@ -2949,42 +2963,14 @@ class HybridGymEnv(RedGymEnv):
     def _next_escape_action(self):
         """Run from a wild fight that is not worth the turn, during navigation.
 
-        Foi removida em 2026-08-07: com a cura automática cancelada, fugir com
-        o time machucado não levava a lugar nenhum — AARON fugiu 2.093 Zubats a
-        1 HP de 59 e ficou preso. Aquele motivo era o treino.
-
-        O motivo de agora é a travessia. Atravessar Mt. Moon exige ~5.000
-        passos de caverna com encontro a cada poucos tiles; lutar todos drena
-        HP e PP até o whiteout antes de Cerulean — medido: 10 mortes em 60.000
-        passos, todas por atrito. Um selvagem que não acrescenta nada à quest
-        custa o turno da fuga (1) e poupa o time inteiro. RUN é um tile do
-        PKMN no mesmo menu 2x2, lido, não decorado.
-
-        Batalha de treinador não tem saída; essas continuam sendo lutadas.
+        DESLIGADA por decisão do operador (2026-08-12): fuga em qualquer
+        circunstância prende mais do que morrer. O whiteout é o mecanismo de
+        cura projetado — o cartucho devolve o time inteiro, curado, ao Centro
+        — e fugir o impede. Medido: FARON fugiu 2.196 de 2.224 batalhas do
+        treino com o time machucado, nunca morreu, nunca curou, e o nível 6
+        ficou parado para sempre. Morrer destrava; fugir empaca.
         """
-        if not self.in_battle or self.capture_forced:
-            return None
-        try:
-            if (int(self.read_m(0xD057)) & 0b10) != 0:
-                return None
-        except Exception:
-            return None
-        # Fugir durante navegação, não durante treino. Uma quest de captura/
-        # treino quer os encontros; a navegação quer o caminho.
-        if not getattr(self, "current_task", "").startswith("QUEST"):
-            return None
-        # Só foge quem está sem saída na luta: time desgastado OU sem golpe
-        # de dano. Time inteiro lutando vale o encontro (PP e XP).
-        if not self._party_has_no_damage() and not self._party_is_worn_out():
-            return None
-        # Um desmaio é pergunta, não menu: "Use next POKéMON?" precisa ser
-        # respondido antes de qualquer outra coisa. Fugir daí apertava B no
-        # aviso para sempre.
-        if self._battle_prompt_open() or self._switch_target_slot() is not None:
-            return None
-        return self._battle_menu_step(
-            BATTLE_MENU_ITEM_ROW, BATTLE_MENU_RIGHT_COLUMN
-        )
+        return None
 
     def _next_switch_action(self):
         """Send out a teammate that still has PP, driving the real menus."""

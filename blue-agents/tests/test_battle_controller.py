@@ -481,23 +481,21 @@ class FaintedLeadTests(unittest.TestCase):
         self.assertEqual("A", env._next_switch_action(), "responde ao aviso")
         self.assertTrue(env.switch_menu_open)
 
-    def test_time_machucado_em_navegacao_foge(self):
-        # A fuga voltou para a travessia: atravessar Mt. Moon são ~5.000 passos
-        # de caverna; lutar todo Zubat com o time desgastado drena HP até o
-        # whiteout antes de Cerulean (medido: 10 mortes em 60.000 passos).
-        # Fugir custa um turno; a luta longa custa o time.
+    def test_time_machucado_em_navegacao_nao_foge(self):
+        # Fuga desligada por decisão do operador (2026-08-12): morrer é melhor
+        # do que ficar preso. O whiteout é o mecanismo de cura — o cartucho
+        # devolve o time inteiro curado ao Centro — e fugir o impede. Medido
+        # no FARON: 2.196 fugas de 2.224 batalhas com o time machucado, nunca
+        # morreu, nunca curou, nível 6 parado para sempre.
         env = self.make_env([self.mon(hp=5, pp=20), self.mon(hp=6, pp=20)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
         env._battle_prompt_open = lambda: False
         env.current_task = "QUEST: MT_MOON_NAV"
         env._battle_menu_step = lambda row, col: f"MENU-{row}-{col}"
-        self.assertEqual("MENU-1-15", env._next_escape_action())
+        self.assertIsNone(env._next_escape_action())
 
     def test_fora_de_quest_nao_foge(self):
-        # Fora de navegação a fuga não se aplica: quem está treinando quer os
-        # encontros, e o treino era exatamente o caso que a remoção original
-        # protegia (AARON fugiu 2.093 Zubats a 1 HP e ficou preso).
         env = self.make_env([self.mon(hp=5, pp=20), self.mon(hp=6, pp=20)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
@@ -505,20 +503,19 @@ class FaintedLeadTests(unittest.TestCase):
         env.current_task = "TRAIN"
         self.assertIsNone(env._next_escape_action())
 
-    def test_sem_pp_de_dano_em_navegacao_foge(self):
-        # Sem golpe de dano não há como ganhar a luta; em travessia, o turno
-        # da fuga vale mais que o desgaste até o Struggle.
+    def test_sem_pp_de_dano_em_navegacao_nao_foge(self):
+        # Sem golpe de dano a luta vai ao Struggle; a fuga não existe mais em
+        # circunstância nenhuma — o desmaio destrava o caminho, a fuga não.
         env = self.make_env([self.mon(hp=20, pp=0), self.mon(hp=18, pp=0)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
         env._battle_prompt_open = lambda: False
         env.current_task = "QUEST: MT_MOON_NAV"
         env._battle_menu_step = lambda row, col: f"MENU-{row}-{col}"
-        self.assertEqual("MENU-1-15", env._next_escape_action())
+        self.assertIsNone(env._next_escape_action())
 
     def test_time_inteiro_em_navegacao_luta(self):
-        # Time inteiro e com golpe de dano: o encontro vale (PP, XP), e fugir
-        # seria jogar a recompensa fora.
+        # Time inteiro e com golpe de dano: o encontro vale (PP, XP).
         env = self.make_env([self.mon(hp=20, pp=20), self.mon(hp=18, pp=20)],
                             prompt_open=False)
         env._switch_target_slot = lambda: None
