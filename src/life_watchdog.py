@@ -43,6 +43,20 @@ FREEZE_COOLDOWN_STEPS = 1200
 # Teto por processo. Um congelamento que sobrevive a oito relatórios não vai
 # ficar mais claro no nono.
 FREEZE_MAX_REPORTS = 8
+# Ciclo de posição: a mesma volta repetida N vezes. Isto **não** é o mesmo teste
+# da impressão digital, e existe porque ela não pega o caso: na Rota 3, em
+# 2026-08-17, o LARON passou 56 minutos girando por **oito** tiles com batalha
+# no meio — a posição mudava e o HP mudava, então o conjunto de impressões
+# crescia e o piso nunca era cruzado. Foram 26 mil relatórios de travamento do
+# executor e nenhum do watchdog.
+#
+# "Andar em círculo" não é como uma missão anda: uma rota atravessa, e o que
+# repete a mesma volta é quem não sai do lugar. O período cobre até doze tiles
+# (o vaivém de dois é o caso mais comum, o círculo da Rota 3 tinha oito), e o
+# teto de repetições é alto de propósito — quinze voltas idênticas não são
+# coincidência, e ainda deixa passar o farm, que muda de mato e de alvo.
+CYCLE_MAX_PERIOD = 12
+CYCLE_REPEATS = 15
 
 MAP_ID_ADDRESS = 0xD35E
 PLAYER_X_ADDRESS = 0xD362
@@ -125,7 +139,13 @@ class LifeWatchdog:
         distinct_floor=FREEZE_DISTINCT_FLOOR,
         cooldown=FREEZE_COOLDOWN_STEPS,
         max_reports=FREEZE_MAX_REPORTS,
+        cycle_repeats=CYCLE_REPEATS,
+        cycle_max_period=CYCLE_MAX_PERIOD,
     ):
+        self.cycle_repeats = int(cycle_repeats)
+        self.cycle_max_period = int(cycle_max_period)
+        self.places = deque(maxlen=self.cycle_max_period * self.cycle_repeats)
+        self.cycle = None
         self.window_size = max(int(window), 2)
         # Piso maior que a janela declara congelamento em todo passo — a
         # janela cheia nunca teria impressões distintas suficientes. Como os
@@ -142,32 +162,79 @@ class LifeWatchdog:
     def distinct(self):
         return len(set(self.window))
 
-    def observe(self, fingerprint):
+    def _cycle_period(self):
+        """O período da volta que está se repetindo, ou `None`.
+
+        Procura do menor período para o maior: `A B A B A B…` é período 2, e o
+        círculo da Rota 3 era oito tiles. Só conta se a volta inteira couber
+        `cycle_repeats` vezes na memória de posições, o que é a diferença entre
+        "passou duas vezes pelo mesmo tile" e "está girando".
+        """
+        places = list(self.places)
+        for period in range(1, self.cycle_max_period + 1):
+            # O mínimo é **por período**: um vaivém de dois tiles fecha quinze
+            # voltas em trinta passos, e exigir a memória cheia (doze × quinze)
+            # antes de testar qualquer período fazia o detector nunca disparar.
+            span = period * self.cycle_repeats
+            if len(places) < span:
+                break
+            recent = places[-span:]
+            first = recent[:period]
+            if all(
+                recent[index] == first[index % period]
+                for index in range(span)
+            ):
+                return period
+        return None
+
+    def observe(self, fingerprint, place=None):
         """`True` no passo em que o congelamento é declarado, uma vez só.
 
         A janela é esvaziada ao declarar: o que vem depois é uma medição nova,
         senão o mesmo travamento continuaria disparando enquanto durasse.
+
+        `place` é a posição `(mapa, x, y)` — quando vem, um **ciclo de posição**
+        repetido também declara congelamento, mesmo que a impressão digital
+        esteja crescendo. É o caso que a impressão sozinha não pega: girar por
+        oito tiles com batalha no meio muda HP e posição a cada passo.
         """
         if self.quiet_steps > 0:
             self.quiet_steps -= 1
             return False
+        if place is not None:
+            self.places.append(tuple(place))
+            period = self._cycle_period()
+            if period is not None:
+                self.cycle = {
+                    "period": period,
+                    "repeats": self.cycle_repeats,
+                    "tiles": [list(t) for t in list(self.places)[-period:]],
+                }
+                return self._declare()
         self.window.append(fingerprint)
         if len(self.window) < self.window_size:
             return False
         if self.distinct > self.distinct_floor:
             return False
+        self.cycle = None
+        return self._declare()
+
+    def _declare(self):
+        """Fecha a medição e diz se este passo vira relatório."""
+        self.window.clear()
+        self.places.clear()
+        self.quiet_steps = self.cooldown
         if self.reports >= self.max_reports:
             # O teto não desliga a medição: a janela recomeça e o silêncio
             # vale, para o custo continuar limitado sem mentir sobre o estado.
-            self.window.clear()
-            self.quiet_steps = self.cooldown
+            self.cycle = None
             return False
         self.reports += 1
-        self.window.clear()
-        self.quiet_steps = self.cooldown
         return True
 
     def reset(self):
         """Recomeçar a medição — troca de mapa por whiteout, retomada, etc."""
         self.window.clear()
+        self.places.clear()
+        self.cycle = None
         self.quiet_steps = 0

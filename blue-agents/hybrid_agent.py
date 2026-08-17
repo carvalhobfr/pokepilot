@@ -3450,9 +3450,10 @@ class HybridGymEnv(RedGymEnv):
         """
         try:
             fingerprint = cartridge_fingerprint(self.read_m)
+            place = (fingerprint[0], fingerprint[1], fingerprint[2])
         except Exception:
             return
-        if not self.life_watchdog.observe(fingerprint):
+        if not self.life_watchdog.observe(fingerprint, place=place):
             return
         self._report_freeze(fingerprint)
 
@@ -3465,12 +3466,23 @@ class HybridGymEnv(RedGymEnv):
         vira trecho de `tools/replay_check.py` depois de consertado.
         """
         watchdog = self.life_watchdog
+        cycle = getattr(watchdog, "cycle", None)
         report = {
             "reason": (
-                f"o cartucho não mudou de estado em {watchdog.window_size} "
-                f"passos (impressões distintas: {watchdog.distinct_floor} ou "
-                f"menos)"
+                (
+                    f"a mesma volta de {cycle['period']} tile(s) se repetiu "
+                    f"{cycle['repeats']}× — andar em círculo não é como uma "
+                    f"missão anda"
+                )
+                if cycle else
+                (
+                    f"o cartucho não mudou de estado em {watchdog.window_size} "
+                    f"passos (impressões distintas: {watchdog.distinct_floor} "
+                    f"ou menos)"
+                )
             ),
+            "kind": "ciclo" if cycle else "estado_parado",
+            "cycle": cycle,
             "task": getattr(self, "current_task", ""),
             "quest_id": str(getattr(self, "active_quest_id", "") or ""),
             "route_id": str(

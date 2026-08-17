@@ -414,6 +414,16 @@ ROUTE_EVENTS = {
 # O deslocamento de cada tecla, na convenção deste projeto (y cresce ao sul).
 STEP_BY_KEY = {"U": (0, -1), "D": (0, 1), "L": (-1, 0), "R": (1, 0)}
 
+# Telas que um B fecha, quando o executor não tem o que fazer nelas. Batalha
+# fica fora de propósito: lá quem manda é o controlador de batalha, e um B no
+# lugar errado é turno perdido. O teclado de apelido também não entra — ele tem
+# resposta própria (START), tratada antes de tudo.
+ESCAPABLE_SCREENS = frozenset({
+    screen.MENU_PRINCIPAL, screen.MOCHILA, screen.USAR_JOGAR_FORA,
+    screen.SIM_NAO, screen.ESQUECER_GOLPE, screen.LISTA_MART,
+    screen.QUANTIDADE, screen.COMPRA_VENDA, screen.DESCONHECIDA,
+})
+
 # O grafo de Kanto é imutável (vem do ROM) e caro de montar: 49 mil células e
 # 2.152 portas. Um por processo, carregado na primeira pergunta.
 _KANTO_GRAPH = None
@@ -535,8 +545,36 @@ class ScriptedAgent(BaseAgent):
                     pass
 
         if getattr(self, "current_task_name", None) == "start" and self.emulator:
-            return self._run_start_deterministic()
-        return self.get_action(None)
+            action = self._run_start_deterministic()
+        else:
+            action = self.get_action(None)
+        if action is None:
+            return self._escape_open_menu()
+        return action
+
+    def _escape_open_menu(self):
+        """Menu aberto e executor sem nada a dizer: fecha com B.
+
+        `None` devolvido numa tela de menu é como um travamento nasce: o hybrid
+        passa a vez ao PPO, que aperta botão aleatório, e num menu isso pode
+        durar horas. Medido em 2026-08-17 no LARON, em Vermilion: o Cut **já
+        estava aprendido** (golpe 15 na equipe), o controlador do Cut devolvia
+        `None` com razão, e a tela `esquecer_golpe` ficou aberta em (18,29) por
+        194 relatórios de congelamento.
+
+        A escada é a do roadmap: B fecha submenu, avança texto e nunca escolhe
+        golpe por acidente. Tela de overworld não recebe nada — quem não tem
+        menu aberto não tem o que fechar, e um B ali é um passo perdido.
+        """
+        if self.emulator is None:
+            return None
+        try:
+            name = screen.classify(self.emulator.memory.read_byte)
+        except Exception:
+            return None
+        if name in ESCAPABLE_SCREENS:
+            return WindowEvent.PRESS_BUTTON_B
+        return None
 
     def _run_start_deterministic(self):
         """Complete the opening walk without the legacy timed action list."""

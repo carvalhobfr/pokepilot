@@ -4,6 +4,55 @@
 
 ## Continuar daqui (2026-08-17)
 
+### Watchdog agora pega ciclo, e menu aberto sem dono fecha com B
+
+Duas correções pedidas pelo operador depois de ver o LARON travar duas vezes de
+formas que o watchdog não pegava.
+
+**Ciclo de posição.** A impressão digital do cartucho não pega quem gira: na
+Rota 3 o LARON passou 56 minutos rodando por **oito** tiles com batalha no meio
+— posição mudava, HP mudava, o conjunto crescia, e o piso nunca era cruzado.
+Foram 26 mil relatórios do executor e **zero** do watchdog. Agora `observe`
+recebe a posição e declara congelamento quando a **mesma volta se repete 15
+vezes**, com período de até 12 tiles. A régua é do operador: andar em círculo
+não é como uma missão anda, e quinze voltas idênticas não são coincidência. O
+relatório distingue os dois casos (`kind: ciclo` ou `estado_parado`) e traz o
+período e os tiles da volta.
+
+**Escada de fuga.** `None` numa tela de menu é como um travamento nasce: o
+hybrid passa a vez ao PPO, que aperta botão aleatório. Medido em Vermilion, na
+mesma corrida: o Cut **já estava aprendido** (golpe 15 na equipe), o controlador
+do Cut devolvia `None` com razão, e a tela `esquecer_golpe` ficou aberta em
+(18,29) por **194 relatórios** — com a tela decodificada no diário dizendo
+`VENUSAUR learned CUT`. Agora executor em silêncio + tela de menu = **B**.
+Batalha fica de fora (lá quem manda é o controlador de batalha) e o teclado de
+apelido também (ele tem resposta própria, START).
+
+### `tools/mine_quest_route.py`: a travessia gravada vira waypoint
+
+Pedido do operador: *"já temos save do AARON que fez o caminho certinho no Mt.
+Moon, não dá pra ver o caminho avançado sem os loops?"* — dá, e agora é
+repetível para qualquer quest. O script lê a trilha densa publicada, **apaga os
+laços**, guarda só as viradas e **confere cada perna contra o cartucho**: todo
+waypoint pisável, todo par com caminho, e porta só no primeiro ou no último
+ponto (o primeiro é onde se chega, o último é o passo que atravessa).
+
+Na trilha de Mt. Moon (gravada pelo GARON, 1.197 passos, 6 pernas):
+
+| perna | gravados → viradas | veredito |
+|---|---|---|
+| 15 (entrada) | 8 → 2 | OK |
+| **59 (1F)** | 43 → **11** | OK, e **todos alcançáveis do tile de chegada sul** |
+| 60 (B1F, descida) | 32 → 6 | OK |
+| 61 (B2F) | 114 → 22 | OK |
+| 60 (volta) | 7 → 6 | porta no meio (23,3); um trecho só com pulo |
+| 15 (saída leste) | 76 → 10 | porta no meio (24,5); (27,3) fora do estático; o pulo (79,8)→(79,10) |
+
+**Não troquei as rotas do executor por elas**: auditadas com o mesmo script, as
+listas atuais também passam (depois do conserto do `(14,34)`), e trocar sem
+benefício medido é o tipo de mudança que este handoff já pagou. As listas
+mineradas ficam acima, prontas, para o próximo travameno decidir.
+
 ### Marco: bot novo do zero chegou a Vermilion com duas insígnias
 
 Confirmado na RAM às 16:2x: **mapa 89** (Centro de Vermilion), `wObtainedBadges`

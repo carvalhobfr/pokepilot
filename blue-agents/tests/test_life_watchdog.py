@@ -226,6 +226,84 @@ class BotSaudavelTests(unittest.TestCase):
                             sangrar))
 
 
+class CicloDePosicaoTests(unittest.TestCase):
+    """O caso que a impressão digital sozinha não pega.
+
+    Rota 3, 2026-08-17: o LARON passou 56 minutos girando por **oito** tiles com
+    batalha no meio. Posição mudava, HP mudava, o conjunto de impressões crescia
+    — e o watchdog ficou calado enquanto o executor escrevia 26 mil relatórios.
+
+    Andar em círculo não é como uma missão anda: uma rota atravessa. Quinze
+    voltas idênticas não são coincidência.
+    """
+
+    def watchdog(self, **kwargs):
+        opcoes = dict(window=10_000, distinct_floor=6, cooldown=0,
+                      cycle_repeats=15, cycle_max_period=12)
+        opcoes.update(kwargs)
+        return LifeWatchdog(**opcoes)
+
+    def andar(self, watchdog, cartridge, tiles, voltas):
+        """Roda `voltas` voltas por `tiles`, com HP mudando a cada passo."""
+        fired = []
+        passo = 0
+        for _volta in range(voltas):
+            for x, y in tiles:
+                cartridge.x, cartridge.y = x, y
+                # HP andando: é isto que faz o conjunto de impressões crescer e
+                # o teste do estado parado nunca disparar.
+                cartridge.party[0][2] = 40 - (passo % 37)
+                passo += 1
+                if watchdog.observe(
+                    cartridge_fingerprint(cartridge.read_byte),
+                    place=(cartridge.map_id, x, y),
+                ):
+                    fired.append(passo)
+        return fired
+
+    def test_circulo_de_oito_tiles_com_batalha_no_meio_dispara(self):
+        tiles = [(19, 9), (20, 9), (21, 9), (22, 9),
+                 (22, 8), (21, 8), (20, 8), (19, 8)]
+        watchdog = self.watchdog()
+        fired = self.andar(watchdog, FakeCartridge(map_id=14), tiles, 20)
+        self.assertTrue(fired, "oito tiles girando 20 vezes é círculo")
+        self.assertEqual(8, watchdog.cycle["period"])
+
+    def test_vaivem_de_dois_tiles_dispara(self):
+        watchdog = self.watchdog()
+        fired = self.andar(watchdog, FakeCartridge(), [(3, 6), (3, 7)], 40)
+        self.assertTrue(fired)
+        self.assertEqual(2, watchdog.cycle["period"])
+
+    def test_poucas_voltas_nao_sao_ciclo(self):
+        # Passar duas vezes pelo mesmo tile é caminho, não círculo.
+        watchdog = self.watchdog()
+        tiles = [(19, 9), (20, 9), (21, 9), (22, 9)]
+        self.assertEqual([], self.andar(watchdog, FakeCartridge(), tiles, 3))
+
+    def test_travessia_nao_dispara(self):
+        # Um bot que atravessa não repete volta: cada tile é novo.
+        watchdog = self.watchdog()
+        cartridge = FakeCartridge()
+        fired = []
+        for passo in range(600):
+            cartridge.x, cartridge.y = passo % 40, passo // 40
+            if watchdog.observe(
+                cartridge_fingerprint(cartridge.read_byte),
+                place=(cartridge.map_id, cartridge.x, cartridge.y),
+            ):
+                fired.append(passo)
+        self.assertEqual([], fired)
+
+    def test_sem_posicao_o_detector_de_ciclo_fica_desligado(self):
+        # `observe` sem `place` continua sendo só o teste do estado parado.
+        watchdog = self.watchdog(window=WINDOW)
+        cartridge = FakeCartridge()
+        for _ in range(WINDOW * 2):
+            watchdog.observe(cartridge_fingerprint(cartridge.read_byte))
+        self.assertIsNone(watchdog.cycle)
+
+
 class CadenciaTests(unittest.TestCase):
     def test_dispara_uma_vez_e_cala_pelo_cooldown(self):
         watchdog = LifeWatchdog(window=WINDOW, distinct_floor=6, cooldown=100)
