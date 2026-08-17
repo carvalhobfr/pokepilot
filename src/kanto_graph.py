@@ -53,6 +53,8 @@ class KantoGraph:
         # caminho que a luta abre desliga isto.
         self.avoid_objects = bool(avoid_objects)
         self._passable = {}
+        self._sizes = {}
+        self._blocked_cache = {}
         self.borders, self.warps = self._load(connections_path)
         self._returns = self._resolve_dynamic_returns()
 
@@ -134,18 +136,37 @@ class KantoGraph:
         return cached
 
     def _blocked(self, map_id):
+        """Objetos sólidos do mapa, **em cache**.
+
+        Cada expansão de nó chamava isto, e cada chamada montava o conjunto de
+        novo: com 34 mil nós alcançáveis, a busca deixou de terminar. Medido em
+        2026-08-17 na corrida do LARON — o chunk ficou 2 minutos a 100% de CPU
+        sem dar um passo.
+        """
+        map_id = int(map_id)
         if not self.avoid_objects:
-            return set()
-        try:
-            return set(self.maps.object_positions(int(map_id)))
-        except Exception:
-            return set()
+            return frozenset()
+        cached = self._blocked_cache.get(map_id)
+        if cached is None:
+            try:
+                cached = frozenset(self.maps.object_positions(map_id))
+            except Exception:
+                cached = frozenset()
+            self._blocked_cache[map_id] = cached
+        return cached
 
     def _size(self, map_id):
-        cells = self._cells(map_id)
-        if not cells:
-            return (0, 0)
-        return (max(x for x, _ in cells) + 1, max(y for _, y in cells) + 1)
+        """Largura e altura em passos, **em cache** — era um `max()` por nó."""
+        map_id = int(map_id)
+        cached = self._sizes.get(map_id)
+        if cached is None:
+            cells = self._cells(map_id)
+            cached = (
+                (0, 0) if not cells
+                else (max(x for x, _ in cells) + 1, max(y for _, y in cells) + 1)
+            )
+            self._sizes[map_id] = cached
+        return cached
 
     # --- arestas ---------------------------------------------------------
 

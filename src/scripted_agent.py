@@ -3181,6 +3181,13 @@ class ScriptedAgent(BaseAgent):
             graph = self._kanto_graph()
             map_id = int(self.emulator.memory.get_map_id())
             x, y = self.emulator.memory.get_player_pos()
+            # Uma busca por entrada de mapa, não por passo. Sem este cache o
+            # chunk do LARON ficou dois minutos a 100% de CPU sem andar: cada
+            # passo refazia uma busca em largura sobre 34 mil nós. Quem anda a
+            # perna é o `_follow_route`, que já sabe replanejar dentro do mapa.
+            cached = getattr(self, "graph_plan", None)
+            if cached and cached[0] == (map_id, tuple(target)):
+                return cached[1]
             path = graph.path((map_id, int(x), int(y)), tuple(target))
             if not path:
                 return None
@@ -3203,7 +3210,10 @@ class ScriptedAgent(BaseAgent):
                 if step and not crossing.startswith("J"):
                     last = legs[0][1][-1]
                     tiles.append((last[0] + step[0], last[1] + step[1]))
-            return tiles or None
+            if not tiles:
+                return None
+            self.graph_plan = ((map_id, tuple(target)), tiles)
+            return tiles
         except Exception:
             return None
 
