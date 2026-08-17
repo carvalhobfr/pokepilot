@@ -226,6 +226,10 @@ FACING_UP = 4
 # a conexão soma 10 ao x). É também o teste de componente do mapa 3 — quem
 # alcança este tile está do lado leste do rio e desce sozinho.
 CERULEAN_SOUTH_EXIT = (26, 35)
+# Onde a travessia de Mt. Moon termina: o tile por onde o AARON entrou em
+# Cerulean em 2026-08-12, e o mesmo do BARON em 05/08. É o alvo que o grafo
+# recebe quando a rota medida não alcança.
+CERULEAN_ARRIVAL = (3, 0, 18)
 
 VIRIDIAN_FOREST_MAP_ID = 51
 
@@ -396,6 +400,13 @@ ROUTE_EVENTS = {
     "L": WindowEvent.PRESS_ARROW_LEFT,
     "R": WindowEvent.PRESS_ARROW_RIGHT,
 }
+
+# O deslocamento de cada tecla, na convenção deste projeto (y cresce ao sul).
+STEP_BY_KEY = {"U": (0, -1), "D": (0, 1), "L": (-1, 0), "R": (1, 0)}
+
+# O grafo de Kanto é imutável (vem do ROM) e caro de montar: 49 mil células e
+# 2.152 portas. Um por processo, carregado na primeira pergunta.
+_KANTO_GRAPH = None
 
 class ScriptedAgent(BaseAgent):
     def __init__(self, walkthrough_path, emulator=None, player_name="AARON", save_dir=".", starter_choice=None, route_role="follower"):
@@ -2139,7 +2150,18 @@ class ScriptedAgent(BaseAgent):
             ],
         }
         if map_id in routes:
-            return self._follow_route(f"mt-moon-{map_id}", routes[map_id])
+            # A travessia de Mt. Moon é o trecho que mais custou medição à mão
+            # neste projeto, e a Rota 3 mostrou o limite disso: em 2026-08-17 o
+            # LARON ficou 56 minutos entre Pewter e a Rota 3 com
+            # `route_id=mt-moon-14`, `target=(59,-1)`, `path_to_target: None` e
+            # o orçamento do waypoint em 283 de 300 — a rota escrita não casava
+            # com a geometria de onde ele estava. Do mesmo tile, o grafo
+            # respondia 75 passos até a caverna e 302 até Cerulean.
+            #
+            # A rota medida continua ganhando enquanto alcança; o grafo é a rede.
+            return self._route_or_graph(
+                f"mt-moon-{map_id}", routes[map_id], CERULEAN_ARRIVAL
+            )
 
         # Map 68 is the Route 4 Center and is handled before every executor,
         # like every other one. It used to have its own copy of the nurse dance
@@ -3129,6 +3151,82 @@ class ScriptedAgent(BaseAgent):
         return any(
             int(move_id) in self._party_move_ids(slot) for slot in range(count)
         )
+
+    def _kanto_graph(self):
+        """O grafo de Kanto, carregado uma vez por processo.
+
+        São 49 mil células e 2.152 portas: reconstruir por agente ou por passo
+        seria caro sem motivo, e o conteúdo é imutável (vem do ROM).
+        """
+        global _KANTO_GRAPH
+        if _KANTO_GRAPH is None:
+            from src.kanto_graph import KantoGraph
+            _KANTO_GRAPH = KantoGraph(map_memory=self._map_memory())
+        return _KANTO_GRAPH
+
+    def _graph_waypoints(self, target):
+        """Os waypoints **do mapa atual** para chegar em `target`, pelo grafo.
+
+        O grafo devolve o caminho inteiro, de qualquer ponto para qualquer
+        ponto; aqui só a perna deste mapa é entregue, porque é isso que o
+        `_follow_route` sabe andar — com colisão ao vivo, sprite, porta e
+        orçamento. O grafo entra como **fonte de waypoint**, não como piloto.
+
+        Quando a perna termina numa borda, o último waypoint vira o tile de
+        fora (`y = -1` e afins): é esse passo que atravessa, e é a convenção
+        que as rotas medidas deste projeto já usam. Quando termina numa porta,
+        o tile da porta é o último waypoint — atravessar é pisar nela.
+        """
+        try:
+            graph = self._kanto_graph()
+            map_id = int(self.emulator.memory.get_map_id())
+            x, y = self.emulator.memory.get_player_pos()
+            path = graph.path((map_id, int(x), int(y)), tuple(target))
+            if not path:
+                return None
+            legs = graph.legs(path)
+            tiles = [tile for tile in legs[0][1] if tile != (int(x), int(y))]
+            if len(legs) > 1:
+                # O nó do grafo é `(mapa, x, y)`; a perna guarda só `(x, y)`.
+                # Comparar os dois nunca casa, e o `crossing` saía vazio.
+                entrance = (legs[1][0],) + tuple(legs[1][1][0])
+                crossing = next(
+                    (
+                        key for key, node
+                        in graph.neighbors(path[len(legs[0][1]) - 1],
+                                           allow_jumps=True)
+                        if node == entrance
+                    ),
+                    "",
+                )
+                step = STEP_BY_KEY.get(crossing[-1:]) if crossing else None
+                if step and not crossing.startswith("J"):
+                    last = legs[0][1][-1]
+                    tiles.append((last[0] + step[0], last[1] + step[1]))
+            return tiles or None
+        except Exception:
+            return None
+
+    def _route_or_graph(self, route_id, waypoints, target):
+        """A rota medida enquanto ela alcança; o grafo quando ela não alcança.
+
+        A ordem de autoridade não muda: rota desenhada primeiro. O gatilho é o
+        próprio mapa dizer que não há caminho até o fim da rota — foi o que o
+        relatório do LARON mostrou na Rota 3 em 2026-08-17, parado em (22,8) com
+        `route_id=mt-moon-14`, `target=(59,-1)`, `path_to_target: None` e o
+        orçamento do waypoint em 283 de 300. A rota escrita à mão não casava com
+        a geometria de onde ele estava, e o grafo respondia 75 passos até Mt.
+        Moon do mesmo tile.
+        """
+        map_id = int(self.emulator.memory.get_map_id())
+        here = tuple(self.emulator.memory.get_player_pos())
+        anchor = tuple(waypoints[-1])
+        if self._map_memory().find_path(map_id, here, anchor) is not None:
+            return self._follow_route(route_id, waypoints)
+        plan = self._graph_waypoints(target)
+        if not plan:
+            return self._follow_route(route_id, waypoints)
+        return self._follow_route(f"grafo-{map_id}", plan)
 
     def _trail_may_drive(self, quest_id):
         """O trail dirige só onde **não existe executor**.

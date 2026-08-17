@@ -157,5 +157,62 @@ class BuscaTests(GraphFixture):
         self.assertTrue(all(tiles for _map_id, tiles in legs))
 
 
+class GrafoComoRedeDaRotaTests(unittest.TestCase):
+    """O executor de Mt. Moon usando o grafo quando a rota medida não alcança."""
+
+    def agent_at(self, map_id, position):
+        from src.map_memory import MapMemory
+        from src.scripted_agent import ScriptedAgent
+
+        class Memory:
+            def get_map_id(self):
+                return map_id
+
+            def get_player_pos(self):
+                return position
+
+            def get_party_count(self):
+                return 1
+
+            def read_byte(self, address):
+                return 0
+
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        agent.emulator = type("FakeEmulator", (), {"memory": Memory()})()
+        agent.map_memory = MapMemory()
+        agent._map_memory = lambda: agent.map_memory
+        agent.walked = []
+        agent._follow_route = lambda route_id, waypoints: agent.walked.append(
+            (route_id, [tuple(w) for w in waypoints])
+        ) or "WALKING"
+        return agent
+
+    def test_na_rota_3_o_grafo_assume_onde_a_rota_medida_nao_alcanca(self):
+        # O tile exato do travamento do LARON em 2026-08-17: 56 minutos com
+        # `route_id=mt-moon-14`, `target=(59,-1)` e `path_to_target: None`. O
+        # estático não tem caminho de (22,8) até a borda norte — a Rota 3 é
+        # partida por penhascos —, e a rota escrita à mão nunca alcançava dali.
+        agent = self.agent_at(14, (22, 8))
+        self.assertIsNone(
+            agent.map_memory.find_path(14, (22, 8), (59, -1)),
+            "se a rota medida passar a alcançar, este teste perdeu o sentido",
+        )
+        agent._run_mt_moon_nav()
+        route_id, waypoints = agent.walked[-1]
+        self.assertEqual("grafo-14", route_id)
+        # A perna termina um tile **fora** do mapa: é esse passo que atravessa
+        # para a Rota 4, a mesma convenção das rotas medidas.
+        self.assertEqual((61, -1), waypoints[-1])
+        self.assertEqual((61, 0), waypoints[-2])
+
+    def test_dentro_de_mt_moon_a_rota_medida_continua_no_volante(self):
+        # 1F tem rota medida que alcança, e ela ganha: o grafo é rede, não
+        # substituto.
+        agent = self.agent_at(59, (14, 35))
+        agent._run_mt_moon_nav()
+        route_id, _waypoints = agent.walked[-1]
+        self.assertEqual("mt-moon-59", route_id)
+
+
 if __name__ == "__main__":
     unittest.main()
