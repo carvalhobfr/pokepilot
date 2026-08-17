@@ -2150,8 +2150,16 @@ class ScriptedAgent(BaseAgent):
             # sólida em Gen I — e o bot quicava numa caixa de 4 tiles até
             # morrer de atrito. Esta sobe ao norte, corta oeste por cima,
             # desce a coluna oeste (x=2) e entra na escada NW (5,5).
+            # O primeiro waypoint era **(14,35), que é warp** — ele e o (15,35)
+            # voltam para a Rota 4. Quem entrava pela boca da caverna em (15,35)
+            # andava `L` para o outro tile de warp e saía. Medido na corrida do
+            # LARON em 2026-08-17: **10 idas e voltas 59 ↔ 15** em 1.500
+            # eventos, a mesma assinatura da porta do ginásio de Pewter no
+            # mesmo dia. A regra do projeto já dizia: porta nunca é alvo de
+            # rota, exceto a última — e a última aqui é (5,5), a escada, que é
+            # warp de propósito.
             59: [
-                (14, 35), (14, 26), (21, 22), (24, 27), (25, 32),
+                (14, 34), (14, 26), (21, 22), (24, 27), (25, 32),
                 (35, 7), (16, 15), (2, 16), (2, 5), (5, 5),
             ],
             61: [

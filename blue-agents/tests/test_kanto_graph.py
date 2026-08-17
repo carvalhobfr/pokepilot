@@ -157,6 +157,58 @@ class BuscaTests(GraphFixture):
         self.assertTrue(all(tiles for _map_id, tiles in legs))
 
 
+class PortaNuncaEAlvoDoMeioTests(GraphFixture):
+    """Warp no meio de uma rota é a mesma armadilha, três vezes em um dia.
+
+    Em 2026-08-17: a porta do ginásio de Pewter (dois tiles de warp, o primeiro
+    waypoint era um deles) e a boca de Mt. Moon (idem, `(14,35)`), as duas
+    produzindo vaivém de mapa — 78 transições em 400 eventos no ginásio, 10 idas
+    e voltas 59↔15 na caverna. A regra do projeto já era escrita; faltava
+    alguém conferindo as rotas contra a lista de warps do cartucho.
+    """
+
+    def waypoints(self, map_id, position):
+        from src.map_memory import MapMemory
+        from src.scripted_agent import ScriptedAgent
+
+        class Memory:
+            def get_map_id(self):
+                return map_id
+
+            def get_player_pos(self):
+                return position
+
+            def get_party_count(self):
+                return 1
+
+            def read_byte(self, address):
+                return 0
+
+        agent = ScriptedAgent.__new__(ScriptedAgent)
+        agent.emulator = type("FakeEmulator", (), {"memory": Memory()})()
+        agent.map_memory = MapMemory()
+        agent._map_memory = lambda: agent.map_memory
+        agent.walked = []
+        agent._follow_route = lambda route_id, tiles: agent.walked.append(
+            (route_id, [tuple(t) for t in tiles])
+        ) or "WALKING"
+        agent._run_mt_moon_nav()
+        return agent.walked[-1]
+
+    def test_a_rota_do_1f_nao_comeca_em_cima_do_warp_de_saida(self):
+        doors = {
+            (int(d["x"]), int(d["y"])) for d in self.graph.warps[59]
+        }
+        self.assertIn((14, 35), doors, "a boca da caverna é warp")
+        route_id, waypoints = self.waypoints(59, (14, 34))
+        self.assertEqual("mt-moon-59", route_id)
+        self.assertEqual(
+            set(), set(waypoints[:-1]) & doors,
+            "só o último waypoint pode ser porta — os do meio levam para fora",
+        )
+        self.assertIn(waypoints[-1], doors, "o último é a escada, que é warp")
+
+
 class GrafoComoRedeDaRotaTests(unittest.TestCase):
     """O executor de Mt. Moon usando o grafo quando a rota medida não alcança."""
 
