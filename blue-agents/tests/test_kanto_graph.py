@@ -213,6 +213,23 @@ class GrafoComoRedeDaRotaTests(unittest.TestCase):
         route_id, _waypoints = agent.walked[-1]
         self.assertEqual("mt-moon-59", route_id)
 
+    def test_rota_parada_passa_o_volante_mesmo_com_caminho_no_papel(self):
+        # O oeste do 1F de Mt. Moon: em (10,22) o passo L não move no cartucho,
+        # mas colisão ao vivo, `static_maps.json` e `terrain.json` dizem os três
+        # que (9,22) é andável — inconsistência registrada em aberto no handoff.
+        # Medido em 2026-08-17: o LARON deu 47 relatórios de travamento entre
+        # (7,22) e (10,24) mirando (16,15), com caminho existindo no papel.
+        agent = self.agent_at(59, (10, 23))
+        self.assertIsNotNone(
+            agent.map_memory.find_path(59, (10, 23), (5, 5)),
+            "o estático diz que dá — é por isso que 'sem caminho' não bastava",
+        )
+        agent.route_stuck_steps = 60
+        agent._run_mt_moon_nav()
+        route_id, waypoints = agent.walked[-1]
+        self.assertEqual("grafo-59", route_id)
+        self.assertTrue(waypoints)
+
 
 if __name__ == "__main__":
     unittest.main()

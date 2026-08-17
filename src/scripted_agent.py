@@ -230,6 +230,16 @@ CERULEAN_SOUTH_EXIT = (26, 35)
 # Cerulean em 2026-08-12, e o mesmo do BARON em 05/08. É o alvo que o grafo
 # recebe quando a rota medida não alcança.
 CERULEAN_ARRIVAL = (3, 0, 18)
+# Passos sem encurtar distância antes de o grafo assumir uma rota medida que o
+# estático jura andável. Existe porque **o estático pode estar errado**: o
+# handoff registra em aberto que em (10,22) do 1F de Mt. Moon o passo L não move
+# no cartucho, enquanto colisão ao vivo, `static_maps.json` e `terrain.json`
+# dizem os três que (9,22) é andável — e a rota medida do 1F depende justamente
+# da coluna oeste. Medido em 2026-08-17: o LARON ficou 47 relatórios de
+# travamento entre (7,22) e (10,24) mirando (16,15), com caminho existindo no
+# papel. O grafo, do mesmo tile, responde 187 passos por outro caminho (pelas
+# escadas: 1F → B1F → B2F → B1F → Rota 4).
+GRAPH_TAKEOVER_STEPS = 60
 
 VIRIDIAN_FOREST_MAP_ID = 51
 
@@ -3231,7 +3241,9 @@ class ScriptedAgent(BaseAgent):
         map_id = int(self.emulator.memory.get_map_id())
         here = tuple(self.emulator.memory.get_player_pos())
         anchor = tuple(waypoints[-1])
-        if self._map_memory().find_path(map_id, here, anchor) is not None:
+        stalled = int(getattr(self, "route_stuck_steps", 0)) >= GRAPH_TAKEOVER_STEPS
+        reachable = self._map_memory().find_path(map_id, here, anchor) is not None
+        if reachable and not stalled:
             return self._follow_route(route_id, waypoints)
         plan = self._graph_waypoints(target)
         if not plan:
