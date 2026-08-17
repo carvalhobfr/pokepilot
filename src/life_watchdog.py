@@ -56,7 +56,16 @@ FREEZE_MAX_REPORTS = 8
 # teto de repetições é alto de propósito — quinze voltas idênticas não são
 # coincidência, e ainda deixa passar o farm, que muda de mato e de alvo.
 CYCLE_MAX_PERIOD = 12
-CYCLE_REPEATS = 15
+# Cem voltas idênticas — o número é do operador, e a primeira medição com quinze
+# mostrou por que ele é alto: em um minuto de corrida, quinze voltas acusaram o
+# **farm** (o MARON andando dois tiles no mato de propósito, rota `treino-51`) e
+# o LARON parado num menu. Farm é ciclo legítimo; cem voltas sem desviar uma
+# casa, não.
+CYCLE_REPEATS = 100
+# Período 1 é "não saiu do tile", e isso já é medido pela impressão digital —
+# em janela de 600 passos, não de 15. Incluí-lo aqui fazia toda caixa de texto
+# longa virar relatório.
+CYCLE_MIN_PERIOD = 2
 
 MAP_ID_ADDRESS = 0xD35E
 PLAYER_X_ADDRESS = 0xD362
@@ -171,7 +180,7 @@ class LifeWatchdog:
         "passou duas vezes pelo mesmo tile" e "está girando".
         """
         places = list(self.places)
-        for period in range(1, self.cycle_max_period + 1):
+        for period in range(CYCLE_MIN_PERIOD, self.cycle_max_period + 1):
             # O mínimo é **por período**: um vaivém de dois tiles fecha quinze
             # voltas em trinta passos, e exigir a memória cheia (doze × quinze)
             # antes de testar qualquer período fazia o detector nunca disparar.
@@ -180,6 +189,12 @@ class LifeWatchdog:
                 break
             recent = places[-span:]
             first = recent[:period]
+            # Sequência constante casa com **qualquer** período: ficar parado
+            # passava por "ciclo de período 2". Uma volta tem de ter mais de um
+            # tile — quem não sai do lugar é assunto da impressão digital, em
+            # janela de 600 passos.
+            if len(set(first)) < 2:
+                continue
             if all(
                 recent[index] == first[index % period]
                 for index in range(span)
