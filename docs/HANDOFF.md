@@ -153,6 +153,69 @@ colapsador de repetição faz o resto. Mais um teto de 40 assinaturas para o
 diretório inteiro. O diretório foi limpo guardando o **primeiro** save de cada
 uma das 6 situações (179 MB → 1 MB).
 
+### Kanto como um grafo só (novo, e ainda fora do volante)
+
+Pedido do operador depois do terceiro travamento de trail no mesmo dia. A
+pergunta dele — "uma matriz vetorial de cada mapa e a conexão deles, para o bot
+poder sair da rota e saber onde reentrar" — é o que faltava do outro lado: o
+dado sempre existiu, a **busca** não.
+
+`blue-agents/tools/extract_connections.py` lê do cartucho as duas ligações que
+o `static_maps.json` não tinha: **246 mapas, 106 bordas, 2.152 portas**. A borda
+vem do cabeçalho de mapa (byte de direções + 11 bytes por direção); a porta vem
+da tabela de warps **com o índice de chegada**, que é o que dá o tile do outro
+lado e nunca havia sido lido.
+
+A conta do reposicionamento de borda foi conferida contra dois fatos que este
+projeto já tinha medido, e reproduz os dois:
+
+| conexão | alinhamento | reproduz |
+|---|---|---|
+| Cerulean sul → Route 5 | `x_align = -10` | `(26,35) → (16,0)`, medido em 16/08 |
+| Route 4 leste → Cerulean | `y_align = 8` | `(79,10) → (0,18)`, medido em 12/08 |
+
+`src/kanto_graph.py` põe as três arestas no mesmo grafo — vizinho, borda,
+porta — e responde caminho de `(mapa,x,y)` para `(mapa,x,y)` com busca em
+largura. Três coisas que só apareceram construindo:
+
+1. **porta não é célula andável no estático.** É a mesma razão pela qual
+   `_planned_step` precisa da exceção da porta. Sem tratar warp como nó, a busca
+   respondia "sem caminho" para dentro de qualquer prédio — foi o primeiro
+   resultado, 0 caminhos;
+2. **porta dinâmica (`0xFF`) resolve por par mútuo, sem palpite.** "Quem aponta
+   para cá" é ambíguo no portão da Floresta (Rota 2 e Floresta apontam para o
+   47); o par mútuo não é: a porta 1 do portão casa com a porta 1 da Rota 2,
+   índice a índice nos dois sentidos. Sem isso o grafo parava na Floresta;
+3. **penhasco é aresta de mão única.** No estático o tile do meio é parede, e é
+   isso que parte a Rota 4 — com o alcance travado na saída de Mt. Moon. Com o
+   pulo, o alcance de Pallet foi de **6.684 nós em 31 mapas para 34.170 nós em
+   166 mapas**. O pulo é a última opção da busca (`path` tenta primeiro sem
+   nenhum), pela mesma razão do executor: penhasco e parede-com-chão-atrás têm
+   a mesma assinatura.
+
+Medido: `Pallet → Brock` são **371 passos** cruzando Pallet, Rota 1, Viridian,
+Rota 2, portão, Floresta, portão, Rota 2 norte, Pewter e o ginásio — a abertura
+inteira do jogo, sem uma coordenada escrita à mão. E ele acha atalho que nenhum
+executor tem: `Pallet → Vermilion` sai pela **Diglett's Cave** (Rota 2 → 197 →
+85 → Rota 11 → Vermilion), 408 passos.
+
+**O que ainda NÃO está feito, e é o que separa isto de estar no volante:**
+
+- **nenhum executor usa o grafo.** Ele é ferramenta e teste; o controle segue
+  nos `_run_*`;
+- **o caminho não foi validado no cartucho ponta a ponta.** Dirigir o emulador
+  com o caminho do grafo divergiu duas vezes, e as duas apontam para o **arnês**,
+  não para o grafo: chegar num tile de porta **já dispara o warp** (o cartucho
+  aparece no mapa de destino enquanto o arnês ainda esperava a soleira), e o
+  arnês reapertava a mesma tecla até seis vezes, o que empurra o boneco para
+  fora do caminho. Validar de verdade pede um seguidor que trate porta como
+  passo consumido — e é esse seguidor que o executor vai usar;
+- **evento não é geometria.** `Pallet → cabine do capitão` e `Pallet → saguão
+  Indigo` voltam "sem caminho", e está certo: o navio pede o ticket e a Liga pede
+  as oito insígnias. Quem sabe disso é o QuestGraph, não o mapa;
+- **16 pulos no caminho até Vermilion** não foram medidos um por um. Cada pulo
+  falso é um passo que não sai.
+
 ### Porta giratória no ginásio de Pewter, e o trail de novo
 
 Apontado pelo operador olhando o painel: JARON e KARON indo e voltando na porta
