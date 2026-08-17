@@ -1,4 +1,4 @@
-# PokeAI 2026 — instruções para agentes e colaboradores
+# pokepilot — instruções para agentes e colaboradores
 
 Antes de alterar este projeto, leia **por inteiro** `docs/HANDOFF.md` e consulte
 `docs/QUEST_GRAPH.md`. O handoff é a fonte canônica de continuidade; o mapa
@@ -68,6 +68,24 @@ planejado, executor implementado e trecho validado no cartucho.
     graphify explain "_planned_step"
     graphify path "_follow_route" "find_path"
     ```
+13. **O repositório é público desde 17/08/2026. Só sobe treino que avança a
+    jornada e que foi testado dando o mesmo resultado.** Um save de execução não
+    é conquista: 82 states em `states/replay/auto/` são matéria bruta que o
+    watchdog grava sozinho, e nenhum deles vale um commit. Para um trecho novo
+    entrar em `states/replay/`:
+
+    1. o trecho tem de **avançar** — um objetivo do QuestGraph que ninguém tinha
+       fechado, não uma variação de um já coberto;
+    2. promova o save à mão e escreva a entrada no `manifest.json`, com o que o
+       cartucho tem de responder depois de N passos;
+    3. rode `tools/replay_check.py` **duas vezes, do zero**. Resultado que muda
+       entre execuções não é trecho vencido, é corrida com sorte — e vai
+       quebrar na máquina de quem clonar.
+
+    O que **nunca** sobe: `runtime/` (63 MB de log por semana), `trainers/`,
+    `archives/`, checkpoints de PPO, `events_feed.json` e os `tasks/*.txt` de
+    ordem de quest. Tudo isso é execução, é derivado e é grande — o `.gitignore`
+    já barra, e a regra 10 (`nunca git add -A`) é o que impede furar o barramento.
 
 ## Retomada mínima
 

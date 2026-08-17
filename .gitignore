@@ -1,14 +1,16 @@
 # --- ROM ------------------------------------------------------------------
-# Software comercial: cada pessoa traz a própria cópia legal. Ficaram
-# versionadas entre 08/08 e 17/08/2026, enquanto o repositório era privado
-# (commit 264901a) — a regra 1 do AGENTS.md volta a valer aqui.
+# Software comercial: cada pessoa traz a própria cópia legal. A regra 1 do
+# AGENTS.md vale sem exceção — ninguém compartilha ROM.
 #
-# Isto tira as ROMs dos commits **futuros**, não do histórico: `git checkout
-# 264901a -- roms/` continua entregando os arquivos. O operador foi avisado e
-# decidiu em 17/08/2026 **deixar o histórico como está** — projeto pequeno,
-# custo de reescrever (e de todo clone ser refeito) maior que o benefício. Se um
-# dia isso mudar: `git filter-repo --path roms/PokemonBlue.gb --path
-# roms/PokemonRed.gb --invert-paths`. Não é para "consertar" isso sem pedido.
+# Elas ficaram versionadas entre 08/08 e 17/08/2026, enquanto o repositório era
+# privado. Em 17/08/2026 o repositório virou público e o histórico inteiro foi
+# reescrito com `git filter-repo` para apagar `roms/*.gb` e `roms/*.gb.ram` dos
+# 122 commits. Não sobra nenhum blob de ROM: `git log --all -- 'roms/*'` volta
+# vazio. Backup do histórico antigo em `../pokepilot-backup-pre-purge-*.bundle`,
+# fora do repositório.
+#
+# Consequência: qualquer clone anterior a 17/08/2026 tem histórico incompatível
+# e precisa ser refeito. Não reintroduza ROM no versionamento.
 roms/*.gb
 roms/*.gbc
 
@@ -43,6 +45,19 @@ blue-agents/tasks/save_state_signal
 blue-agents/*_autosave.state
 blue-agents/checkpoints/
 blue-agents/tasks/journey_states/
+
+# Ordem de quest solta pelo operador durante uma corrida (uma linha,
+# `QUEST: <NOME>`). É comando de execução, não configuração do projeto.
+blue-agents/tasks/*.txt
+
+# Log e PID das corridas: 63 MB em 17/08/2026, um arquivo por jornada. O
+# `*.log` mais abaixo já pegaria os logs, mas não o PID — e a pasta inteira é
+# execução, nada aqui reconstrói o projeto.
+runtime/
+
+# Pasta criada por engano ao rodar um comando de dentro de blue-agents/ (o
+# caminho vira blue-agents/blue-agents/). Não é estrutura do projeto.
+blue-agents/blue-agents/
 
 # Telemetria da execução: o feed é reescrito inteiro a cada jornada (milhares
 # de linhas por corrida) e ninguém precisa dele para rodar do zero.
