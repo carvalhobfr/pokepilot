@@ -119,8 +119,20 @@ FOLLOW_TRAILS = os.getenv("POKEAI_FOLLOW_TRAILS", "0") == "1"
 #   depois do pacote já entregue. Medido em 2026-08-16, com três bots novos:
 #   o executor levava para (4,3), o trail puxava de volta para (4,1), e os
 #   três ficaram presos entre duas casas — nenhum saiu de Pallet.
+# - `viridian_forest_nav`: o executor daqui não só atravessa, ele **escolhe o
+#   mato** — o trecho de treino sai do `wGrassTile` (0xD535) lido ao vivo, e é
+#   isso que faz o farm render. O trail não sabe o que é mato: ele guarda por
+#   onde alguém passou, e a travessia segue o caminho de terra de propósito.
+#   Medido em 2026-08-17, mesmo save (`states/replay/apelido-na-floresta`),
+#   1.200 passos, mudando só se o trail dirige: **2 batalhas e nível parado no
+#   9 com o trail, contra 15 batalhas e nível 11 com o executor**. Na corrida
+#   do operador foi pior: IARON, JARON e KARON passaram 3h30 em (1,1)/(1,2),
+#   um canto sem mato, com `route_id=trail-override-viridian_forest_nav-51` —
+#   em MISSION: AUTO, que é o modo que deveria estar farmando. Foi o watchdog
+#   de vida que apontou os três.
 TRAIL_BLOCKED_QUESTS = frozenset({
     "start", "oak_event", "parcel_event",
+    "viridian_forest_nav",
     "bill_quest", "cerulean_gym_quest", "vermilion_gym_quest",
 })
 

@@ -29,7 +29,7 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[2])
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-from src.scripted_agent import ScriptedAgent
+from src.scripted_agent import TRAIL_BLOCKED_QUESTS, ScriptedAgent
 
 # O trail do laboratório, como o executor o desenha.
 LAB_LEG = [{"map": 40, "points": [[4, 1], [4, 3], [5, 3], [5, 12]]}]
@@ -110,6 +110,19 @@ class OnePointLegTests(unittest.TestCase):
     def test_sem_trail_nao_ha_override(self):
         agent = self.agent([], (4, 2))
         self.assertIsNone(agent._trail_override_step())
+
+    def test_na_floresta_quem_dirige_e_o_executor(self):
+        # O executor da Floresta escolhe o mato pelo `wGrassTile` lido ao vivo;
+        # o trail guarda por onde alguém passou, e a travessia segue o caminho
+        # de terra de propósito. Medido em 2026-08-17, mesmo save, 1.200
+        # passos: 2 batalhas e nível parado no 9 com o trail dirigindo, contra
+        # 15 batalhas e nível 11 com o executor. Na corrida do operador, três
+        # bots em MISSION: AUTO passaram 3h30 num canto sem mato.
+        self.assertIn("viridian_forest_nav", TRAIL_BLOCKED_QUESTS)
+        agent = self.agent(LAB_LEG, (4, 2), map_id=51)
+        agent.current_task_name = "viridian_forest_nav"
+        self.assertIsNone(agent._trail_override_step())
+        self.assertEqual([], agent.walked)
 
 
 if __name__ == "__main__":

@@ -103,8 +103,33 @@ corrida do operador roda, o trail ganha. É a mesma assinatura do travamento de
 Vermilion de 16/08, na quest seguinte. Os saves ficaram em
 `states/replay/auto/{IARON,JARON,KARON}-m51-1x1-*.state`.
 
-**Não mexi na lista**: mudar `TRAIL_BLOCKED_QUESTS` muda o comportamento de uma
-corrida que está de pé, e isso é decisão do operador.
+**Resolvido no mesmo dia, por ordem do operador**: `viridian_forest_nav` entrou
+em `TRAIL_BLOCKED_QUESTS`. Medido no mesmo save (`apelido-na-floresta`),
+mudando só quem dirige:
+
+| janela | executor dirigindo | trail dirigindo |
+|---|---|---|
+| 600 passos | **7 batalhas**, 6 tiles | 2 batalhas, 34 tiles |
+| 1.200 passos | 15 batalhas, nível 9→**11** | 2 batalhas, nível parado em 9 |
+
+O executor da Floresta não só atravessa: ele **escolhe o mato**, do
+`wGrassTile` (0xD535) lido ao vivo. O trail só sabe por onde alguém passou — e
+a travessia segue o caminho de terra de propósito, então segui-la é ficar fora
+do mato.
+
+### A medida do trecho de farm estava errada, e a correção veio junto
+
+O trecho `apelido-na-floresta` esperava `tiles_min: 8` e **reprovou o bot
+saudável** no instante em que o trail saiu do volante: farmando, o executor
+para no mato e o que ele produz é encontro, não deslocamento (6 tiles em 600
+passos, e 7 batalhas).
+
+A expectativa passou a ser `battles_min`, nova no `replay_check.py` — transições
+de `0xD057` de 0 para não-zero. Ela cobre **as duas** regressões do trecho: o
+bot preso no teclado digita letras sem lutar, e o arrastado pelo trail fica num
+canto sem mato. Piso e janela por medição, não a olho: em 400 passos os dois
+lados davam 2 batalhas e o piso não separava nada; em 600, 7 contra 2. Com o
+código de antes o trecho reprova: `2 batalhas começaram, esperado ao menos 4`.
 
 ### Uma situação, um save — 179 MB em duas horas
 
@@ -120,6 +145,23 @@ não grava de novo — e o evento no diário passa a ter carga idêntica, então
 colapsador de repetição faz o resto. Mais um teto de 40 assinaturas para o
 diretório inteiro. O diretório foi limpo guardando o **primeiro** save de cada
 uma das 6 situações (179 MB → 1 MB).
+
+### Um bot novo chega a Vermilion? Hoje, não — e o que falta é medível
+
+Perguntado pelo operador em 17/08. O que está provado, perna por perna:
+
+| perna | estado |
+|---|---|
+| casa → lab → Mart → Rota 2 → Floresta | trechos de replay de pé |
+| farm até a evolução (16) + Butterfree na linha Charmander | ~2h de corrida, medido no FARON em 12/08 |
+| Brock | só depois do farm; a última medição de derrota é anterior ao gate do 0xCC50 |
+| Mt. Moon, Misty | validados em 12/08 com AARON **retomado**, não do zero |
+| Cerulean → Rota 5 → Underground → Rota 6 → Vermilion | ~7 min, medido em 16/08 |
+
+O que travava a primeira linha era o trail da Floresta, consertado acima.
+Nenhuma corrida do zero atravessou a cadeia inteira depois dos consertos de
+16/08 — e é isso, não uma previsão, que responde a pergunta. Largar 1 bot e
+deixar o watchdog dizer onde ele para é o próximo passo.
 
 ### Travamentos abertos, na ordem
 

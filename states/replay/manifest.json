@@ -69,11 +69,12 @@
       "name": "apelido-na-floresta",
       "state": "states/replay/apelido-na-floresta.state",
       "quest": "viridian_forest_nav",
-      "steps": 200,
+      "steps": 600,
       "expect": {
-        "tiles_min": 8
+        "tiles_min": 3,
+        "battles_min": 4
       },
-      "regressao": "2026-08-16: três bots capturaram um Metapod, o jogo pediu apelido, o A respondeu SIM e eles passaram onze chunks inteiros digitando letras no teclado. Em Gen I, START é o END da tela de nome. O teste mede andar, não 'fora de batalha': farmando, estar em batalha no fim é o normal — o que o bot preso no teclado nunca fazia era sair do tile."
+      "regressao": "2026-08-16: três bots capturaram um Metapod, o jogo pediu apelido, o A respondeu SIM e eles passaram onze chunks inteiros digitando letras no teclado. Em Gen I, START é o END da tela de nome. A medida era 'andou N tiles' e virou 'começou N batalhas' em 2026-08-17: com o trail fora do volante, o executor para no mato de propósito e o que ele produz é encontro, não deslocamento — 'andar' reprovava bot saudável. Encontro cobre as duas regressões: o bot no teclado digita sem lutar, e o arrastado pelo trail fica num canto sem mato. Piso e janela escolhidos por medição, não a olho: em 600 passos o executor começa 7 batalhas e o trail 2 (em 400 os dois davam 2, e o piso não separava nada)."
     },
     {
       "name": "apelido-do-inicial",

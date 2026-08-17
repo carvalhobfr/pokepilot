@@ -138,6 +138,8 @@ def run_check(check, rom, quiet=True):
     pyboy.tick(60, False, False)
 
     emulator = Adapter(pyboy)
+    battles = 0
+    was_in_battle = int(pyboy.memory[IN_BATTLE_ADDRESS]) != 0
     agent = ScriptedAgent(
         str(ROOT / "walkthrough.json"),
         emulator=emulator,
@@ -174,6 +176,10 @@ def run_check(check, rom, quiet=True):
         position = (int(pyboy.memory[0xD362]), int(pyboy.memory[0xD361]))
         seen_maps.add(map_id)
         seen_tiles.add((map_id, position))
+        in_battle = int(pyboy.memory[IN_BATTLE_ADDRESS]) != 0
+        if in_battle and not was_in_battle:
+            battles += 1
+        was_in_battle = in_battle
 
     expect = check.get("expect", {})
     failures = []
@@ -194,6 +200,17 @@ def run_check(check, rom, quiet=True):
         failures.append(
             f"golpe {expect['party_move']} não está na equipe ({party_moves(pyboy)})"
         )
+    if "battles_min" in expect and battles < int(expect["battles_min"]):
+        # A medida de vida de um trecho de farm. "Andou N tiles" reprova bot
+        # saudável aqui: o executor da Floresta **para no mato de propósito** e
+        # o que ele produz é encontro, não deslocamento. E encontro separa as
+        # duas regressões deste trecho de uma vez — o bot preso no teclado
+        # digita letras sem lutar, e o bot arrastado pelo trail fica num canto
+        # sem mato (medido: 2 batalhas em 1.200 passos, contra 15).
+        failures.append(
+            f"{battles} batalhas começaram, esperado ao menos "
+            f"{expect['battles_min']}"
+        )
     if "party_nickname" in expect:
         found = party_nickname(pyboy)
         if found != expect["party_nickname"]:
@@ -204,7 +221,7 @@ def run_check(check, rom, quiet=True):
     if expect.get("not_in_battle") and int(pyboy.memory[0xD057]) != 0:
         failures.append("continua preso em batalha depois do orçamento de passos")
     pyboy.stop(False)
-    return failures, sorted(seen_maps), len(seen_tiles)
+    return failures, sorted(seen_maps), len(seen_tiles), battles
 
 
 def main():
@@ -228,13 +245,16 @@ def main():
 
     broken = 0
     for check in checks:
-        failures, maps, tiles = run_check(check, args.rom)
+        failures, maps, tiles, battles = run_check(check, args.rom)
         if failures:
             broken += 1
             print(f"✗ {check['name']}: " + "; ".join(failures))
             print(f"   regressão conhecida: {check['regressao']}")
         else:
-            print(f"✓ {check['name']}: mapas {maps}, {tiles} tiles")
+            print(
+                f"✓ {check['name']}: mapas {maps}, {tiles} tiles, "
+                f"{battles} batalhas"
+            )
     print(f"\n{len(checks) - broken}/{len(checks)} trechos de pé")
     return 1 if broken else 0
 
