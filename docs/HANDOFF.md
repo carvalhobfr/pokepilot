@@ -4,6 +4,37 @@
 
 ## Continuar daqui (2026-08-17)
 
+### Marco: bot novo do zero chegou a Vermilion com duas insígnias
+
+Confirmado na RAM às 16:2x: **mapa 89** (Centro de Vermilion), `wObtainedBadges`
+= `00000011` — Brock **e** Misty —, party Ivysaur 34 / Metapod 6 / Pikachu 38, e
+`completed_quests` com onze nós: `start, oak_event, parcel_event, buy_pokeballs,
+route_2_nav, viridian_forest_nav, pewter_city_nav, brock_quest, mt_moon_nav,
+bill_quest, cerulean_gym_quest`.
+
+LARON, um slot, headless, sem plateia (modo treino, **320 fps** contra ~4 com o
+painel aberto). Do jogo novo até Vermilion em **~1h55 de relógio**, e o caminho
+inteiro foi medido:
+
+| marco | mapa | observação |
+|---|---|---|
+| inicial, Pallet, laboratório | 0 / 40 | |
+| **travou 14 min** na borda norte de Pallet | 0 | `trail-override-buy_pokeballs-0` |
+| Floresta, farm até o 17 | 51 | |
+| **insígnia do Brock** | 54 | |
+| **travou 56 min** na Rota 3 | 14 | rota medida sem caminho; **o grafo destravou** |
+| Mt. Moon 1F → B1F → B2F | 59/60/61 | 10 idas e voltas 59↔15 antes (warp no 1º waypoint) |
+| Cerulean, Bill | 64 / 35 | |
+| **insígnia da Misty** | 65 | |
+| Rota 6 → **Vermilion** | 17 / 5 | |
+
+**Os dois travamentos longos tinham a mesma raiz de sempre**, e os dois foram
+consertados na própria corrida: trail dirigindo por cima de executor (agora
+invertido — ver abaixo) e waypoint em cima de warp (Rota 3 pelo grafo, boca da
+caverna corrigida). O que restou de aberto está listado no fim desta seção.
+
+Antes disto, nenhuma corrida do zero havia passado da Floresta desde 16/08.
+
 ### Marco: o watchdog de vida está de pé, e achou uma tela no primeiro uso
 
 O item 1 do roadmap abaixo ("fazer primeiro") está feito. A cada passo tira-se
