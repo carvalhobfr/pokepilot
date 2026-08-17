@@ -38,8 +38,12 @@ Opções que valem saber:
 
 | Comando | O que muda |
 |---|---|
-| `python start.py --slots 3` | quantos bots correm em paralelo |
+| `python start.py --slots 2` | quantos bots correm em paralelo |
 | `python start.py --no-browser` | não abre o navegador sozinho |
+
+**Dois bots é o teto num laptop de 8 GB.** Três levaram `SIGKILL` (código `-9`,
+sem traceback) mais de uma vez: o limite é memória, não temperatura. Se um bot
+"desaparecer" sem erro, procure `code -9` no log antes de suspeitar da lógica.
 
 ## Começando do zero
 
@@ -108,22 +112,87 @@ O [mapa visual do QuestGraph](docs/QUEST_GRAPH.md) mostra os 19 objetivos até
 Mewtwo e separa claramente o que já foi validado no cartucho, o que possui
 executor em validação e o que ainda é apenas planejamento.
 
+## Até onde chega hoje
+
+Medido em 2026-08-17, um bot novo do zero, headless, sem intervenção nenhuma —
+e cada linha confirmada lendo a RAM, não o painel:
+
+| marco | confirmação |
+|---|---|
+| sair de casa, laboratório, escolher o inicial | `party_count`, espécie na RAM |
+| encomenda, Poké Bolas, atravessar Viridian | mochila e mapa |
+| Floresta de Viridian, farm até evoluir | nível e espécie da equipe |
+| **1ª insígnia (Brock)** | bit 0 de `wObtainedBadges` |
+| Rota 3, Mt. Moon (1F → B1F → B2F), Rota 4 | sequência de mapas |
+| Cerulean, Bill | `completed_quests` |
+| **2ª insígnia (Misty)** | bit 1 de `wObtainedBadges` |
+| Rota 5 → Underground → Rota 6 → Vermilion | mapas |
+| S.S. Anne, capitão, **HM01 e Cut aprendido** | golpe 15 na equipe |
+
+**~1h55 de relógio**, rodando sem plateia (com o painel aberto o emulador é
+freado para ser assistível: 320 passos/s contra ~4). Onze dos 19 nós do
+QuestGraph concluídos.
+
+**O que ainda não passa:** o ginásio do Lt. Surge — o puzzle das lixeiras é
+estado de RAM, não geometria, e não tem executor. Depois dele faltam seis nós
+até a Liga. O [handoff](docs/HANDOFF.md) lista cada travamento aberto com o save
+e a tela que o causou.
+
+## Que IA tem aqui, exatamente
+
+Vale dizer de frente, porque a expectativa costuma ser outra: **não é um modelo
+que aprendeu a jogar Pokémon, e não é um LLM jogando.** É engenharia de agente,
+com quatro peças que são IA clássica e uma que é aprendizado por reforço:
+
+| peça | o que é | onde |
+|---|---|---|
+| **busca** | Kanto como grafo — 49.412 células, 2.152 portas, 106 bordas — e busca em largura de qualquer ponto a qualquer ponto | `src/kanto_graph.py` |
+| **planejamento** | 19 objetivos com pré-condições verificadas na RAM; nada é "concluído" por tempo ou por botão apertado | `blue-agents/quest_graph.py` |
+| **sistema especialista** | política de batalha lendo tipo, potência e PP da tabela do próprio cartucho | `src/simple_battle.py` |
+| **detecção de anomalia** | impressão digital do cartucho a cada passo; estado que não muda, ou volta repetida com o plano parado, viram save + tela gravados | `src/life_watchdog.py` |
+| **aprendizado por reforço** | PPO (stable-baselines3) sobre a exploração | `blue-agents/hybrid_agent.py` |
+
+E o RL é a parte **menor**, medida e não estimada — a instrumentação está na
+seção seguinte: numa travessia real até o Brock, 0% das ações vieram da rede.
+Ela só recebe o passo quando nenhum controlador quer agir, e o rollout inteiro é
+descartado se um script sobrescreveu qualquer passo, porque creditar recompensa a
+uma ação que a rede não tomou é treinar com dado falso.
+
+Um LLM opcional existe (`src/llm_agent.py`), usado só pelo botão "Ask AI" do
+painel. A jornada não depende dele e não acessa a rede.
+
+**O que este projeto demonstra de verdade**, e é o que ele tem de menos comum:
+todo conhecimento do mundo é **extraído do cartucho** em vez de adivinhado, toda
+afirmação de progresso é **conferida na RAM**, e todo travamento vira save + tela
+decodificada + teste de regressão. O histórico disso está no
+[handoff](docs/HANDOFF.md), com os erros que custaram mais caro nomeados —
+inclusive **4.067 paredes que nunca existiram**, geradas pela versão que
+aprendia geometria esbarrando.
+
 ## Como os bots acham o caminho
 
-Não existe leitura de colisão da RAM neste projeto — obter isso da ROM exigiria
-lidar com troca de banco. Então as paredes são **aprendidas jogando**: apertou
-uma direção, não saiu do lugar, aquela aresta é bloqueada. O caminho até o
-próximo waypoint vem de uma busca em largura sobre esse conhecimento, refeita a
-partir de onde o bot realmente está.
+**A geometria vem do cartucho, não de esbarrar.** `tools/extract_map_data.py` lê
+parede, mato, treinador, item e porta dos 248 mapas direto da ROM: 238 mapas e
+49.412 células em `knowledge/maps/static_maps.json`. A versão anterior aprendia
+paredes esbarrando, e isso rendeu 21 mapas e **4.067 paredes que nunca
+existiram** — um NPC parado é indistinguível de parede, e uma batalha na tela faz
+todo tile ler como parede.
 
-O mapa aprendido fica em `blue-agents/knowledge/maps/collision.json` e é
-**compartilhado entre os treinadores**: onde ficam as paredes não depende de
-quem esbarra nelas. Um bot novo já nasce sabendo o que os anteriores pagaram
-para descobrir, e duas jornadas simultâneas somam o que aprendem.
+Desde 2026-08-17 as três ligações do mundo estão no mesmo grafo
+(`src/kanto_graph.py`): passo dentro do mapa, **borda** entre mapas e **porta**,
+as duas últimas extraídas do cabeçalho de mapa e da tabela de warps. Com isso
+"ir de onde estou até `(mapa, tile)`" é uma busca só — de Pallet até o Brock são
+371 passos cruzando dez mapas, sem uma coordenada escrita à mão. O grafo modela
+até o pulo de penhasco, como aresta de mão única.
 
-Aresta desconhecida conta como livre, então o primeiro plano num mapa novo é a
-linha reta. Atravessar uma aresta bloqueada a esquece — um NPC parado é
-indistinguível de parede enquanto está lá.
+A ordem de autoridade é fixa e existe porque cada inversão dela custou horas:
+**leitura ao vivo > estático do ROM > trilha gravada**, e a rota medida dirige
+enquanto alcança — o grafo é a rede quando ela não alcança.
+
+Quem vigia é a **impressão digital do cartucho**: a cada passo, mapa, posição,
+equipe, mochila, insígnias e HP de batalha. Conjunto que não cresce, ou a mesma
+volta repetida cem vezes, é congelamento — e aí o save e a tela decodificada são
+gravados sozinhos, para o defeito virar teste em vez de virar madrugada.
 
 ## O que é aprendizado de verdade aqui? (medido, não estimado)
 

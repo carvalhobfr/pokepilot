@@ -1,5 +1,15 @@
 # --- ROM ------------------------------------------------------------------
-
+# Software comercial: cada pessoa traz a própria cópia legal. Ficaram
+# versionadas entre 08/08 e 17/08/2026, enquanto o repositório era privado
+# (commit 264901a) — a regra 1 do AGENTS.md volta a valer aqui.
+#
+# ATENÇÃO: isto tira as ROMs dos commits **futuros**, não do histórico. Num
+# repositório público, `git checkout 264901a -- roms/` ainda entrega os
+# arquivos. Para publicar de verdade é preciso reescrever o histórico
+# (`git filter-repo --path roms/PokemonBlue.gb --path roms/PokemonRed.gb
+# --invert-paths`) e todo mundo com clone tem de clonar de novo.
+roms/*.gb
+roms/*.gbc
 
 # --- dependências ---------------------------------------------------------
 .env
