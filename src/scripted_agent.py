@@ -244,6 +244,12 @@ TRAINING_TRAINER_CLEARANCE = 12
 # (o índice interno ≠ dex nacional; ver `blue-agents/pokemon_ids.py`).
 FIRST_EVOLUTION_LEVEL = 16
 BUTTERFREE_INTERNAL = 125
+# O nível em que o inicial resolve o Brock sozinho, sem depender do Confusion
+# do Butterfree. Decisão do operador em 2026-08-17, com o IARON parado na
+# Floresta: "um charmander 25 já destrói o brock". É teto de paciência para a
+# meta do Butterfree, que sem ele não termina — o inicial mata o encontro antes
+# do Metapod pegar XP, e o Metapod é quem precisa chegar ao 10.
+BROCK_BRUTE_FORCE_LEVEL = 25
 PIKACHU_INTERNAL = 84
 CHARMANDER_LINE_INTERNAL = {176, 178, 180}
 
@@ -1789,8 +1795,19 @@ class ScriptedAgent(BaseAgent):
         """
         goals = []
         starter = self._starter_internal()
-        if starter in CHARMANDER_LINE_INTERNAL and \
-                BUTTERFREE_INTERNAL not in set(self._party_internal_ids()):
+        if (
+            starter in CHARMANDER_LINE_INTERNAL
+            and BUTTERFREE_INTERNAL not in set(self._party_internal_ids())
+            and self._starter_level() < BROCK_BRUTE_FORCE_LEVEL
+        ):
+            # A meta do Butterfree existe porque Confusion resolve o Brock que
+            # o Charmander não resolve. Só que ela virou gate infinito na
+            # corrida do operador em 2026-08-17: o IARON ficou com **Charmeleon
+            # 34 e Metapod 8** na Floresta, porque quem mata o encontro é o
+            # inicial e o Metapod nunca chega ao 10 para evoluir. Nível resolve
+            # o mesmo problema por outro caminho — um inicial no 25 passa por
+            # cima do ginásio de Pewter —, então o que vier primeiro encerra o
+            # farm. Ordem do operador.
             goals.append("butterfree")
         if self._starter_level() < FIRST_EVOLUTION_LEVEL:
             goals.append("evolucao_inicial")

@@ -180,6 +180,22 @@ class RouteFollowingTests(unittest.TestCase):
             0xD163: 1, 0xD164: 176, 0xD18C: 20}.get(a, 0)
         self.assertEqual(["butterfree"], agent._farm_goals())
 
+    def test_o_nivel_25_encerra_a_meta_do_butterfree(self):
+        # A meta do Butterfree não terminava: medido na corrida do operador em
+        # 2026-08-17, o IARON ficou com **Charmeleon 34 e Metapod 8** na
+        # Floresta — quem mata o encontro é o inicial, e o Metapod nunca chega
+        # ao 10 para evoluir. Um inicial no 25 passa por cima do Brock sem
+        # Confusion, então o que vier primeiro encerra o farm (ordem do
+        # operador).
+        agent = self.make_agent((15, 41), map_id=51)
+        agent.emulator.memory.read_byte = lambda a: {
+            0xD163: 1, 0xD164: 176, 0xD18C: 24}.get(a, 0)
+        self.assertEqual(["butterfree"], agent._farm_goals(), "no 24 ainda farma")
+        agent.emulator.memory.read_byte = lambda a: {
+            0xD163: 1, 0xD164: 176, 0xD18C: 25}.get(a, 0)
+        self.assertEqual([], agent._farm_goals(), "no 25 o farm acabou")
+        self.assertFalse(agent._needs_training())
+
     def test_mission_farm_inclui_o_pikachu(self):
         # Charmander com Butterfree (interno 125 no slot 1): no AUTO o time
         # está pronto; no FARM falta o Pikachu (ideal contra a Misty).
