@@ -25,6 +25,8 @@ if PROJECT_ROOT not in sys.path:
 from src.life_watchdog import (
     BADGES_ADDRESS,
     BAG_ITEM_COUNT_ADDRESS,
+    BATTLE_ENEMY_HP_ADDRESS,
+    BATTLE_PLAYER_HP_ADDRESS,
     IN_BATTLE_ADDRESS,
     MAP_ID_ADDRESS,
     PARTY_COUNT_ADDRESS,
@@ -45,7 +47,7 @@ class FakeCartridge:
     """Os bytes que o watchdog lê, e nada mais."""
 
     def __init__(self, map_id=37, x=3, y=6, in_battle=0, bag=0, badges=0,
-                 party=((1, 5, 20),)):
+                 party=((1, 5, 20),), battle_hp=(20, 20)):
         self.map_id = map_id
         self.x = x
         self.y = y
@@ -53,10 +55,19 @@ class FakeCartridge:
         self.bag = bag
         self.badges = badges
         self.party = [list(member) for member in party]
+        # `wBattleMon` e `wEnemyMon`: é onde a luta acontece. A HP da party só
+        # é reescrita quando a batalha termina.
+        self.battle_hp = list(battle_hp)
         self.reads = []
 
     def read_byte(self, address):
         self.reads.append(address)
+        if address in (BATTLE_PLAYER_HP_ADDRESS, BATTLE_PLAYER_HP_ADDRESS + 1):
+            valor = self.battle_hp[0]
+            return valor >> 8 if address == BATTLE_PLAYER_HP_ADDRESS else valor & 0xFF
+        if address in (BATTLE_ENEMY_HP_ADDRESS, BATTLE_ENEMY_HP_ADDRESS + 1):
+            valor = self.battle_hp[1]
+            return valor >> 8 if address == BATTLE_ENEMY_HP_ADDRESS else valor & 0xFF
         if address == MAP_ID_ADDRESS:
             return self.map_id
         if address == PLAYER_X_ADDRESS:
@@ -127,9 +138,11 @@ class SeteTravamentosTests(unittest.TestCase):
 
     def test_lista_da_equipe_em_batalha_com_hp_intacto(self):
         # Butterfree 40 (124/124) contra um Charmeleon 20 (56/56) por 8
-        # minutos, nenhum golpe lançado.
+        # minutos, nenhum golpe lançado: nem a party, nem o `wBattleMon`, nem o
+        # inimigo mudam de HP.
         cartridge = FakeCartridge(
             map_id=101, in_battle=1, party=((125, 40, 124), (12, 16, 45)),
+            battle_hp=(124, 56),
         )
         self.assertEqual([WINDOW - 1], run(self.watchdog(), cartridge, WINDOW))
 
@@ -171,6 +184,22 @@ class BotSaudavelTests(unittest.TestCase):
 
         self.assertEqual([], run(self.watchdog(), FakeCartridge(), WINDOW * 2,
                                  lutar))
+
+    def test_farm_no_mato_e_luta_anda_luta_e_isso_e_vida(self):
+        # O caso que a primeira corrida real reprovou: 28 relatórios em meia
+        # hora com os três bots farmando e o Charmeleon do IARON indo do nível
+        # 16 ao 33. Em batalha a posição não muda e a HP da party não é
+        # reescrita até o fim da luta — quem anda é o HP da própria batalha.
+        def farmar(cartridge, step):
+            dentro = (step % 20) < 16
+            cartridge.in_battle = 1 if dentro else 0
+            if dentro:
+                cartridge.battle_hp = [40 - step % 16, 30 - step % 16]
+            else:
+                cartridge.x = 12 + (step % 2)
+
+        self.assertEqual([], run(self.watchdog(), FakeCartridge(), WINDOW * 3,
+                                 farmar))
 
     def test_farm_parado_no_mato_com_a_equipe_subindo(self):
         def farmar(cartridge, step):

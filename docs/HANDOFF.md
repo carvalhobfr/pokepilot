@@ -103,6 +103,13 @@ corrida do operador roda, o trail ganha. É a mesma assinatura do travamento de
 Vermilion de 16/08, na quest seguinte. Os saves ficaram em
 `states/replay/auto/{IARON,JARON,KARON}-m51-1x1-*.state`.
 
+**Correção de leitura, registrada de propósito**: eu li esses relatórios como
+"os três parados agora" e estava errado — eram de **02:17**, o começo da
+corrida, e os bots saíram do canto sozinhos horas depois, quando a rota de
+treino assumiu. Às 11:13 o painel mostrava JARON e KARON no ginásio de Pewter
+(mapa 54) com Charmeleon 28 e 35, e IARON farmando na Floresta com o 33. O que
+o trail custou foi o farm dessas primeiras horas, não a corrida.
+
 **Resolvido no mesmo dia, por ordem do operador**: `viridian_forest_nav` entrou
 em `TRAIL_BLOCKED_QUESTS`. Medido no mesmo save (`apelido-na-floresta`),
 mudando só quem dirige:
@@ -145,6 +152,32 @@ não grava de novo — e o evento no diário passa a ter carga idêntica, então
 colapsador de repetição faz o resto. Mais um teto de 40 assinaturas para o
 diretório inteiro. O diretório foi limpo guardando o **primeiro** save de cada
 uma das 6 situações (179 MB → 1 MB).
+
+### A primeira corrida real reprovou a impressão digital: falta o HP da batalha
+
+Subir o painel na corrida de 3 slots mostrou o watchdog escrevendo **28
+relatórios em meia hora** enquanto os três bots farmavam na Floresta e o
+Charmeleon do IARON ia do **nível 16 ao 33**. Não eram travamentos.
+
+A causa está na Gen I e é medível: a luta acontece em `wBattleMon`/`wEnemyMon`,
+e a HP da **party** só é reescrita quando a batalha termina. Em batalha a
+posição também não muda. Então uma luta longa é **uma impressão digital só**, e
+um farm — que é luta, dois passos, luta — cabia inteiro embaixo do piso de 6.
+
+`cartridge_fingerprint` passou a ler `0xD015` (HP do ativo na batalha) e
+`0xCFE6` (HP do inimigo), os mesmos endereços que o controlador de batalha já
+usa, e só enquanto `0xD057` estiver de pé — fora da batalha eles guardam a luta
+anterior. Medido no cartucho depois:
+
+| save, 1.200 passos | disparos |
+|---|---|
+| `apelido-na-floresta` farmando | **0** (antes: 1) |
+| `troca-em-batalha` com a lista da equipe travada | 1, tela `lista_equipe` |
+| `cais-ss-anne` sem apertar nada | 1, tela `overworld` |
+
+**Lição que vale além do watchdog**: "nada mudou" só é sinal se a leitura cobre
+onde a mudança acontece. O primeiro corte cobria o overworld e chamava toda
+batalha de congelamento.
 
 ### Um bot novo chega a Vermilion? Hoje, não — e o que falta é medível
 

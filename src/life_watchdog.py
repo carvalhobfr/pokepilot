@@ -56,16 +56,29 @@ PARTY_LEVEL_OFFSET = 33
 BAG_ITEM_COUNT_ADDRESS = 0xD31D
 BADGES_ADDRESS = 0xD356
 IN_BATTLE_ADDRESS = 0xD057
+# Dentro de uma batalha a luta acontece em `wBattleMon`/`wEnemyMon`, e a HP da
+# **party** só é reescrita no fim dela. Sem estes dois endereços — os mesmos
+# que o controlador de batalha já lê — uma luta inteira é uma impressão digital
+# só, e um farm de vinte minutos vira relatório de congelamento.
+BATTLE_PLAYER_HP_ADDRESS = 0xD015
+BATTLE_ENEMY_HP_ADDRESS = 0xCFE6
 
 
 def cartridge_fingerprint(read_byte):
     """O estado do cartucho que qualquer progresso real muda.
 
-    Andar muda a posição; lutar muda HP; capturar, evoluir e subir de nível
-    mudam a equipe; comprar muda a mochila; um ginásio muda as insígnias. O que
-    fica de fora é de propósito: a direção para onde o jogador está virado
-    **não** entra — a máquina de falar com sprite gira no lugar, e incluir isso
-    faria um bot preso parecer vivo.
+    Andar muda a posição; lutar muda o HP dos dois lados; capturar, evoluir e
+    subir de nível mudam a equipe; comprar muda a mochila; um ginásio muda as
+    insígnias. O que fica de fora é de propósito: a direção para onde o jogador
+    está virado **não** entra — a máquina de falar com sprite gira no lugar, e
+    incluir isso faria um bot preso parecer vivo.
+
+    O HP da batalha entra por medição, não por completude. Sem ele, a primeira
+    corrida real do watchdog escreveu **28 relatórios em meia hora** com os três
+    bots farmando na Floresta e o Charmeleon do IARON indo do nível 16 ao 33: em
+    batalha a posição não muda e a HP da party não é reescrita até o fim da
+    luta, então uma luta longa é uma impressão digital só. Um farm é
+    luta-anda-luta, e a janela inteira caía embaixo do piso.
     """
     party_count = min(int(read_byte(PARTY_COUNT_ADDRESS)), 6)
     party = []
@@ -79,14 +92,27 @@ def cartridge_fingerprint(read_byte):
             int(read_byte(base + PARTY_LEVEL_OFFSET)),
             hp,
         ))
+    in_battle = int(read_byte(IN_BATTLE_ADDRESS))
+    battle_hp = (0, 0)
+    if in_battle:
+        # Fora de batalha estes bytes guardam a luta anterior: lê-los sempre
+        # não daria vida falsa, mas também não diria nada — e zerá-los deixa a
+        # impressão digital do overworld estável, que é o que se quer.
+        battle_hp = (
+            (int(read_byte(BATTLE_PLAYER_HP_ADDRESS)) << 8)
+            + int(read_byte(BATTLE_PLAYER_HP_ADDRESS + 1)),
+            (int(read_byte(BATTLE_ENEMY_HP_ADDRESS)) << 8)
+            + int(read_byte(BATTLE_ENEMY_HP_ADDRESS + 1)),
+        )
     return (
         int(read_byte(MAP_ID_ADDRESS)),
         int(read_byte(PLAYER_X_ADDRESS)),
         int(read_byte(PLAYER_Y_ADDRESS)),
-        int(read_byte(IN_BATTLE_ADDRESS)),
+        in_battle,
         int(read_byte(BAG_ITEM_COUNT_ADDRESS)),
         int(read_byte(BADGES_ADDRESS)),
         tuple(party),
+        battle_hp,
     )
 
 
