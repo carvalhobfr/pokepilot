@@ -20,7 +20,54 @@ let controls = {
 };
 
 function writeControls() {
-  const temporary = `${CONTROL_FILE}.tmp`;
+  // The hybrid persists the manual queue back to this same file, and both
+  // sides used the same ".tmp" name — one rename could steal the other's
+  // temporary and crash the relay with ENOENT. A unique temporary per
+  // writer makes the race harmless: the loser's rename just replaces the
+  // winner's file, and the file is always complete.
+  //
+  // The in-memory copy of each agent's manual queue goes stale the moment
+  // the hybrid consumes a step and persists the remainder: any later
+  // writeControls — a viewer connecting, a speed change — would rewrite the
+  // full queue and the bot would walk the consumed steps again. Re-read the
+  // file first and let its queue win, so a broadcast never resurrects a
+  // step that was already taken.
+  try {
+    const stored = JSON.parse(fs.readFileSync(CONTROL_FILE, 'utf8'));
+    for (const [name, agent] of Object.entries(stored.agents || {})) {
+      if (!controls.agents[name]) continue;
+      // O modo guia e o pause são do OPERADOR e vivem no arquivo; a memória
+      // não pode reescrevê-los como false por engano. Se o arquivo tem o
+      // campo (mesmo false), ele manda; se não tem, preserva a memória —
+      // um boot com o arquivo a meio não pode derrubar o guia ativo
+      // (medido 2026-08-13: o manual_mode sumia a cada restart).
+      const agentHasGuide = Object.prototype.hasOwnProperty.call(agent, 'manual_mode');
+      const agentHasPause = Object.prototype.hasOwnProperty.call(agent, 'paused');
+      // A fila da MEMÓRIA vence: o handler manual acabou de adicionar o
+      // passo do operador; a fila do arquivo pode estar desatualizada (o
+      // hybrid persistiu o resto após consumir). Se a memória tem fila,
+      // mantém; senão usa a do arquivo.
+      const memQueue = controls.agents[name].manual?.queue;
+      controls.agents[name] = {
+        ...controls.agents[name],
+        ...(agentHasGuide ? { manual_mode: Boolean(agent.manual_mode) } : {}),
+        ...(agentHasPause ? { paused: Boolean(agent.paused) } : {}),
+        manual: {
+          ...(controls.agents[name].manual || {}),
+          ...(agent.manual || {}),
+          ...(memQueue ? { queue: memQueue } : {}),
+        },
+      };
+    }
+    console.log(
+      '💾 writeControls: AARON manual_mode=',
+      controls.agents?.AARON?.manual_mode,
+      'paused=', controls.agents?.AARON?.paused,
+    );
+  } catch (_error) {
+    // No file yet, or unreadable: keep the in-memory state as is.
+  }
+  const temporary = `${CONTROL_FILE}.${process.pid}.tmp`;
   fs.writeFileSync(temporary, JSON.stringify(controls, null, 2));
   fs.renameSync(temporary, CONTROL_FILE);
 }
@@ -155,6 +202,9 @@ function handleDashboardCommand(ws, rawMessage) {
     sendJson(ws, { type: 'command_result', ok: false, error: 'invalid JSON' });
     return;
   }
+  if (command && (command.scope || command.type === 'command')) {
+    console.log('📩 comando:', JSON.stringify(command).slice(0, 200));
+  }
 
   if (command.type === 'command' && command.action === 'get_replay') {
     const replay = findReplay(command.id);
@@ -252,6 +302,89 @@ function handleDashboardCommand(ws, rawMessage) {
     writeControls();
     broadcastControlState();
     sendJson(ws, { type: 'command_result', ok: true, action: command.action, agent: agentName });
+    return;
+  }
+
+  // Guia manual: o operador envia uma fila de direções e o agente a consome
+  // antes de qualquer decisão própria. Cada envio adiciona à fila existente;
+  // `clear` zera. A fila fica em runtime_controls.json, então sobrevive a
+  // restart e é a mesma fonte que os agentes já leem a cada 30 passos.
+  if (command.scope === 'agent' && command.action === 'manual_mode') {
+    const agentName = String(command.agent || '').toUpperCase();
+    if (!/^[A-Z0-9_-]{1,24}$/.test(agentName)) {
+      sendJson(ws, { type: 'command_result', ok: false, error: 'invalid agent' });
+      return;
+    }
+    const enabled = Boolean(command.enabled);
+    controls.agents[agentName] = {
+      ...(controls.agents[agentName] || {}),
+      manual_mode: enabled,
+      // Ligar o modo guia pausa o agente na hora: o operador assume o
+      // controle e o autopilot (batalha, quest, exploração, PPO) não pode
+      // disputar o D-pad. Desligar volta ao estado anterior.
+      paused: enabled ? true : (controls.agents[agentName]?.paused_before_guide ?? false),
+      paused_before_guide: enabled
+        ? Boolean(controls.agents[agentName]?.paused)
+        : undefined,
+      manual: { queue: enabled ? (controls.agents[agentName]?.manual?.queue || []) : [], requested_at: Date.now() },
+    };
+    writeControls();
+    broadcastControlState();
+    sendJson(ws, { type: 'command_result', ok: true, action: 'manual_mode', agent: agentName, enabled });
+    return;
+  }
+
+  if (command.scope === 'agent' && command.action === 'manual') {
+    const agentName = String(command.agent || '').toUpperCase();
+    if (!/^[A-Z0-9_-]{1,24}$/.test(agentName)) {
+      sendJson(ws, { type: 'command_result', ok: false, error: 'invalid agent' });
+      return;
+    }
+    const steps = command.steps;
+    if (command.clear) {
+      controls.agents[agentName] = {
+        ...(controls.agents[agentName] || {}),
+        manual: { queue: [], requested_at: Date.now() },
+      };
+    } else if (Array.isArray(steps)) {
+      const valid = steps.filter(step => ['U', 'D', 'L', 'R', 'A', 'B'].includes(String(step)));
+      if (!valid.length) {
+        sendJson(ws, { type: 'command_result', ok: false, error: 'no valid steps' });
+        return;
+      }
+      // The hybrid consumes the queue one step at a time and persists the
+      // remainder back to the file. The in-memory copy here goes stale the
+      // moment the first step is taken, so re-reading the file before
+      // appending is what keeps a consumed "L" from coming back as a ghost
+      // step on the next click — the operator would watch the bot walk
+      // sideways on its own.
+      let existing = [];
+      try {
+        const stored = JSON.parse(fs.readFileSync(CONTROL_FILE, 'utf8'));
+        existing = stored?.agents?.[agentName]?.manual?.queue || [];
+        // Keep the in-memory copy honest too: the broadcast below reflects
+        // the file, so a consumed step must not reappear in the dashboard.
+        if (stored?.agents?.[agentName]) {
+          controls.agents[agentName] = {
+            ...(controls.agents[agentName] || {}),
+            ...stored.agents[agentName],
+          };
+        }
+      } catch (_error) {
+        existing = controls.agents[agentName]?.manual?.queue || [];
+      }
+      controls.agents[agentName] = {
+        ...(controls.agents[agentName] || {}),
+        manual: { queue: existing.concat(valid), requested_at: Date.now() },
+      };
+    } else {
+      sendJson(ws, { type: 'command_result', ok: false, error: 'steps must be an array' });
+      return;
+    }
+    writeControls();
+    broadcastControlState();
+    sendJson(ws, { type: 'command_result', ok: true, action: 'manual', agent: agentName });
+    return;
   }
 }
 

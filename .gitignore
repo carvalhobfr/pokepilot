@@ -73,3 +73,8 @@ graphify-out/
 
 # Trava de corrida: estado de execução, recriada a cada corrida.
 blue-agents/tasks/journey.lock
+
+# Saves que o watchdog de vida grava sozinho quando o cartucho para de mudar
+# de estado (163 KB cada). São matéria bruta de diagnóstico: o que vira trecho
+# de replay é promovido à mão para states/replay/ com entrada no manifesto.
+states/replay/auto/

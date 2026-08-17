@@ -46,6 +46,7 @@ class DoorFindingTests(unittest.TestCase):
         agent._follow_route = lambda route_id, waypoints: agent.seen.update(
             {"route": route_id, "waypoints": waypoints}
         )
+        agent._door_is_reachable = lambda map_id, door: True
         return agent
 
     def test_the_center_door_is_read_from_the_map(self):

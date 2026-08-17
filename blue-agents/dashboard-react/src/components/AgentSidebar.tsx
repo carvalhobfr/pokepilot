@@ -5,10 +5,15 @@ import { moveLabel, speciesLabel } from '../pokemonNames';
 interface AgentSidebarProps {
   agent: any | null;
   onClose: () => void;
+  onManualGuide?: (agentName: string, steps: string[]) => void;
+  onManualMode?: (agentName: string, enabled: boolean) => void;
+  onToggleAgent?: (agentName: string) => void;
+  controls?: { agents: Record<string, { paused?: boolean; manual_mode?: boolean }> };
 }
 
-const AgentSidebar: React.FC<AgentSidebarProps> = ({ agent, onClose }) => {
+const AgentSidebar: React.FC<AgentSidebarProps> = ({ agent, onClose, onManualGuide, onManualMode, onToggleAgent, controls }) => {
   const [pokemonData, setPokemonData] = useState<any[]>([]);
+  const manualOn = Boolean(controls?.agents?.[agent?.user]?.manual_mode);
 
   useEffect(() => {
     if (!agent || !agent.party) return;
@@ -64,6 +69,78 @@ const AgentSidebar: React.FC<AgentSidebarProps> = ({ agent, onClose }) => {
 
       {/* Content */}
       <div className="p-4 space-y-6 overflow-y-auto custom-scrollbar">
+
+        {/* Guia Manual — destaque: controle individual do agente */}
+        {(onManualGuide || onManualMode) && agent && (
+          <div className={`rounded-xl border p-3 transition ${manualOn ? 'border-emerald-400/50 bg-emerald-500/10' : 'border-cyan-400/30 bg-cyan-500/10'}`}>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+                Guia manual — {agent.user}
+              </div>
+              <div className="flex items-center gap-1">
+                {onManualMode && (
+                  <button
+                    onClick={() => onManualMode(agent.user, !manualOn)}
+                    className={`rounded-full border px-2 py-0.5 text-[9px] font-bold transition ${manualOn ? 'border-emerald-400/50 bg-emerald-500/25 text-emerald-100' : 'border-white/15 bg-white/5 text-slate-300 hover:bg-white/15'}`}
+                  >
+                    {manualOn ? '🟢 guiando' : '⏻ modo guia'}
+                  </button>
+                )}
+                {onToggleAgent && (
+                  <button
+                    onClick={() => onToggleAgent(agent.user)}
+                    className={`rounded-full border px-2 py-0.5 text-[9px] font-bold transition ${agent.paused ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200' : 'border-amber-400/40 bg-amber-500/15 text-amber-200'}`}
+                  >
+                    {agent.paused ? '▶ retomar' : '⏸ pausar'}
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-1">
+              <div className="grid grid-cols-3 gap-1">
+                <div />
+                <button
+                  onClick={() => onManualGuide?.(agent.user, ['U'])}
+                  disabled={!manualOn}
+                  className={`rounded-md border px-2.5 py-1.5 text-sm font-bold transition active:scale-95 ${manualOn ? 'border-cyan-400/40 bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/30' : 'border-white/5 bg-white/0 text-slate-600 cursor-not-allowed'}`}
+                >▲</button>
+                <div />
+                <button
+                  onClick={() => onManualGuide?.(agent.user, ['L'])}
+                  disabled={!manualOn}
+                  className={`rounded-md border px-2.5 py-1.5 text-sm font-bold transition active:scale-95 ${manualOn ? 'border-cyan-400/40 bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/30' : 'border-white/5 bg-white/0 text-slate-600 cursor-not-allowed'}`}
+                >◀</button>
+                <button
+                  onClick={() => onManualGuide?.(agent.user, ['A'])}
+                  disabled={!manualOn}
+                  className={`rounded-md border px-2.5 py-1.5 text-sm font-bold transition active:scale-95 ${manualOn ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/35' : 'border-white/5 bg-white/0 text-slate-600 cursor-not-allowed'}`}
+                >A</button>
+                <button
+                  onClick={() => onManualGuide?.(agent.user, ['R'])}
+                  disabled={!manualOn}
+                  className={`rounded-md border px-2.5 py-1.5 text-sm font-bold transition active:scale-95 ${manualOn ? 'border-cyan-400/40 bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/30' : 'border-white/5 bg-white/0 text-slate-600 cursor-not-allowed'}`}
+                >▶</button>
+                <div />
+                <button
+                  onClick={() => onManualGuide?.(agent.user, ['D'])}
+                  disabled={!manualOn}
+                  className={`rounded-md border px-2.5 py-1.5 text-sm font-bold transition active:scale-95 ${manualOn ? 'border-cyan-400/40 bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/30' : 'border-white/5 bg-white/0 text-slate-600 cursor-not-allowed'}`}
+                >▼</button>
+                <div />
+                <button
+                  onClick={() => onManualGuide?.(agent.user, ['B'])}
+                  disabled={!manualOn}
+                  className={`rounded-md border px-2.5 py-1.5 text-sm font-bold transition active:scale-95 ${manualOn ? 'border-rose-400/50 bg-rose-500/20 text-rose-200 hover:bg-rose-500/35' : 'border-white/5 bg-white/0 text-slate-600 cursor-not-allowed'}`}
+                >B</button>
+              </div>
+            </div>
+            <div className="mt-1.5 text-center text-[8px] italic text-cyan-500/70">
+              {manualOn
+                ? 'Guiando: o bot fica parado e cada toque move 1 passo (1×). Ao desligar, o caminho vira trail e o bot aprende.'
+                : 'Ative o modo guia para dirigir este bot manualmente.'}
+            </div>
+          </div>
+        )}
 
         {/* Location */}
         <div className="space-y-2">

@@ -49,6 +49,10 @@ function App() {
     return true;
   }, [ws]);
 
+  // In TREINO (speed 0) the wrapper skips battle-frame encoding entirely —
+  // nothing to watch, so the arena button must not pretend otherwise.
+  const arenaDisabled = runtimeControls.global.speed === 0;
+
   useEffect(() => {
     const worker = new Worker(
       new URL('./workers/loopDetector.worker.ts', import.meta.url),
@@ -90,6 +94,7 @@ function App() {
 
   const handleSpeedChange = useCallback((speed: number) => {
     sendRuntimeControl({ scope: 'global', action: 'speed', value: speed });
+    if (speed === 0) setShowBattleArena(false);
   }, [sendRuntimeControl]);
 
   const handleToggleAgent = useCallback((agentName: string) => {
@@ -100,6 +105,24 @@ function App() {
       action: paused ? 'play' : 'pause',
     });
   }, [runtimeControls.agents, sendRuntimeControl]);
+
+  const handleManualGuide = useCallback((agentName: string, steps: string[]) => {
+    sendRuntimeControl({
+      scope: 'agent',
+      agent: agentName,
+      action: 'manual',
+      steps,
+    });
+  }, [sendRuntimeControl]);
+
+  const handleManualMode = useCallback((agentName: string, enabled: boolean) => {
+    sendRuntimeControl({
+      scope: 'agent',
+      agent: agentName,
+      action: 'manual_mode',
+      enabled,
+    });
+  }, [sendRuntimeControl]);
 
   const handleAskAI = useCallback(async (agentName: string, agentData: any) => {
     // Open modal in loading state
@@ -247,8 +270,15 @@ function App() {
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <button
           onClick={() => setShowBattleArena(prev => !prev)}
-          title="Abrir arena de batalhas"
-          className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-red-500/20 active:scale-95"
+          disabled={arenaDisabled}
+          title={arenaDisabled
+            ? 'Modo TREINO: sem plateia os quadros da arena não são codificados — troque para 0.5×/1×/2×'
+            : 'Abrir arena de batalhas'}
+          className={`flex items-center gap-2 rounded-xl border p-3 text-white backdrop-blur-md transition-all active:scale-95 ${
+            arenaDisabled
+              ? 'cursor-not-allowed border-white/5 bg-white/5 text-slate-500 opacity-50'
+              : 'border-white/30 bg-black/60 shadow-lg shadow-black/40 hover:scale-105 hover:bg-red-500/30'
+          }`}
         >
           <Swords size={20} className={showBattleArena ? 'text-red-300' : 'text-slate-200'} />
           <span className="hidden text-[10px] font-bold uppercase tracking-wider sm:inline">Arena</span>
@@ -300,6 +330,10 @@ function App() {
         <AgentSidebar
           agent={allAgents[selectedAgent.user] || selectedAgent}
           onClose={() => setSelectedAgent(null)}
+          onManualGuide={handleManualGuide}
+          onManualMode={handleManualMode}
+          onToggleAgent={handleToggleAgent}
+          controls={runtimeControls}
         />
       )}
 
@@ -320,6 +354,7 @@ function App() {
           onResetAgent={handleResetAgent}
           controls={runtimeControls}
           onToggleAgent={handleToggleAgent}
+          onManualGuide={handleManualGuide}
         />
       )}
 

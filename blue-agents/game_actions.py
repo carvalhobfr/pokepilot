@@ -62,8 +62,15 @@ def name_to_action(name, *, default=GameAction.NOOP) -> int:
         "WAIT": GameAction.NOOP,
         "PASS": GameAction.NOOP,
         "NONE": GameAction.NOOP,
-        # SELECT is not currently exposed by RedGymEnv. Keep the historical
-        # fallback explicit instead of allowing a different accidental button.
+        # O painel de guia manual envia letras de uma tecla; o enum do
+        # ambiente usa nomes completos. Sem esse atalho, um clique em "U"
+        # vira NOOP e o bot parece morto sob o operador.
+        "U": GameAction.UP,
+        "D": GameAction.DOWN,
+        "L": GameAction.LEFT,
+        "R": GameAction.RIGHT,
+        "A": GameAction.A,
+        "B": GameAction.B,
         "SELECT": GameAction.START,
     }
     return int(aliases.get(normalized, GameAction.__members__.get(normalized, default)))

@@ -27,10 +27,29 @@ PLAYER_SCREEN_X = 64
 PLAYER_SCREEN_Y = 60
 TILE_PIXELS = 16
 
-TILEMAP_ADDRESS = 0xC3A0
-TILEMAP_COLUMNS = 20
-TILEMAP_ROWS = 18
-# The player stands on this cell of the tile map; a map tile is 2x2 of these.
+# O tilemap que o jogo desenha na tela é o video map do Game Boy (0x9800 ou
+# 0x9C00, conforme o LCDC), 32x32 células de 8px, com a janela visível
+# selecionada por SCX/SCY (0xFF43/0xFF42). O 0xC3A0 (wTileMap) é outro buffer
+# (metatiles de 16px) e não bate com a colisão real medida no cartucho
+# (2026-08-12: AARON em Cerulean (39,17) — U aberto no jogo, "parede" no
+# wTileMap; a leitura certa está no video map com o scroll).
+VIDEO_MAP_BASE = 0x9800
+# O buffer que o jogo usa para a colisão do overworld: 20x18 tiles de 8px com
+# o jogador em posição de tela fixa (o mundo rola, ele não). Medido contra o
+# cartucho (2026-08-13): na célula do pé do sprite (9,9), os vizinhos batem
+# 4/4 com o movimento real na Rota 9 e no Cerulean; o video map (0x9800)
+# dessincroniza em transições e mentia paredes.
+W_TILE_MAP_ADDRESS = 0xC3A0
+W_TILE_MAP_COLUMNS = 20
+W_TILE_MAP_ROWS = 18
+VIDEO_MAP_ALT = 0x9C00
+VIDEO_MAP_COLUMNS = 32
+VIDEO_MAP_ROWS = 32
+SCROLL_X_ADDRESS = 0xFF43
+SCROLL_Y_ADDRESS = 0xFF42
+LCDC_ADDRESS = 0xFF40
+# A janela visível é 20x18 células de 8px; o jogador fica centralizado
+# (10,9) quando a câmera pode rolar.
 PLAYER_TILEMAP_COLUMN = 8
 PLAYER_TILEMAP_ROW = 9
 
@@ -76,6 +95,48 @@ class TileCollision:
     def _rom_byte(self, address):
         # Bank 0 is always mapped, so this needs no bank switching.
         return int(self.emulator.memory[0, address])
+
+    def _video_map_base(self):
+        """Which 0x9800/0x9C00 block the LCDC points the background at."""
+        try:
+            lcdc = self._byte(LCDC_ADDRESS)
+        except Exception:
+            return VIDEO_MAP_BASE
+        return VIDEO_MAP_ALT if lcdc & 0x08 else VIDEO_MAP_BASE
+
+    def _player_tilemap_cell(self):
+        """Cell of the screen tile map the player actually stands on.
+
+        O sprite do jogador (OAM slot 0) diz onde ele está na tela — em
+        mapas grandes o scroll o mantém em (64,60) (célula (9,9) do wTileMap
+        20x18), mas em mapas pequenos (um Centro 14x8) o mapa não rola e o
+        jogador anda pela tela. O pé do sprite de 16px é a célula de colisão:
+        (screen_x+8)//8, (screen_y+16)//8. Medido contra o cartucho em
+        2026-08-13: Rota 9 (3,9) e Cerulean (39,17) batem 4/4 com a colisão
+        real; o scroll (SCX/SCY) e uma célula fixa falharam em mapas
+        pequenos (GARON preso no Centro 64 lendo paredes onde o jogo abre).
+        """
+        try:
+            screen_x = self._byte(SPRITE_TABLE_ADDRESS + 6)
+            screen_y = self._byte(SPRITE_TABLE_ADDRESS + 4)
+        except Exception:
+            return PLAYER_TILEMAP_COLUMN, PLAYER_TILEMAP_ROW
+        column = (screen_x + 8) // 8
+        row = (screen_y + 16) // 8
+        if not (0 <= column < W_TILE_MAP_COLUMNS and 0 <= row < W_TILE_MAP_ROWS):
+            return PLAYER_TILEMAP_COLUMN, PLAYER_TILEMAP_ROW
+        return column, row
+
+    def _video_tile(self, column, row):
+        base = self._video_map_base()
+        return self._byte(base + (row % VIDEO_MAP_ROWS) * VIDEO_MAP_COLUMNS
+                          + (column % VIDEO_MAP_COLUMNS))
+
+    def _w_tile(self, column, row):
+        """Tile id in the overworld collision buffer (0xC3A0, 20x18)."""
+        if not (0 <= column < W_TILE_MAP_COLUMNS and 0 <= row < W_TILE_MAP_ROWS):
+            return 0xFF
+        return self._byte(W_TILE_MAP_ADDRESS + row * W_TILE_MAP_COLUMNS + column)
 
     def walkable_tiles(self):
         """Tile ids the current tileset lets the player stand on."""
@@ -191,23 +252,17 @@ class TileCollision:
             return {}
         if self._byte(WINDOW_Y_ADDRESS) != WINDOW_HIDDEN_Y:
             return {}
-        standing = self._byte(
-            TILEMAP_ADDRESS + PLAYER_TILEMAP_ROW * TILEMAP_COLUMNS
-            + PLAYER_TILEMAP_COLUMN
-        )
+        standing_col, standing_row = self._player_tilemap_cell()
+        standing = self._w_tile(standing_col, standing_row)
         if standing not in walkable and (0, 0) not in warps:
             return {}
         grid = {}
-        for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
+        for dy in range(-(standing_row // 2), (W_TILE_MAP_ROWS - standing_row) // 2):
             for dx in range(
-                -(PLAYER_TILEMAP_COLUMN // 2),
-                (TILEMAP_COLUMNS - PLAYER_TILEMAP_COLUMN) // 2,
+                -(standing_col // 2),
+                (W_TILE_MAP_COLUMNS - standing_col) // 2,
             ):
-                column = PLAYER_TILEMAP_COLUMN + dx * 2
-                row = PLAYER_TILEMAP_ROW + dy * 2
-                if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
-                    continue
-                tile = self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column)
+                tile = self._w_tile(standing_col + dx, standing_row + dy)
                 grid[(dx, dy)] = tile in walkable or (dx, dy) in warps
         grid[(0, 0)] = True
         return grid
@@ -223,17 +278,14 @@ class TileCollision:
         grass was a column nine tiles to the west the whole time.
         """
         grass = self._byte(GRASS_TILE_ADDRESS)
+        standing_col, standing_row = self._player_tilemap_cell()
         offsets = []
-        for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
+        for dy in range(-(standing_row // 2), (W_TILE_MAP_ROWS - standing_row) // 2):
             for dx in range(
-                -(PLAYER_TILEMAP_COLUMN // 2),
-                (TILEMAP_COLUMNS - PLAYER_TILEMAP_COLUMN) // 2,
+                -(standing_col // 2),
+                (W_TILE_MAP_COLUMNS - standing_col) // 2,
             ):
-                column = PLAYER_TILEMAP_COLUMN + dx * 2
-                row = PLAYER_TILEMAP_ROW + dy * 2
-                if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
-                    continue
-                if self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column) == grass:
+                if self._w_tile(standing_col + dx, standing_row + dy) == grass:
                     offsets.append((dx, dy))
         return offsets
 
@@ -249,17 +301,14 @@ class TileCollision:
         walkable = self.walkable_tiles()
         occupied = self.occupied_offsets()
         warps = self.warp_offsets()
+        standing_col, standing_row = self._player_tilemap_cell()
         grid = {}
-        for dy in range(-(PLAYER_TILEMAP_ROW // 2), (TILEMAP_ROWS - PLAYER_TILEMAP_ROW) // 2):
+        for dy in range(-(standing_row // 2), (W_TILE_MAP_ROWS - standing_row) // 2):
             for dx in range(
-                -(PLAYER_TILEMAP_COLUMN // 2),
-                (TILEMAP_COLUMNS - PLAYER_TILEMAP_COLUMN) // 2,
+                -(standing_col // 2),
+                (W_TILE_MAP_COLUMNS - standing_col) // 2,
             ):
-                column = PLAYER_TILEMAP_COLUMN + dx * 2
-                row = PLAYER_TILEMAP_ROW + dy * 2
-                if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
-                    continue
-                tile = self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column)
+                tile = self._w_tile(standing_col + dx, standing_row + dy)
                 walkable_here = tile in walkable or (dx, dy) in warps
                 grid[(dx, dy)] = walkable_here and (dx, dy) not in occupied
         grid[(0, 0)] = True
@@ -312,7 +361,17 @@ class TileCollision:
         return came[node][1]
 
     def blocked_directions(self):
-        """Which of the four steps the game would refuse right now, and why."""
+        """Which of the four steps the game would refuse right now, and why.
+
+        Lê o wTileMap (0xC3A0, 20x18 tiles de 8px) — o buffer que o jogo usa
+        para a colisão do overworld — na célula do pé do sprite do jogador.
+        O jogador fica em tela fixa (64,60) e o mundo rola sob ele; o pé do
+        sprite (16px) é a célula (9,9). Medido contra o cartucho em
+        2026-08-13: a célula (9,9) bate 4/4 com o movimento real na Rota 9
+        (beco: U/L move, R/D parede) e no Cerulean (39,17: U/L/R move, D
+        parede). O video map (0x9800) dessincroniza em transições de mapa e
+        mentia paredes — o bot ficava parado no beco com L aberto no jogo.
+        """
         try:
             walkable = self.walkable_tiles()
             occupied = self.occupied_offsets()
@@ -325,6 +384,13 @@ class TileCollision:
         # the lab exit reads as blocked terrain and four trainers sat on it.
         # On a warp tile, terrain has no say — only people can still be in front.
         on_warp = (0, 0) in warps
+        # A célula de colisão do jogador no wTileMap vem do scroll (SCX/SCY),
+        # como o video map: o jogador em pixel (x*16+8, y*16+8) menos o scroll,
+        # dividido por 8px. Uma célula fixa só funcionava em mapas grandes —
+        # em um Centro (14x8) o jogador anda pela tela e (9,9) apontava para o
+        # tile errado, lendo paredes onde o jogo abre (medido 2026-08-13:
+        # GARON preso no Centro 64 oscilando entre (2,3) e (3,3)).
+        standing_col, standing_row = self._player_tilemap_cell()
         blocked = {}
         for direction, (dx, dy) in DIRECTION_STEPS.items():
             if (dx, dy) in occupied:
@@ -332,11 +398,11 @@ class TileCollision:
                 continue
             if on_warp or (dx, dy) in warps:
                 continue
-            column = PLAYER_TILEMAP_COLUMN + dx * 2
-            row = PLAYER_TILEMAP_ROW + dy * 2
-            if not (0 <= column < TILEMAP_COLUMNS and 0 <= row < TILEMAP_ROWS):
+            col = standing_col + dx
+            row = standing_row + dy
+            if not (0 <= col < 20 and 0 <= row < 18):
                 continue
-            tile = self._byte(TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column)
+            tile = self._byte(W_TILE_MAP_ADDRESS + row * 20 + col)
             if tile not in walkable:
                 blocked[direction] = "terrain"
         return blocked

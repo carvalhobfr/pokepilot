@@ -299,11 +299,14 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
             "moves": [{"id": 33, "pp": pp}, {"id": 45, "pp": 30}],  # Tackle, Growl
         }
 
-    def test_ativo_de_pe_sem_pp_nao_pede_troca(self):
-        # Era o laço: pedia o companheiro e nunca chegava a trocar.
+    def test_ativo_de_pe_sem_pp_de_dano_troca_para_quem_ataca(self):
+        # O laço antigo pedia o companheiro e nunca chegava a trocar; hoje o
+        # navegador de menu 2x2 dirige a troca. Ativo de pé mas sem golpe de
+        # dano utilizável (Butterfree só com pós, medida 2026-08-12) não pode
+        # lutar de verdade: pede o companheiro que ainda tem dano.
         env = self.make_env([self.mon(pp=0), self.mon(pp=15)])
-        self.assertIsNone(env._switch_target_slot())
-        self.assertIsNone(env._next_switch_action())
+        self.assertEqual(1, env._switch_target_slot())
+        self.assertIsNotNone(env._next_switch_action())
 
     def test_nobody_is_swapped_while_the_active_can_still_attack(self):
         env = self.make_env([self.mon(pp=10), self.mon(pp=15)])
@@ -365,6 +368,113 @@ class SwitchWhenOutOfPPTests(unittest.TestCase):
         env.read_m = lambda address: 0  # cursor nunca chega no alvo
         actions = [env._next_switch_action() for _ in range(14)]
         self.assertIn("B", actions, "sai do menu em vez de martelar botão")
+
+
+class QuemEstaEmCampoTests(unittest.TestCase):
+    """Trocar por quem já está lutando não é turno ruim: é turno impossível.
+
+    Medido no cartucho em 2026-08-16, no duelo do rival do S.S. Anne (o
+    operador viu no painel): com o Ivysaur caído no slot 0 e a Butterfree de
+    pé no slot 1, `0xCC2F` — o índice do ativo — lia **0**, a troca escolhia
+    o slot 1, e o slot 1 era a própria Butterfree que já estava em campo. O
+    cartucho recusa, o menu não fecha, o controlador tenta de novo: nove
+    minutos parado com o Charmeleon do rival intacto em 56/56.
+
+    O índice anda durante a navegação de menu, que é exatamente quando a
+    decisão é tomada. `wBattleMon` (0xD014) não anda: é a espécie interna de
+    quem está no campo, e casá-la com a party dá o slot certo em qualquer
+    tela.
+    """
+
+    IVYSAUR, BUTTERFREE = 9, 125
+
+    def make_env(self, party, raw_slot=0, battle_internal=0):
+        from hybrid_agent import HybridGymEnv
+        env = HybridGymEnv.__new__(HybridGymEnv)
+        env.read_rom = read_rom
+        env.get_party_info = lambda: list(party)
+
+        def read_m(address):
+            if address == 0xCC2F:
+                return raw_slot
+            if address == 0xD014:
+                return battle_internal
+            return 0
+
+        env.read_m = read_m
+        env.capture_in_flight = False
+        env.capture_plan = []
+        env.capture_bag_open = False
+        env.switch_plan = []
+        env.switch_menu_open = False
+        env.switch_steps = 0
+        env.logged = []
+        env._log_event = lambda kind, data, live=True: env.logged.append((kind, data))
+        return env
+
+    @staticmethod
+    def mon(internal_id, hp, pp=30, level=20):
+        return {
+            "species_id": 1, "internal_id": internal_id, "level": level,
+            "hp": hp, "max_hp": 124,
+            "moves": [{"id": 33, "pp": pp}, {"id": 45, "pp": 30}],
+        }
+
+    def party_do_duelo(self):
+        # Exatamente o time do AARON no duelo: o caído e quem está lutando.
+        return [
+            self.mon(self.IVYSAUR, hp=0, pp=34, level=23),
+            self.mon(self.BUTTERFREE, hp=124, pp=34, level=40),
+        ]
+
+    def test_o_slot_ativo_sai_de_quem_esta_em_campo_nao_do_indice(self):
+        env = self.make_env(
+            self.party_do_duelo(), raw_slot=0, battle_internal=self.BUTTERFREE
+        )
+        self.assertEqual(1, env._active_battle_slot(env.get_party_info()))
+
+    def test_com_o_indice_desatualizado_nao_ha_troca_nenhuma(self):
+        # A Butterfree está de pé e com PP de dano: não há nada a trocar.
+        env = self.make_env(
+            self.party_do_duelo(), raw_slot=0, battle_internal=self.BUTTERFREE
+        )
+        self.assertIsNone(env._switch_target_slot())
+        self.assertIsNone(env._next_switch_action())
+
+    def test_o_passo_nunca_sai_quando_o_alvo_e_quem_ja_luta(self):
+        # Última linha de defesa: mesmo que a escolha do alvo erre, o passo
+        # não sai. É o ciclo que o operador viu.
+        env = self.make_env(
+            self.party_do_duelo(), raw_slot=0, battle_internal=self.BUTTERFREE
+        )
+        env._switch_target_slot = lambda: 1
+        self.assertIsNone(env._next_switch_action())
+        self.assertFalse(env.switch_menu_open)
+
+    def test_sem_leitura_de_campo_o_indice_cru_ainda_vale(self):
+        # 0xD014 em 0 ou 0xFF fora de batalha: cai no índice, como antes.
+        env = self.make_env(self.party_do_duelo(), raw_slot=1, battle_internal=0)
+        self.assertEqual(1, env._active_battle_slot(env.get_party_info()))
+        env = self.make_env(self.party_do_duelo(), raw_slot=0, battle_internal=0xFF)
+        self.assertEqual(0, env._active_battle_slot(env.get_party_info()))
+
+    def test_especie_repetida_desempata_pelo_indice(self):
+        # Duas Butterfree: a identidade não separa, então vale o índice cru —
+        # nunca um palpite novo.
+        party = [self.mon(self.BUTTERFREE, hp=50), self.mon(self.BUTTERFREE, hp=124)]
+        env = self.make_env(party, raw_slot=1, battle_internal=self.BUTTERFREE)
+        self.assertEqual(1, env._active_battle_slot(party))
+
+    def test_o_caido_em_campo_ainda_e_substituido(self):
+        # O conserto não pode desligar a troca forçada: quem caiu em campo
+        # continua sendo trocado por quem está de pé.
+        party = [
+            self.mon(self.IVYSAUR, hp=20, pp=30),
+            self.mon(self.BUTTERFREE, hp=0, pp=30),
+        ]
+        env = self.make_env(party, raw_slot=0, battle_internal=self.BUTTERFREE)
+        self.assertEqual(1, env._active_battle_slot(party))
+        self.assertEqual(0, env._switch_target_slot())
 
 
 class MissionRestartTests(unittest.TestCase):

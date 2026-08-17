@@ -84,6 +84,7 @@ class RegistrarORenascimentoTests(unittest.TestCase):
         agent._walk_to_door = lambda prefix, destinos: agent.andou.append(
             (prefix, sorted(destinos))
         ) or "PORTA"
+        agent._door_is_reachable = lambda map_id, door: True
         return agent
 
     def test_cidade_nova_manda_procurar_o_centro(self):

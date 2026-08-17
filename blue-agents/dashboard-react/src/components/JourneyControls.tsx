@@ -5,7 +5,7 @@ export interface RuntimeControls {
     paused: boolean;
     speed: number;
   };
-  agents: Record<string, { paused?: boolean }>;
+  agents: Record<string, { paused?: boolean; manual_mode?: boolean }>;
 }
 
 interface JourneyControlsProps {

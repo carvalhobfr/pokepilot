@@ -10,9 +10,10 @@ interface ControlPanelProps {
   onResetAgent?: (agentName: string) => void;
   controls: RuntimeControls;
   onToggleAgent: (agentName: string) => void;
+  onManualGuide?: (agentName: string, steps: string[]) => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll, onAskAI, onResetAgent, controls, onToggleAgent }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll, onAskAI, onResetAgent, controls, onToggleAgent, onManualGuide }) => {
   // Memoize agent list and stats calculations
   const { agentList, totalBadges, activeBattles } = useMemo(() => {
     const list = Object.values(agents);
@@ -282,6 +283,59 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ agents, onClose, onSaveAll,
                     {paused ? 'Continuar jornada' : 'Pausar este bot'}
                   </button>
                 </div>
+
+                {/* Guia Manual: fila de direções que o bot consome antes de
+                    decidir sozinho. Serve para destravar ghost de treinador,
+                    portas e trechos sem executor — e cada passo fica
+                    registrado com a fila restante. */}
+                {onManualGuide && (
+                  <div className="mt-2 border-t border-white/5 pt-3">
+                    <div className="mb-1 text-[9px] font-bold uppercase tracking-wider text-cyan-300/80">
+                      Guia manual (fila)
+                    </div>
+                    <div className="flex items-center justify-center gap-1">
+                      <div className="grid grid-cols-3 gap-1">
+                        <div />
+                        <button
+                          aria-label={`Guia ${agent.user} para cima`}
+                          onClick={() => onManualGuide(agent.user, ['U'])}
+                          className="rounded-md border border-cyan-400/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-bold text-cyan-200 hover:bg-cyan-500/25"
+                        >▲</button>
+                        <div />
+                        <button
+                          aria-label={`Guia ${agent.user} para esquerda`}
+                          onClick={() => onManualGuide(agent.user, ['L'])}
+                          className="rounded-md border border-cyan-400/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-bold text-cyan-200 hover:bg-cyan-500/25"
+                        >◀</button>
+                        <button
+                          aria-label={`Guia ${agent.user} A`}
+                          onClick={() => onManualGuide(agent.user, ['A'])}
+                          className="rounded-md border border-emerald-400/40 bg-emerald-500/15 px-2 py-1 text-[10px] font-bold text-emerald-200 hover:bg-emerald-500/30"
+                        >A</button>
+                        <button
+                          aria-label={`Guia ${agent.user} para direita`}
+                          onClick={() => onManualGuide(agent.user, ['R'])}
+                          className="rounded-md border border-cyan-400/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-bold text-cyan-200 hover:bg-cyan-500/25"
+                        >▶</button>
+                        <div />
+                        <button
+                          aria-label={`Guia ${agent.user} para baixo`}
+                          onClick={() => onManualGuide(agent.user, ['D'])}
+                          className="rounded-md border border-cyan-400/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-bold text-cyan-200 hover:bg-cyan-500/25"
+                        >▼</button>
+                        <div />
+                        <button
+                          aria-label={`Guia ${agent.user} B`}
+                          onClick={() => onManualGuide(agent.user, ['B'])}
+                          className="rounded-md border border-rose-400/40 bg-rose-500/15 px-2 py-1 text-[10px] font-bold text-rose-200 hover:bg-rose-500/30"
+                        >B</button>
+                      </div>
+                    </div>
+                    <div className="mt-1 text-center text-[8px] italic text-cyan-500/60">
+                      Cada toque enfileira 1 passo; o bot consome antes de decidir.
+                    </div>
+                  </div>
+                )}
 
                 {/* AI Assistant Button */}
                 {onAskAI && (

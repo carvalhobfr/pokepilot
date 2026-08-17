@@ -1,0 +1,99 @@
+{
+  "why": "Cada trecho que já foi vencido uma vez vira um save aqui, com o que o cartucho tem de responder depois de N passos roteirizados. Rodar isto antes de commitar é o que impede uma corrida nova travar onde outra já passou.",
+  "checks": [
+    {
+      "name": "casa-inicial",
+      "state": "states/replay/casa-inicial.state",
+      "quest": "start",
+      "steps": 300,
+      "expect": {
+        "map_in": [
+          0,
+          40,
+          1
+        ]
+      },
+      "regressao": "2026-08-16: dois bots novos, 10 min cada, nenhum saiu do mapa 37 — 11.355 relatórios de travamento no mesmo tile. O plano tratava a porta como intransponível e o alvo fica um tile depois dela."
+    },
+    {
+      "name": "lab-do-oak",
+      "state": "states/replay/lab-do-oak.state",
+      "quest": "parcel_event",
+      "steps": 300,
+      "expect": {
+        "map_in": [
+          0,
+          12,
+          1,
+          41
+        ],
+        "tiles_min": 40
+      },
+      "regressao": "2026-08-16: três bots novos presos entre (4,2) e (4,3). O trail apontava para o tile do Oak com o pacote já entregue, e o plano contornava o rival que ainda nem tinha aparecido."
+    },
+    {
+      "name": "mart-viridian",
+      "state": "states/replay/mart-viridian.state",
+      "quest": "buy_pokeballs",
+      "steps": 400,
+      "expect": {
+        "bag_has": 4
+      },
+      "regressao": "2026-08-16: três bots parados no balcão com ¥3175 e mochila vazia. A lista do balcão era lida 17 bytes adiante (0xCF8C em vez de 0xCF7B/0xCF7C) e o cursor comparava índice de linha com id de item — ia comprar BURN HEAL."
+    },
+    {
+      "name": "cais-ss-anne",
+      "state": "states/replay/cais-ss-anne.state",
+      "quest": "vermilion_gym_quest",
+      "steps": 300,
+      "expect": {
+        "map_in": [
+          95,
+          96,
+          101
+        ]
+      },
+      "regressao": "2026-08-16: o passo para a prancha não movia — o marinheiro pede o S.S. Ticket. 1.950 passos no mesmo tile com o caminho livre no estático."
+    },
+    {
+      "name": "vermilion-com-hm",
+      "state": "states/replay/vermilion-com-hm.state",
+      "quest": "vermilion_gym_quest",
+      "steps": 400,
+      "expect": {
+        "party_move": 15
+      },
+      "regressao": "2026-08-16: HM01 na mochila não corta árvore nenhuma. Ensinar são seis telas de menu, e sequência fixa de botões dessincroniza porque o número de caixas de texto varia."
+    },
+    {
+      "name": "apelido-na-floresta",
+      "state": "states/replay/apelido-na-floresta.state",
+      "quest": "viridian_forest_nav",
+      "steps": 200,
+      "expect": {
+        "tiles_min": 8
+      },
+      "regressao": "2026-08-16: três bots capturaram um Metapod, o jogo pediu apelido, o A respondeu SIM e eles passaram onze chunks inteiros digitando letras no teclado. Em Gen I, START é o END da tela de nome. O teste mede andar, não 'fora de batalha': farmando, estar em batalha no fim é o normal — o que o bot preso no teclado nunca fazia era sair do tile."
+    },
+    {
+      "name": "apelido-do-inicial",
+      "state": "states/replay/apelido-do-inicial.state",
+      "quest": "start",
+      "steps": 200,
+      "expect": {
+        "party_nickname": "BULBASAUR"
+      },
+      "regressao": "2026-08-17: o teclado de apelido aparece também ao receber o inicial, com 0xD057 já em zero — fora do alcance do controlador de batalha, que era o único que sabia respondê-lo. O executor via menu aberto e respondia A, que nesta tela digita letra. Não travava, porque o cartucho auto-confirma quando o nome enche: custava 11 passos e o inicial saía chamado AAAAAAAAAA. Foi o watchdog de vida que apontou a tela."
+    },
+    {
+      "name": "troca-em-batalha",
+      "state": "states/replay/troca-em-batalha.state",
+      "quest": "viridian_forest_nav",
+      "steps": 200,
+      "expect": {
+        "tiles_min": 4
+      },
+      "regressao": "2026-08-16: batalha de treinador na Floresta com a lista da equipe aberta e o ativo VIVO com 6 HP. O commitado devolvia None (60 chamadas seguidas) e só o PPO tirava dali por acidente, apertando botão aleatório. Escolher quem já está em campo faz o jogo responder 'is already out!' e reabrir a lista para sempre — a saída é B. Como no apelido, o teste mede andar: resolver a luta e cair noutra é o normal na grama; o que o bot preso nunca fazia era sair do tile."
+    }
+  ]
+}

@@ -14,6 +14,8 @@ from src.warp_memory import WarpMemory
 from src.map_memory import MapMemory
 from src.tile_collision import TileCollision
 from src.route_trails import TrailRecorder, TrailStore, waypoints_from
+from src.simple_battle import HM_MOVE_IDS, STATUS_MOVE_PRIORITY
+from src import screen
 
 # How many A presses a route spends on a dialogue before it walks anyway. The
 # menu flag at 0xCFC4 has been observed stuck at 1 with no text on screen.
@@ -80,6 +82,11 @@ VIRIDIAN_CENTER_MAP_ID = 41
 # manifesto, quicava entre Pewter e a Rota 2 indo comprar em Viridian.
 POKE_MART_MAP_IDS = {42, 56}
 SHOP_COUNTER_TILE = (2, 5)
+# O que o balcão vende: contagem, depois os ids, terminados por 0xFF. Medido
+# em 2026-08-16 varrendo a RAM de um save com o menu aberto — a lista de
+# Viridian (`04 0B 0F 0C`) está aqui, não em 0xCF8C.
+MART_ITEM_COUNT_ADDRESS = 0xCF7B
+MART_ITEM_LIST_ADDRESS = 0xCF7C
 
 # The hand-drawn route is the path that finishes the game, so it drives.
 # Trails keep being recorded and published — they are the measurement of what a
@@ -87,10 +94,113 @@ SHOP_COUNTER_TILE = (2, 5)
 # route is not.
 FOLLOW_TRAILS = os.getenv("POKEAI_FOLLOW_TRAILS", "0") == "1"
 
+# Quests cujo executor tem rota medida em todos os mapas do caminho: aqui o
+# trail só pode piorar, e um trail ruim custa horas.
+#
+# - `bill_quest`: o trail publicado pelo GARON oscila dentro da casa do Bill;
+# - `cerulean_gym_quest`: o trail do ginásio tem 2 pontos e não cobre o
+#   labirinto — o bot mirava (5,3) com parede no meio;
+# - `vermilion_gym_quest`: o trail é a guia manual do operador. Ele carrega a
+#   perna da Rota 9 (Túnel da Rocha, não Vermilion) e entra na Route 5 em
+#   (9,0) — a faixa do meio, que os penhascos isolam da porta do Underground.
+#   Medido em 2026-08-16, minutos depois de o modo guia ser desligado: o
+#   `_publish_manual_trail` publicou a guia, o trail assumiu no mapa 16 com
+#   `route_id=trail-vermilion_gym_quest-16`, alvo (9,0) e `path_to_target:
+#   None`, e o bot quicou em (15,0)..(15,5) por 600 passos.
+#
+# O bloqueio vale nos dois lugares que consultam trail: `_trail_override` e o
+# ramo de trail do `_follow_route`. Trilha continua sendo gravada e publicada
+# — o que muda é só quem dirige.
+#
+# - `start`, `oak_event`, `parcel_event`: o fluxo de largada é roteirizado
+#   tile a tile e passa **duas vezes** pelos mesmos tiles do laboratório —
+#   sobe para falar com o Oak, desce para sair. O trail guarda as duas
+#   passagens sem saber qual é qual, então ele aponta para o tile do Oak
+#   depois do pacote já entregue. Medido em 2026-08-16, com três bots novos:
+#   o executor levava para (4,3), o trail puxava de volta para (4,1), e os
+#   três ficaram presos entre duas casas — nenhum saiu de Pallet.
+TRAIL_BLOCKED_QUESTS = frozenset({
+    "start", "oak_event", "parcel_event",
+    "bill_quest", "cerulean_gym_quest", "vermilion_gym_quest",
+})
+
 VIRIDIAN_CITY_MAP_ID = 1
 VIRIDIAN_OLD_MAN_APPROACH = (17, 4)
 VIRIDIAN_NORTH_EXIT = (17, 0)
 VIRIDIAN_OLD_MAN_DIALOG_LIMIT = 48
+
+# Vermilion é o mapa 5 e o Centro dela é o 89 — os dois vêm da ROM
+# (`knowledge/maps/pokemon_centers.json`: porta (11,3) no mapa 5). O executor do
+# vermilion tratava a cidade como mapa 1 e o Centro como 41, que são Viridian:
+# chegar em Vermilion não disparava nada, e qualquer prédio de Viridian
+# disparava a rota do ginásio de outra cidade.
+VERMILION_CITY_MAP_ID = 5
+VERMILION_CENTER_MAP_ID = 89
+
+# O S.S. Anne, lido do bloco de objetos e da tabela de warps da ROM: a prancha
+# em Vermilion (18,31)/(19,31) leva à doca (94); (14,2) sobe para o convés
+# (95); a escada (2,6) sobe para o 2º andar (96); e a porta (36,4) do 2º andar
+# é a cabine do capitão (101), com o **rival** parado exatamente em cima dela
+# (objeto `trainer`, classe 225). O capitão é o NPC (4,2) da cabine e é ele
+# quem entrega o HM01.
+SS_ANNE_DOCK_MAP_ID = 94
+SS_ANNE_DECK_MAP_ID = 95
+SS_ANNE_UPPER_MAP_ID = 96
+SS_ANNE_CAPTAIN_MAP_ID = 101
+SS_ANNE_MAP_IDS = frozenset({94, 95, 96, 101})
+SS_ANNE_GANGWAY = {(18, 31), (19, 31)}
+SS_ANNE_BOARDING_TILE = (14, 2)
+# O tile onde o marinheiro do cais para o jogador para ver o S.S. Ticket.
+SS_ANNE_TICKET_TILE = (14, 1)
+SS_ANNE_CABIN_DOOR = (36, 4)
+SS_ANNE_CABIN_APPROACH = (37, 4)
+CAPTAIN_APPROACH_TILE = (4, 3)
+# Ids de item da Gen I: 0x3F é o S.S. Ticket (já usado pelo `bill_quest`) e
+# 0xC4..0xC8 são os HMs, na ordem. HM01 é o Cut.
+HM01_CUT = 0xC4
+CUT_MOVE_ID = 15
+
+# O `wTileMap` é uma janela de 20x18 centrada no jogador, então tudo dentro
+# deste raio está na tela e tem leitura ao vivo. Fora dele, só o estático.
+VISIBLE_TILE_RADIUS_X = 4
+VISIBLE_TILE_RADIUS_Y = 3
+
+# --- Menus de ensinar HM, medidos no cartucho em 2026-08-16 -----------------
+#
+# Cada tela é identificada pelo canto do menu — `wTopMenuItemY`/`X` (0xCC24 e
+# 0xCC25) —, que é como o `_buy_first_shop_item` já faz com a loja. Sequência
+# fixa de botões não serve: o número de caixas de texto varia (a mensagem de
+# "não cabe mais golpe" só aparece com quatro golpes), e um D apertado durante
+# o texto é comido, o que dessincroniza tudo o que vem depois.
+MENU_TOP_Y_ADDRESS = 0xCC24
+MENU_TOP_X_ADDRESS = 0xCC25
+MENU_CURSOR_ADDRESS = 0xCC26
+MENU_SCROLL_ADDRESS = 0xCC36
+# wTileMap: 20x18 tiles do que está desenhado. É RAM, não ROM — a tela é a
+# resposta do próprio jogo, e é ela que diz quem pode aprender o HM.
+SCREEN_TILEMAP_ADDRESS = 0xC3A0
+SCREEN_WIDTH, SCREEN_HEIGHT = 20, 18
+
+MENU_MAIN = (2, 11)          # POKéDEX / POKéMON / ITEM / ...
+MENU_MAIN_ITEM_INDEX = 2
+MENU_BAG = (4, 5)            # a mochila, com 3 linhas visíveis e rolagem
+MENU_ITEM_USE_TOSS = (11, 14)
+MENU_TEACH_YES_NO = (8, 15)
+MENU_PARTY = (1, 0)          # "Use TM on which POKéMON?"
+MENU_FORGET_MOVE = (8, 5)    # "Which move should be forgotten?"
+# Teto de passos dentro do fluxo. Menu que não se comporta é abandonado com B,
+# não martelado — a mesma regra da troca em batalha.
+TEACH_MENU_STEP_LIMIT = 240
+
+# `wSpriteStateData1 + 9` do sprite 0 é para onde o jogador está virado:
+# 0 baixo, 4 cima, 8 esquerda, 12 direita. Falar com um NPC exige estar
+# virado para ele — A de costas não abre diálogo nenhum.
+PLAYER_FACING_ADDRESS = 0xC109
+FACING_UP = 4
+# Borda sul de Cerulean, a saída para a Route 5 (mapa 16, que entra em (16,0):
+# a conexão soma 10 ao x). É também o teste de componente do mapa 3 — quem
+# alcança este tile está do lado leste do rio e desce sozinho.
+CERULEAN_SOUTH_EXIT = (26, 35)
 
 VIRIDIAN_FOREST_MAP_ID = 51
 
@@ -292,6 +402,7 @@ class ScriptedAgent(BaseAgent):
         self.route_role = route_role
         self.trail_store = TrailStore()
         self.trail_recorder = TrailRecorder()
+        self._debug_route = os.getenv("POKEAI_DEBUG_ROUTE", "0") == "1"
         self.current_step = 0
         self.steps = self._flatten_actions(self.walkthrough)
         
@@ -300,6 +411,32 @@ class ScriptedAgent(BaseAgent):
         Executes the next step for the given task.
         If task_name is provided and different from current, switches context.
         """
+        # Com o modo guia ativo, o operador é o piloto: o bot não decide NADA
+        # — nem trail, nem executor, nem exploração. O passo manual do hybrid
+        # já tem prioridade; aqui só garantimos que nada do scripted disputa
+        # o D-pad enquanto o operador dirige (medido 2026-08-13: o executor
+        # rodava mesmo com o guia ligado, movendo o bot para longe do
+        # operador).
+        if self._manual_mode_active():
+            if getattr(self, "_debug_route", False):
+                print(f"[DEBUG-MANUAL] {getattr(self, 'player_name', '?')}: guia ativo, scripted em espera", flush=True)
+            return None
+        if self._naming_screen_open():
+            # O teclado de apelido não é texto: A nele **digita letra**. Ele
+            # aparece depois de toda captura e também ao receber o inicial —
+            # e aí `0xD057` já é zero, fora do alcance do controlador de
+            # batalha, que era o único que sabia respondê-lo. Aqui o menu está
+            # aberto, então `_run_start_deterministic` respondia A.
+            #
+            # Medido em 2026-08-17 pelo watchdog de vida, do save
+            # `states/replay/casa-inicial.state`, sem PPO: o cartucho
+            # **auto-confirma** quando o nome enche, então isto não travava —
+            # custava 11 passos digitando e o inicial saía chamado
+            # `AAAAAAAAAA`. Com o START (que é o END desta tela em Gen I) é um
+            # passo e o nome fica `BULBASAUR`. Não depender do acidente do
+            # preenchimento é o ponto: numa tela conhecida, quem responde é a
+            # tela.
+            return WindowEvent.PRESS_BUTTON_START
         if task_name:
             # Normalize task name
             task_name = task_name.lower()
@@ -526,6 +663,14 @@ class ScriptedAgent(BaseAgent):
         center_action = self._center_first_action()
         if center_action is not None:
             return center_action
+
+        # A trilha do operador sobrepõe TUDO: foi medida no cartucho real,
+        # perna a perna, e é a prova de que o caminho funciona. Se há trilha
+        # publicada para a quest + mapa atual, ela manda — o executor pode
+        # errar o ramo (beco, waypoint inalcançável) mas a trilha não.
+        trail_step = self._trail_override_step()
+        if trail_step is not None:
+            return trail_step
 
         if getattr(self, "current_task_name", None) == "parcel_event":
             return self._run_parcel_event()
@@ -1316,8 +1461,49 @@ class ScriptedAgent(BaseAgent):
         except Exception:
             return False
 
+    def _mart_item_list(self):
+        """O que este balcão vende, na ordem em que a lista aparece.
+
+        Contagem em `MART_ITEM_COUNT_ADDRESS`, ids logo em seguida, 0xFF como
+        fim. Achado varrendo a RAM pela sequência conhecida de Viridian
+        (`04 0B 0F 0C`) a partir de um save com o menu aberto — o endereço
+        antigo, 0xCF8C, caía 17 bytes depois e devolvia lixo.
+        """
+        count = int(self.emulator.memory.read_byte(MART_ITEM_COUNT_ADDRESS))
+        items = []
+        for offset in range(min(max(count, 0), 20)):
+            item_id = int(
+                self.emulator.memory.read_byte(MART_ITEM_LIST_ADDRESS + offset)
+            )
+            if item_id in (0x00, 0xFF):
+                break
+            items.append(item_id)
+        return items
+
     def _buy_first_shop_item(self):
-        """Navigate Blue's shop menus and buy one Poké Ball."""
+        """Navigate Blue's shop menus and buy the best ball in stock.
+
+        The Mart's item list is read from the cartridge: `wMartItemList` é a
+        contagem em **0xCF7B** seguida dos ids em **0xCF7C**, terminados por
+        0xFF. O clerk vende o que essa lista diz, então preferir Great Ball a
+        Poké Ball é fato da lista, não palpite sobre a cidade. O seletor de
+        quantidade dá a volta: com o valor em zero, UP salta direto para o
+        máximo que o dinheiro compra — o "vai para a esquerda do zero" do
+        operador — em vez de somar uma bola por aperto.
+
+        **Dois erros medidos no cartucho em 2026-08-16**, com três bots novos
+        parados no Mart de Viridian com ¥3175 e a mochila vazia:
+
+        1. o endereço estava 17 bytes adiante (0xCF8C), e o que voltava de lá
+           era lixo — `['0xcf', '0x81', '0xcd', ...]`, ids que não existem;
+        2. e a navegação comparava **índice de linha com id de item**: o
+           `best_ball` é 4 (o id da Poké Ball) e o cursor era empurrado até a
+           *linha* 4, que não existe numa lista de quatro. Ele parava na
+           última linha e ia comprar **BURN HEAL** por ¥250.
+
+        A lista de Viridian, lida do endereço certo: `04 0B 0F 0C FF` —
+        Poké Ball, Antidote, Parlyz Heal, Burn Heal.
+        """
         if not self._menu_is_open():
             return WindowEvent.PRESS_BUTTON_A
 
@@ -1338,19 +1524,40 @@ class ScriptedAgent(BaseAgent):
         if menu_column == 15:
             return WindowEvent.PRESS_BUTTON_A
 
-        # Poké Ball is item zero in Viridian. While its transaction list is
-        # active, shop_menu 161 denotes the quantity selector. Buy one here:
-        # the controller accepts stock only after the bag itself confirms it.
-        # Replenishment is a separate repeatable objective later in the route.
         if transaction_menu == 123:
-            selected_item = menu_row + int(self.emulator.memory.read_byte(0xCC36))
-            if selected_item > 0:
-                return WindowEvent.PRESS_ARROW_UP
+            # Item selector: a lista que este balcão vende, lida do cartucho.
+            # A linha do cursor mais a rolagem (0xCC36) dá o índice escolhido.
+            mart_list = self._mart_item_list()
+            # Prefer the best ball available: Great Ball (5) over Poké Ball
+            # (4). Ultra Ball (6) does not exist in any pre-Celadon Mart, but
+            # if a future city sells it, the same preference picks it.
+            balls = [
+                index for index, item in enumerate(mart_list)
+                if item in (4, 5, 6)
+            ]
+            if not balls:
+                # Balcão sem bola nenhuma: sair. Comprar outra coisa é gastar
+                # o dinheiro das bolas — foi o Burn Heal de ¥250.
+                return WindowEvent.PRESS_BUTTON_B
+            # O alvo é o **índice** da melhor bola na lista, não o id dela.
+            best_index = max(balls, key=lambda index: mart_list[index])
+            selected_index = menu_row + int(self.emulator.memory.read_byte(0xCC36))
+            if selected_index != best_index:
+                return (
+                    WindowEvent.PRESS_ARROW_UP
+                    if selected_index > best_index
+                    else WindowEvent.PRESS_ARROW_DOWN
+                )
             if shop_menu == 161:
                 amount = int(self.emulator.memory.read_byte(0xCF96))
+                # Quantity selector: at zero, UP wraps to the maximum the
+                # money can buy — one press, not one ball per press. Above
+                # zero, back down to zero so the wrap works every time.
+                if amount == 0:
+                    return WindowEvent.PRESS_ARROW_UP
                 if amount > 1:
                     return WindowEvent.PRESS_ARROW_DOWN
-                if amount < 1:
+                if amount < 0:
                     return WindowEvent.PRESS_ARROW_UP
             return WindowEvent.PRESS_BUTTON_A
 
@@ -1930,6 +2137,105 @@ class ScriptedAgent(BaseAgent):
 
         return self._leave_unknown_map()
 
+    def _manual_mode_active(self):
+        """True quando o operador está dirigindo pelo modo guia."""
+        try:
+            with open(Path("tasks/runtime_controls.json"), "r", encoding="utf-8") as f:
+                controls = json.load(f)
+            name = getattr(self, "player_name", "AARON").upper()
+            return bool(
+                controls.get("agents", {}).get(name, {}).get("manual_mode", False)
+            )
+        except Exception:
+            return False
+
+    def _trail_override_step(self):
+        """Follow the operator's measured trail for this quest+map, if any.
+
+        A trilha publicada é o caminho que o operador atravessou no cartucho
+        real — ela sobrepõe QUALQUER ramo do executor, porque o executor pode
+        errar (beco não mapeado, waypoint inalcançável, ramo errado) e a
+        trilha não. O operador pediu explicitamente: se ele fez uma trilha,
+        ela manda. Para o Cut, a trilha também vai registrar quando e onde
+        cortar.
+        """
+        # Com o modo guia ativo, o operador é o piloto: o trail (e qualquer
+        # executor) fica em espera. O bot não decide nada enquanto o
+        # operador estiver dirigindo.
+        if self._manual_mode_active():
+            return None
+        if getattr(self, "current_task_name", None) in TRAIL_BLOCKED_QUESTS:
+            return None
+        quest_id = getattr(self, "current_task_name", None)
+        if not quest_id:
+            return None
+        store = getattr(self, "trail_store", None)
+        if store is None:
+            return None
+        try:
+            map_id = int(self.emulator.memory.get_map_id())
+            x, y = self.emulator.memory.get_player_pos()
+        except Exception:
+            return None
+        legs = store.load(quest_id)
+        if not legs:
+            return None
+        waypoints = waypoints_from(legs, map_id, x, y)
+        if not waypoints:
+            return None
+        # O trail de um mapa termina um tile antes do warp de saída — o
+        # operador guiou até a porta, não a atravessou. Warps são coordenadas
+        # conhecidas do cartucho (warps.json): se o trail acabou e há um warp
+        # de saída neste mapa, ele vira o próximo destino. O _warp_steps só
+        # bloqueia warp que não é o goal; com o warp no fim da lista, pisar
+        # nele é permitido e o bot atravessa a porta (medido 2026-08-13:
+        # trail do mapa 16 terminava em (17,28) e o warp do 71 está em
+        # (17,27) — o bot ficava parado a um passo da porta).
+        remaining = waypoints
+        if len(remaining) <= 2:
+            reader = self._tile_reader()
+            if reader is not None:
+                try:
+                    warps = reader.warp_tiles()
+                except Exception:
+                    warps = set()
+                if warps:
+                    # Só warps que realmente saem do mapa (para outro mapa) e
+                    # não são a entrada recém-usada.
+                    entry = getattr(self, "route_entry_block", None)
+                    entry_tile = (int(entry[1]), int(entry[2])) if entry else None
+                    recent = {
+                        (int(a), int(b))
+                        for _, a, b in getattr(self, "route_recent_tiles", [])
+                    }
+                    candidates = [
+                        warp for warp in warps
+                        if warp != entry_tile and warp not in recent
+                        and warp not in remaining
+                    ]
+                    if candidates:
+                        nearest = min(
+                            candidates,
+                            key=lambda w: abs(w[0] - x) + abs(w[1] - y),
+                        )
+                        if abs(nearest[0] - x) + abs(nearest[1] - y) <= 6:
+                            remaining = remaining + [nearest]
+        # **Perna de um ponto é carimbo de passagem, não caminho.** O trail
+        # minerado de log grava uma coordenada por evento, então "passei por
+        # este mapa" vira uma perna de um ponto só — e dirigir por ela põe o
+        # bot em cima do ponto e o deixa lá, porque não há próximo waypoint
+        # para querer. Medido em 2026-08-16, com três bots novos: os três
+        # oscilando entre (4,1) e (4,2) no laboratório do Oak, 4.500 passos no
+        # mesmo tile, `route_id=trail-override-parcel_event-40`,
+        # `waypoints=[[4,1]]`. O warp de saída acima já estende a perna curta
+        # quando existe um; se nem assim há dois pontos, o trail não tem
+        # caminho a oferecer e quem manda é o executor, que tem rota medida.
+        if len(remaining) < 2:
+            return None
+        # Usa a rota do trail com um id próprio; o _follow_route re-consulta
+        # o trail interno (FOLLOW_TRAILS) e segue os waypoints medidos.
+        return self._follow_route(f"trail-override-{quest_id}-{map_id}", remaining)
+
     def _center_first_action(self):
         """A Center on this map outranks whatever the executor wanted to do.
 
@@ -2116,6 +2422,44 @@ class ScriptedAgent(BaseAgent):
             progress[route_id] = index
         return index
 
+    def _door_is_reachable(self, map_id, door):
+        """A porta está no mesmo componente andável que o bot? (BFS no estático.)
+
+        `_walk_to_door` planeja com o `find_path` do MapMemory, que atravessa
+        tudo o que o bot já viu — e em Route 4 isso inclui os dois lados do
+        penhasco quando ele foi atravessado por outra rota. O caminho existe
+        no conhecimento, mas o bot não está nele: andar até a porta vira um
+        retorno de 52 tiles. Só desviar para o Centro quando a porta está no
+        componente real do bot (medido 2026-08-12: AARON em (63,10), Centro
+        da Route 4 em (11,5), 3000 passos parado).
+        """
+        try:
+            memory = self._map_memory()
+            if memory is None:
+                return True
+            x, y = self.emulator.memory.get_player_pos()
+            return memory.find_path(map_id, (x, y), door) is not None
+        except Exception:
+            return True
+
+    def _can_reach(self, map_id, tile):
+        """Este tile está no mesmo componente andável que o bot, agora?
+
+        Cerulean tem dois componentes grandes separados pelo rio, e a borda
+        sul (a saída para a Route 5) só existe no de leste. Perguntar ao
+        estático é mais barato e mais honesto que uma caixa de coordenadas:
+        a caixa `26 <= x <= 39 and 7 <= y <= 17` do executor antigo dizia
+        "lado leste" e pegava junto o ginásio (30,19), que é do lado oeste.
+        """
+        try:
+            memory = self._map_memory()
+            if memory is None:
+                return False
+            position = self.emulator.memory.get_player_pos()
+            return memory.find_path(map_id, tuple(position), tuple(tile)) is not None
+        except Exception:
+            return False
+
     def _door_to(self, destinations):
         """Nearest door on this map leading into one of these maps, or None.
 
@@ -2140,9 +2484,19 @@ class ScriptedAgent(BaseAgent):
         return min(doors, key=lambda tile: abs(tile[0] - x) + abs(tile[1] - y))
 
     def _walk_to_door(self, route_prefix, destinations):
-        """Head for that door, or None when this map has none of them."""
+        """Head for that door, or None when this map has none of them.
+
+        Porta inalcançável do componente atual não é desvio que valha: AARON
+        parado em (63,10) na Route 4 recebia ordens de andar 52 tiles para
+        oeste até o Centro (11,5) — do outro lado do penhasco — e ficava 3000
+        passos parado, com o executor do vermilion nunca chegando a rodar
+        (medido 2026-08-12).
+        """
         door = self._door_to(destinations)
         if door is None:
+            return None
+        map_id = int(self.emulator.memory.get_map_id())
+        if not self._door_is_reachable(map_id, door):
             return None
         # The route id carries the door so a different one, on a different map,
         # cannot inherit a stale waypoint index.
@@ -2431,18 +2785,470 @@ class ScriptedAgent(BaseAgent):
         return self._leave_unknown_map()
 
     def _run_vermilion_gym_quest(self):
-        """Primeira perna do caminho até o Lt. Surge: sair do ginásio.
+        """Cerulean -> Route 5 -> Underground -> Route 6 -> Vermilion.
 
-        O nó vermilion_gym_quest ainda não tem o caminho completo (Rota 5,
-        Saffron, Rota 6, S.S. Anne, Cut, Surge). Este executor mínimo destrava
-        a saída do ginásio de Cerulean — sem ele o hybrid mandava NOOP e o
-        AARON ficava parado na frente do palco da Misty com a insígnia na mão
-        (medido 2026-08-12).
+        **Vermilion fica ao SUL de Cerulean.** A Rota 9 (mapa 20) é o caminho
+        para o Túnel da Rocha, a leste, e o executor antigo mandava o bot
+        para lá: a margem leste descia até (39,16), cruzava para o mapa 20 e
+        caía num beco de 9 tiles cuja única saída é voltar para Cerulean —
+        que mandava para leste de novo. Medido no cartucho (14/08 a 16/08,
+        dois dias de corrida): 1.976 transições m3<->m20, o bot parado em
+        (20, 0,9) e (3, 39,17), zero progresso.
+
+        A saída sul é fato do estático, não palpite: Cerulean (mapa 3) tem
+        dois componentes andáveis grandes, separados pelo rio. O lado LESTE
+        (onde o buraco da casa 62 devolve o jogador, em (27,9)) desce pela
+        coluna x=36/37 — a única passagem pela faixa de penhascos em y=28 —
+        e daí pela coluna x=25..28, que atravessa a faixa de y=33 sem pulo,
+        até a borda sul (26,35). Um passo a mais entra na Route 5 em (16,0):
+        a conexão soma 10 à coordenada x (Route 5 tem 20 tiles de largura,
+        Cerulean 40). Do lado OESTE nenhuma célula alcança o sul — quem
+        renasce no Centro tem de cruzar pela casa (27,11), como já fazia.
         """
         map_id = int(self.emulator.memory.get_map_id())
+        x, y = self.emulator.memory.get_player_pos()
         if map_id == 65:
+            # Na porta do ginásio (4,13): descer atravessa o warp para fora.
+            # O waypoint final é a porta; pisar nela (D) é o passo de saída
+            # (medido 2026-08-13: o bot parava na porta com D lendo terrain).
+            if (x, y) == (4, 13):
+                return ROUTE_EVENTS["D"]
             return self._follow_route("misty-exit", [(4, 12), (4, 13)])
+        if map_id == 64:
+            # Centro de Cerulean: é aqui que um apagão devolve o treinador.
+            # Sem esta perna o executor devolvia None dentro do Centro e o
+            # bot ficava à mercê do genérico. O renascimento já está gravado
+            # nesta cidade, então isto só anda até a porta e sai.
+            return self._run_pokemon_center("cerulean-center", "cerulean_center_healed")
+        if map_id == 62:
+            return self._follow_route(
+                "cerulean-house-hole",
+                [(3, 0)],
+            )
+        if map_id == 3:
+            if (x, y) == (27, 12):
+                # Na porta da casa (27,11): um passo para cima entra. O
+                # retorno é o WindowEvent, não a string — o hybrid converte
+                # eventos, e "U" vira NOOP (medido 2026-08-12: o bot ficava
+                # parado na porta).
+                return ROUTE_EVENTS["U"]
+            if self._can_reach(3, CERULEAN_SOUTH_EXIT):
+                # Lado leste/sul: a borda sul está no mesmo componente, então
+                # o caminho é andável inteiro — nenhum pulo de penhasco, nada
+                # de adivinhar. Waypoints conferidos um a um no estático a
+                # partir de (39,17), (38,17), (27,9), (39,16) e (33,12).
+                return self._follow_route(
+                    "cerulean-south-to-route5",
+                    [
+                        (36, 27), (36, 29), (28, 30), (26, 32),
+                        CERULEAN_SOUTH_EXIT, (26, 36),
+                    ],
+                )
+            # Lado oeste do rio (Centro, ginásio, Mart): a borda sul não é
+            # alcançável daqui em nenhuma célula — só pela casa acima do
+            # ginásio, cujo buraco na parede devolve o jogador em (27,9), já
+            # do lado leste. É o mesmo caminho validado em 2026-08-12.
+            return self._follow_route(
+                "cerulean-to-house",
+                [(20, 13), (27, 13), (27, 12)],
+            )
+        if map_id == 15:
+            # Rota 4 é o caminho de VOLTA ao Mt. Moon (oeste). Se o bot
+            # acabou aqui por engano, retorna a Cerulean pela borda leste.
+            # O penhasco divide a rota em componentes: do lado leste
+            # (x>=63) o caminho é direto pela borda (89,10) — o find_path
+            # guia os desvios. Waypoints do lado oeste (61,10)/(79,8) são
+            # inalcançáveis daqui e só queimavam o orçamento (medido
+            # 2026-08-12: AARON em (63,10) mirando (11,5) por 3000 passos).
+            return self._follow_route(
+                "route4-back-to-cerulean",
+                [(89, 10), (90, 10)],
+            )
+        if map_id == 20:
+            # Rota 9 é o caminho do Túnel da Rocha, não o de Vermilion. O
+            # warp de Cerulean desemboca num beco de 9 tiles (x=0..4,
+            # y=8..9) cuja única saída é voltar para oeste. Ninguém mais é
+            # mandado para cá; se um apagão ou uma batalha empurrar o bot
+            # para dentro do beco, a saída é a borda oeste — e o mapa 3
+            # agora manda para o sul, então não há mais o ciclo m3<->m20.
+            return self._follow_route(
+                "route9-back-to-cerulean",
+                [(0, 8), (0, 9)],
+            )
+
+        # --- Cerulean -> Vermilion, pernas conferidas no estático ---
+        # Cada waypoint abaixo foi verificado com `MapMemory.find_path` a
+        # partir do tile em que a perna anterior desemboca: nenhuma das
+        # cadeias tem hop `NONE`, e as que dependiam de pulo de penhasco
+        # foram trocadas por colunas andáveis de ponta a ponta.
+
+        if map_id == 16:
+            # Route 5: a entrada vinda de Cerulean cai em (16,0) e a coluna
+            # LESTE (x=17) desce limpa até o prédio do Underground (17,27).
+            # A coluna 13 do executor antigo fica na faixa do meio, que os
+            # penhascos isolam da porta — de (9,0) a (17,27) o find_path
+            # devolve NONE.
+            x, y = self.emulator.memory.get_player_pos()
+            if (x, y) == (17, 27):
+                return ROUTE_EVENTS["D"]
+            # Waypoints tirados do caminho real do `find_path`, não escolhidos
+            # a olho: (17,24) e (17,5) da versão anterior são parede — a
+            # coluna andável é a x=16, e a porta se aproxima por baixo,
+            # passando por (15,28), porque (16,27) é a parede do prédio.
+            return self._follow_route(
+                "route5-to-underground",
+                [(16, 8), (16, 16), (16, 23), (15, 28), (17, 27)],
+            )
+        if map_id == 71:
+            # Casa/entrada do Underground (17,27). Atravessar até a porta
+            # interna (4,4) que warpa para o mapa 119. O operador guiou o
+            # trail até (3,4); o warp (4,4) é a coordenada conhecida — o
+            # alvo é a porta, não o tile antes dela.
+            x, y = self.emulator.memory.get_player_pos()
+            if (x, y) == (4, 4):
+                return ROUTE_EVENTS["D"]
+            return self._follow_route(
+                "underground-entrance",
+                [(3, 7), (3, 6), (3, 5), (3, 4), (4, 4)],
+            )
+        if map_id == 119:
+            # Underground Path: descer o corredor até o warp de saída
+            # (2,41) -> mapa 74 (a outra extremidade). O alvo é o tile do
+            # warp lido da ROM; (3,41) era o tile ao lado dele, e parar ao
+            # lado de uma porta é o modo de travar deste projeto.
+            return self._follow_route(
+                "underground-path",
+                [(5, 10), (5, 20), (5, 30), (2, 41)],
+            )
+        if map_id == 74:
+            # Saída sul do Underground: atravessar a casinha até a porta
+            # (4,7) que devolve à Route 6.
+            return self._follow_route(
+                "underground-exit",
+                [(4, 4), (4, 7)],
+            )
+        if map_id == 17:
+            # Route 6: da saída do Underground (17,13) até a borda sul
+            # (9,35), conexão com Vermilion — que é o mapa **5**, não o 1.
+            # O waypoint final fica um tile além da borda, como em toda
+            # conexão: é o passo que cruza.
+            return self._follow_route(
+                "route6-to-vermilion",
+                [(13, 20), (13, 28), (9, 31), (9, 35), (9, 36)],
+            )
+        if map_id == VERMILION_CITY_MAP_ID:
+            # **Chegou.** O bloco antigo aqui era Viridian inteiro — mapa 1,
+            # Centro 41, Mart 42, porta (23,25) — copiado de `buy_pokeballs`
+            # e nunca corrigido. Vermilion é o mapa 5, o Centro é o 89 e a
+            # porta dele é (11,3) (`knowledge/maps/pokemon_centers.json`,
+            # extraído da ROM). Com os ids errados o executor devolvia None
+            # na cidade certa e reagia dentro de prédios de outra cidade.
+            #
+            # O Centro primeiro: é o único gravador de ponto de retomada, e
+            # é o que transforma "chegou a Vermilion" em progresso que
+            # sobrevive a um apagão.
+            x, y = self.emulator.memory.get_player_pos()
+            if not self._respawn_is_registered(VERMILION_CENTER_MAP_ID):
+                return self._follow_route(
+                    "vermilion-to-center",
+                    [(19, 4), (11, 4), (11, 3)],
+                )
+            if (
+                self._bag_item_count(HM01_CUT) > 0
+                and not self._party_knows_move(CUT_MOVE_ID)
+            ):
+                # HM na mochila não corta árvore nenhuma: o golpe precisa
+                # estar num Pokémon. Ensinar é o passo, e é aqui — em cima do
+                # próprio tile, sem andar.
+                return self._teach_cut_action()
+            if self._bag_item_count(HM01_CUT) == 0:
+                # Sem Cut não há ginásio: a árvore da entrada não abre. O
+                # ticket está na mochila desde o `bill_quest`, então a doca
+                # aceita. A descida é pela coluna x=18 — a 19 tem o marinheiro
+                # parado em (19,30), e desviar dele é de graça.
+                if (x, y) in SS_ANNE_GANGWAY:
+                    return ROUTE_EVENTS["D"]
+                # A descida é pela coluna LESTE (x=30): a faixa y=22..25 é
+                # parede de x=16 a x=29, então o centro da cidade não desce
+                # para o cais. Da linha 26 se anda para oeste até a coluna
+                # x=18, que é a única que chega à prancha — a 19 tem o
+                # marinheiro parado em (19,30).
+                return self._follow_route(
+                    "vermilion-to-ss-anne",
+                    [(30, 16), (30, 26), (18, 26), (18, 31)],
+                )
+            return None
+        if map_id == VERMILION_CENTER_MAP_ID:
+            # Centro de Vermilion: registrar o checkpoint e sair.
+            return self._run_pokemon_center("vermilion-center", "vermilion_center_healed")
+
+        # --- S.S. Anne: o navio que entrega o Cut ---------------------------
+        if map_id in SS_ANNE_MAP_IDS and self._bag_item_count(HM01_CUT) > 0:
+            # **Com o HM na mão, o navio é só saída.** Sem esta guarda a rota
+            # do 2º andar continuava mirando a porta da cabine: o bot saía em
+            # (0,7), desembarcava em cima do próprio warp (36,4) e reentrava —
+            # medido no cartucho em 2026-08-16, duas viagens por segundo entre
+            # os mapas 96 e 101, com o Cut já na mochila desde o capitão.
+            if map_id == SS_ANNE_CAPTAIN_MAP_ID:
+                return self._follow_route("ss-anne-captain-exit", [(1, 7), (0, 7)])
+            if map_id == SS_ANNE_UPPER_MAP_ID:
+                # De (36,4) não se anda para oeste — (35,4) é parede. A volta
+                # é descer a coluna leste e cruzar o corredor y=12.
+                return self._follow_route(
+                    "ss-anne-2f-exit",
+                    [(36, 12), (28, 12), (20, 12), (12, 12), (4, 12),
+                     (3, 5), (2, 4)],
+                )
+            if map_id == SS_ANNE_DECK_MAP_ID:
+                return self._follow_route(
+                    "ss-anne-1f-exit",
+                    [(10, 6), (18, 6), (26, 6), (26, 0)],
+                )
+            if map_id == SS_ANNE_DOCK_MAP_ID:
+                # (14,0) é o warp de volta a Vermilion — o mesmo por onde se
+                # chegou. O ticket já foi mostrado; nada barra a saída.
+                return self._follow_route("ss-anne-leave", [(14, 0)])
+
+        if map_id == SS_ANNE_DOCK_MAP_ID:
+            # A doca. Medido no cartucho em 2026-08-16: o bot desce de (14,0)
+            # para (14,1) e ali o passo D **não move** — 1.440 passos no mesmo
+            # tile, com `path_to_target: D` e o D voltando como `bumped`. Não
+            # é terreno (o estático e o `_tile_truth` liberam) e não é sprite
+            # que a leitura ao vivo enxergue: é o marinheiro do cais pedindo
+            # o S.S. Ticket, que está na mochila desde o `bill_quest`.
+            #
+            # Então aqui D e A se alternam: D anda quando o caminho abre e só
+            # vira o personagem quando não abre; A fala com quem estiver na
+            # frente. Nenhum dos dois estraga o outro, e o cartucho decide —
+            # o passo seguinte é o mapa mudar.
+            if (x, y) == SS_ANNE_BOARDING_TILE:
+                return ROUTE_EVENTS["D"]
+            if (x, y) == SS_ANNE_TICKET_TILE:
+                if self._menu_is_open():
+                    return WindowEvent.PRESS_BUTTON_A
+                steps = getattr(self, "ss_anne_ticket_steps", 0) + 1
+                self.ss_anne_ticket_steps = steps
+                if steps % 2:
+                    self.last_action_was_move = True
+                    return ROUTE_EVENTS["D"]
+                return WindowEvent.PRESS_BUTTON_A
+            # O estático parte a doca em quatro componentes — provável
+            # limitação do extrator neste tileset —, então o alvo é a coluna
+            # da prancha e o planejador otimista faz o resto.
+            return self._follow_route(
+                "ss-anne-gangway",
+                [SS_ANNE_TICKET_TILE],
+            )
+        if map_id == SS_ANNE_DECK_MAP_ID:
+            # Convés/1º andar: descer a coluna da entrada até o corredor
+            # (y=6) e ir para oeste até a escada (2,6), que sobe para o 2º.
+            return self._follow_route(
+                "ss-anne-1f",
+                [(26, 6), (15, 6), (7, 6), (2, 6)],
+            )
+        if map_id == SS_ANNE_UPPER_MAP_ID:
+            # 2º andar: contornar pelo corredor de baixo (y=11) até a coluna
+            # leste e subir até (37,4), o tile em frente à porta da cabine.
+            # (35,4) não é andável — a aproximação é pelo leste.
+            if (x, y) == SS_ANNE_CABIN_APPROACH:
+                # O rival está em cima da porta. Um passo para a esquerda
+                # encosta nele: a máquina `route_sprite_talk` abre o diálogo
+                # e o controlador de batalha assume. Depois da vitória ele
+                # sai e o mesmo passo atravessa a porta.
+                return ROUTE_EVENTS["L"]
+            return self._follow_route(
+                "ss-anne-2f",
+                [(2, 12), (10, 12), (18, 12), (26, 12), (34, 12),
+                 (36, 10), (36, 6), SS_ANNE_CABIN_APPROACH],
+            )
+        if map_id == SS_ANNE_CAPTAIN_MAP_ID:
+            return self._run_ss_anne_captain()
+
         return None
+
+    def _party_move_ids(self, slot):
+        """Os quatro slots de golpe de um membro da party, lidos da RAM."""
+        base = 0xD16B + int(slot) * 44
+        return [int(self.emulator.memory.read_byte(base + 8 + i)) for i in range(4)]
+
+    def _party_knows_move(self, move_id):
+        count = min(int(self.emulator.memory.get_party_count()), 6)
+        return any(
+            int(move_id) in self._party_move_ids(slot) for slot in range(count)
+        )
+
+    def _naming_screen_open(self):
+        """O teclado de apelido está desenhado? Pergunta feita à tela."""
+        if self.emulator is None:
+            return False
+        try:
+            return screen.naming_screen_open(self.emulator.memory.read_byte)
+        except Exception:
+            return False
+
+    def _screen_rows(self):
+        """O que está desenhado, decodificado do `wTileMap`.
+
+        A tela é RAM. Quem pode aprender um HM é uma pergunta que o cartucho
+        já responde: com a lista da party aberta para um TM/HM, ele escreve
+        ABLE ou NOT ABLE ao lado de cada um. Ler isso é mais barato e mais
+        honesto que caçar a tabela de compatibilidade na ROM — e não há
+        palpite nenhum sobre quem aprende o quê.
+
+        A decodificação vive em `src/screen.py`: eram três arquivos lendo o
+        mesmo 0xC3A0 por conta própria, e é assim que duas cópias divergem.
+        """
+        return screen.rows(self.emulator.memory.read_byte)
+
+    def _slots_that_can_learn(self):
+        """Slots marcados ABLE na tela da party, na ordem da equipe."""
+        able = []
+        for row in self._screen_rows():
+            if "ABLE" not in row:
+                continue
+            able.append("NOT ABLE" not in row)
+        return able
+
+    def _move_slot_to_forget(self, party_slot):
+        """Qual golpe some para o HM entrar.
+
+        Reusa a régua que o controlador de batalha já usa: golpe de status
+        vale pela `STATUS_MOVE_PRIORITY` (maior é pior — Growl e Leer valem 9,
+        Leech Seed vale 0) e golpe de dano nunca sai enquanto houver status
+        para tirar. HM não pode ser apagado pelo cartucho, então nem entra.
+        """
+        best_slot, best_score = None, None
+        for slot, move_id in enumerate(self._party_move_ids(party_slot)):
+            if not move_id or move_id in HM_MOVE_IDS:
+                continue
+            score = STATUS_MOVE_PRIORITY.get(move_id)
+            # Golpe de dano (fora da tabela de status) é o último a sair: -1
+            # o põe abaixo de qualquer status na escolha do "pior".
+            score = -1 if score is None else score
+            if best_score is None or score > best_score:
+                best_slot, best_score = slot, score
+        return best_slot
+
+    def _menu_corner(self):
+        return (
+            int(self.emulator.memory.read_byte(MENU_TOP_Y_ADDRESS)),
+            int(self.emulator.memory.read_byte(MENU_TOP_X_ADDRESS)),
+        )
+
+    def _menu_cursor_step(self, current, target):
+        """Um passo do cursor, ou None quando já está no alvo."""
+        if current < target:
+            return WindowEvent.PRESS_ARROW_DOWN
+        if current > target:
+            return WindowEvent.PRESS_ARROW_UP
+        return None
+
+    def _teach_cut_action(self):
+        """Ensinar o Cut, dirigindo os menus reais pela RAM.
+
+        Quem decide que acabou é o cartucho: o golpe 15 na party. Medido no
+        cartucho em 2026-08-16, do save do AARON logo depois do capitão —
+        START, ITEM, HM01, USE, os textos, SIM, a party, e o golpe a esquecer;
+        no fim, `IVYSAUR learned CUT!` e a RAM da party em [77, 15, 73, 22].
+
+        A **Butterfree não aprende Cut** (a tela diz NOT ABLE), então "ensinar
+        a quem não é o inicial" não era uma opção aqui: o cartucho recusa. A
+        escolha sai da própria tela, não de uma preferência.
+        """
+        if self._party_knows_move(CUT_MOVE_ID):
+            self.teach_cut_steps = 0
+            return None
+        if self._bag_item_count(HM01_CUT) == 0:
+            return None
+
+        steps = getattr(self, "teach_cut_steps", 0) + 1
+        self.teach_cut_steps = steps
+        if steps > TEACH_MENU_STEP_LIMIT:
+            # Menu que não se comporta é abandonado, não martelado. B fecha o
+            # que estiver aberto e a rota volta a andar; a próxima passagem
+            # por aqui tenta de novo do começo.
+            self.teach_cut_steps = 0
+            return WindowEvent.PRESS_BUTTON_B
+
+        if not self._menu_is_open():
+            return WindowEvent.PRESS_BUTTON_START
+
+        corner = self._menu_corner()
+        cursor = int(self.emulator.memory.read_byte(MENU_CURSOR_ADDRESS))
+
+        if corner == MENU_MAIN:
+            step = self._menu_cursor_step(cursor, MENU_MAIN_ITEM_INDEX)
+            return step or WindowEvent.PRESS_BUTTON_A
+        if corner == MENU_BAG:
+            scroll = int(self.emulator.memory.read_byte(MENU_SCROLL_ADDRESS))
+            target = self._bag_item_index(HM01_CUT)
+            if target is None:
+                return WindowEvent.PRESS_BUTTON_B
+            step = self._menu_cursor_step(scroll + cursor, target)
+            return step or WindowEvent.PRESS_BUTTON_A
+        if corner == MENU_ITEM_USE_TOSS:
+            # USE é a primeira opção; TOSS no HM só devolveria uma recusa.
+            step = self._menu_cursor_step(cursor, 0)
+            return step or WindowEvent.PRESS_BUTTON_A
+        if corner == MENU_TEACH_YES_NO:
+            step = self._menu_cursor_step(cursor, 0)
+            return step or WindowEvent.PRESS_BUTTON_A
+        if corner == MENU_PARTY:
+            able = self._slots_that_can_learn()
+            target = next(
+                (slot for slot, can in enumerate(able) if can), None
+            )
+            if target is None:
+                # Ninguém na equipe aprende: sair sem gastar mais passos.
+                self.teach_cut_steps = 0
+                return WindowEvent.PRESS_BUTTON_B
+            self.teach_cut_party_slot = target
+            step = self._menu_cursor_step(cursor, target)
+            return step or WindowEvent.PRESS_BUTTON_A
+        if corner == MENU_FORGET_MOVE:
+            party_slot = getattr(self, "teach_cut_party_slot", 0)
+            target = self._move_slot_to_forget(party_slot)
+            if target is None:
+                return WindowEvent.PRESS_BUTTON_B
+            step = self._menu_cursor_step(cursor, target)
+            return step or WindowEvent.PRESS_BUTTON_A
+
+        # Qualquer outra tela com o flag de menu de pé é texto: avança.
+        return WindowEvent.PRESS_BUTTON_A
+
+    def _bag_item_index(self, item_id):
+        """Posição do item na mochila, que é a linha dele na lista."""
+        count = min(int(self.emulator.memory.read_byte(0xD31D)), 20)
+        for index in range(count):
+            if int(self.emulator.memory.read_byte(0xD31E + index * 2)) == int(item_id):
+                return index
+        return None
+
+    def _run_ss_anne_captain(self):
+        """Falar com o capitão enjoado até o HM01 entrar na mochila.
+
+        Quem decide que acabou é o cartucho: o HM01 (0xC4) na mochila. Um
+        contador de "já falei" seria flag de processo, que some no reinício —
+        o mesmo erro que fez o Centro entrar em ciclo de entrar e sair.
+
+        A conversa é longa (o capitão pede a massagem e agradece), então A é
+        apertado enquanto houver texto. Sem texto na tela, A de costas não
+        abre diálogo nenhum: `wSpriteStateData1+9` diz para onde o jogador
+        está virado e o passo para cima encara o capitão em (4,2) sem sair do
+        tile — ele bloqueia.
+        """
+        x, y = self.emulator.memory.get_player_pos()
+        if self._bag_item_count(HM01_CUT) > 0:
+            # Com o HM na mão, sair da cabine pela porta (0,7).
+            return self._follow_route("ss-anne-captain-exit", [(1, 7), (0, 7)])
+        if (x, y) != CAPTAIN_APPROACH_TILE:
+            return self._follow_route("ss-anne-captain", [CAPTAIN_APPROACH_TILE])
+        if self._menu_is_open():
+            return WindowEvent.PRESS_BUTTON_A
+        if int(self.emulator.memory.read_byte(PLAYER_FACING_ADDRESS)) != FACING_UP:
+            self.last_action_was_move = True
+            return WindowEvent.PRESS_ARROW_UP
+        return WindowEvent.PRESS_BUTTON_A
 
     def _run_cerulean_gym_quest(self):
         """Enter Cerulean Gym and defeat Misty after Bill is complete."""
@@ -2651,13 +3457,29 @@ class ScriptedAgent(BaseAgent):
         # south from that tile is Route 3. AARON crossed that border every 0.6
         # seconds for an hour, following a "shortcut" over a route that was
         # right the whole time.
-        if quest_id and store is not None and FOLLOW_TRAILS:
+        # O `trail-override-*` já carrega o trail (e possivelmente o warp de
+        # saída) no chamador — substituir aqui descartaria o warp e o bot
+        # pararia a um passo da porta.
+        if (
+            quest_id
+            and store is not None
+            and FOLLOW_TRAILS
+            and quest_id not in TRAIL_BLOCKED_QUESTS
+            and not route_id.startswith("trail-override-")
+        ):
             # Recomputing the join every step is what made the trail bounce:
             # from (28,20) the nearest point was (29,20), and from (29,20) it
             # was (28,20) — the trail crosses both on the way out and on the
             # way back. The plan is kept and walked forward like any route;
             # it is only rebuilt when the bot is nowhere near it any more,
             # which is exactly what a whiteout does.
+            if getattr(self, "_debug_route", False):
+                loaded = store.load(quest_id)
+                print(
+                    f"[DEBUG-TRAIL] quest={quest_id} mapa={map_id} pos=({x},{y}) "
+                    f"legs={len(loaded)} cache={getattr(self, 'trail_plan', None) is not None}",
+                    flush=True,
+                )
             key = (quest_id, map_id)
             cached = getattr(self, "trail_plan", None)
             trail = cached[1] if cached and cached[0] == key else None
@@ -2679,9 +3501,18 @@ class ScriptedAgent(BaseAgent):
                     trail = trail[1:]
                 self.trail_plan = (key, trail)
             if trail and not (len(trail) == 1 and (x, y) == tuple(trail[0])):
-                waypoints = trail
-                route_id = f"trail-{quest_id}-{map_id}"
-                using_trail = True
+                # O cache do trail tem todos os pontos do mapa e não é
+                # recalculado enquanto o bot está perto. Chegar no ÚLTIMO
+                # ponto com o cache ainda inteiro travava o bot no waypoint
+                # final (medido 2026-08-13: Route 5, o bot oscilava em volta
+                # de (17,28) com o trail do mapa 16 ainda com 48 pontos).
+                # Último ponto alcançado: limpa o cache e devolve ao executor.
+                if (x, y) == tuple(trail[-1]) and len(trail) > 1:
+                    self.trail_plan = None
+                else:
+                    waypoints = trail
+                    route_id = f"trail-{quest_id}-{map_id}"
+                    using_trail = True
             elif trail:
                 # The leg ends on the doorway to the next map, and a trail says
                 # nothing about how to cross it — the next leg is measured in
@@ -2692,6 +3523,14 @@ class ScriptedAgent(BaseAgent):
 
         self.route_index = self._select_route_index(route_id, waypoints, (x, y))
         target_x, target_y = waypoints[self.route_index]
+        blocked = self._tile_truth()
+        if getattr(self, "_debug_route", False):
+            print(
+                f"[DEBUG-ROUTE] {self.current_task_name} mapa={map_id} pos=({x},{y}) "
+                f"route={route_id} idx={self.route_index}/{len(waypoints)} "
+                f"target=({target_x},{target_y}) blocked={blocked}",
+                flush=True,
+            )
 
         # Orçamento de passos por waypoint. O contador de distância
         # (`route_no_progress`) só vê "não encostou": um waypoint inalcançável
@@ -2720,7 +3559,6 @@ class ScriptedAgent(BaseAgent):
             self.route_no_progress = 0
             self.route_waypoint_steps = 0
             self.route_target_index = None
-        blocked = self._tile_truth()
         for (bumped_map, bumped_x, bumped_y, direction) in getattr(self, "route_bumped", {}):
             if (bumped_map, bumped_x, bumped_y) == (map_id, x, y):
                 blocked.setdefault(direction, "bumped")
@@ -2730,10 +3568,14 @@ class ScriptedAgent(BaseAgent):
         # the Mart door one tile north, "walk north" put the bot inside the
         # shop, out on the mat, and north again — the flashing at the door.
         # A door is only ever somewhere to arrive at.
-        if self.route_index < len(waypoints) - 1:
-            # Only mid-route. A route's last waypoint is how it leaves the map,
-            # and the tile before it is usually the doorway itself.
-            blocked.update(self._warp_steps(x, y, (target_x, target_y)))
+        # O `_warp_steps` antigo (bloquear pisar em warp que não é o alvo)
+        # trancava o bot dentro de prédios cujo corredor passa pela porta de
+        # entrada (medido 2026-08-13: no prédio do Underground, o caminho
+        # (2,7)→(3,7)→(3,6) cruza a porta (3,7) e a regra o parava em (2,7)
+        # para sempre). O `route_entry_block` já impede voltar pela porta por
+        # onde entrou; bloquear TODA warp vira parede invisível. Warps são
+        # coordenadas conhecidas — pisar nelas é como o jogo funciona (o
+        # operador atravessa portas o tempo todo).
         wanted = []
         if abs(target_x - x) >= abs(target_y - y):
             wanted += self._axis_steps(x, target_x, "R", "L")
@@ -2790,6 +3632,11 @@ class ScriptedAgent(BaseAgent):
             map_id, x, y, target_x, target_y, blocked, waypoints, route_id
         )
 
+        # O plano é calculado **antes** da máquina de sprite: é ele que diz se
+        # o sprite fecha a passagem ou só está por perto. Ver o comentário do
+        # `sprite_closes_the_way` logo abaixo.
+        planned = self._planned_step(map_id, x, y, target_x, target_y)
+
         # Sprite que fecha a única passagem — treinador, fóssil ou NPC parado.
         # Medido em Mt. Moon: o bot ficou 1000+ passos ao lado do mesmo
         # treinador porque o fallback só virava o personagem — D-pad sozinho
@@ -2833,10 +3680,34 @@ class ScriptedAgent(BaseAgent):
                 tried.add((map_id, talk["pos"][0] + dx, talk["pos"][1] + dy))
                 self.route_sprite_talk = None
                 return WindowEvent.PRESS_BUTTON_B
-        else:
-            # Treinador, fóssil e item ball do ROM não andam: esperar é jogar
-            # tempo fora, falar já. NPC que anda mantém a paciência antiga
-            # (SPRITE_PATIENCE_STEPS) antes de qualquer interação.
+        elif (
+            planned is None
+            or blocked.get(planned) == "sprite"
+            or getattr(self, "route_no_progress", 0) > SPRITE_PATIENCE_STEPS
+            or self._route_is_cycling()
+        ):
+            # **Só conversa quem não tem por onde andar.** A lista `wanted` é
+            # de eixos, não de caminho: de (4,2) para (5,12) ela é ['D', 'R']
+            # porque o alvo está a uma casa à direita e dez abaixo — e o Oak,
+            # parado em (5,2), caía como "sprite no rumo do waypoint" mesmo
+            # sem fechar nada. O caminho real desce primeiro (`DDDDDDDDDRD`).
+            #
+            # Medido em 2026-08-16 com três bots novos: os três viravam para o
+            # Oak, apertavam A, **reabriam o diálogo do pacote** e ficavam
+            # alternando A e B para sempre — 6.240 passos no mesmo tile, os
+            # três presos no laboratório sem nunca sair de Pallet.
+            #
+            # Com o plano na mão, andar é a resposta; a conversa fica para
+            # quando não há plano — que é exatamente Mt. Moon, onde o
+            # treinador parado fecha a única passagem e o `find_path` devolve
+            # None porque o objeto do ROM bloqueia o corredor inteiro.
+            #
+            # Ter plano não é garantia de sair do lugar: no corredor lotado do
+            # laboratório o plano alternava L em (4,2) e R em (3,2), e o bot
+            # ficava indo e voltando entre as duas casas. Por isso a paciência
+            # continua valendo como saída: `SPRITE_PATIENCE_STEPS` passos sem
+            # encurtar distância e a conversa volta à mesa, com o limite de
+            # diálogo e o `route_sprites_tried` cuidando de quem não sai.
             memory = self._map_memory()
             static_objects = (
                 memory.object_positions(map_id) if memory is not None else set()
@@ -2848,7 +3719,10 @@ class ScriptedAgent(BaseAgent):
                     tile = (x + dx, y + dy)
                     if tile in static_objects and (map_id, tile[0], tile[1]) not in tried:
                         sprite_blockers.append(step)
-            if not sprite_blockers and self.route_no_progress > SPRITE_PATIENCE_STEPS:
+            if not sprite_blockers and (
+                self.route_no_progress > SPRITE_PATIENCE_STEPS
+                or self._route_is_cycling()
+            ):
                 # Sem sprite no rumo do waypoint: quem fecha a passagem pode
                 # estar ao lado (o fóssil (12,6) fica à direita de quem chega
                 # pelo bolsão oeste, com o alvo a oeste).
@@ -2860,6 +3734,17 @@ class ScriptedAgent(BaseAgent):
                     if (map_id, x + dx, y + dy) not in tried:
                         sprite_blockers.append(step)
             if sprite_blockers:
+                # **Treinador primeiro.** Falar com um NPC devolve texto e ele
+                # continua no tile; um treinador vira batalha, e vencer o
+                # remove de vez — é a única interação que abre passagem em
+                # definitivo. No laboratório quem fecha o corredor para baixo
+                # é o rival (objeto `trainer` em (4,3)), e a luta com ele é a
+                # própria história: enfrentá-lo é avançar, não um desvio.
+                trainers = self._map_memory().trainer_positions(map_id)
+                sprite_blockers.sort(
+                    key=lambda step: (x + ROUTE_STEP_OFFSETS[step][0],
+                                      y + ROUTE_STEP_OFFSETS[step][1]) not in trainers
+                )
                 direction = sprite_blockers[0]
                 self.route_sprite_talk = {
                     "route": route_id,
@@ -2887,14 +3772,60 @@ class ScriptedAgent(BaseAgent):
                 "L" if target_x < x else
                 "D" if target_y > y else "U"
             )
-            if step not in blocked:
+            # Com trail ativo, o terrain do TileCollision não bloqueia: o
+            # operador atravessou esse passo para medir o trail, então é o
+            # caminho (medido 2026-08-13: no Centro 64 o trail mirava a
+            # saída (3,5) mas o wTileMap lia terrain e o bot ficava parado
+            # a um passo da porta).
+            if step not in blocked or (
+                using_trail and blocked.get(step) == "terrain"
+            ):
                 return self._route_move(step)
+
+        # The plan outranks the eight-tile memory: that memory exists for when
+        # there is nothing better than a guess, and a committed path is better.
+        # Um trail medido pelo operador é melhor que um plano recalculado: o
+        # `_planned_step` replaneja pelo static e pode desviar o bot para uma
+        # escada ou contornar um objeto que o trail já atravessou (medido
+        # 2026-08-13: no prédio do Underground o plano puxava o bot para a
+        # escada (2,7)↔(2,3) em vez do corredor (3,7)→(3,4)).
+        # O trail define a ROTA (os waypoints que o operador mediu), mas quem
+        # navega o labirinto entre eles é o `_planned_step` (BFS no static).
+        # Sem ele o bot tentava cortar em linha reta para o waypoint e batia
+        # em paredes que o labirinto contorna (medido 2026-08-13: Cerulean,
+        # o bot mirando (37,20) direto batia na parede sem entrar na casa).
+        # O `planned` já foi calculado acima, antes da máquina de sprite —
+        # é ele que decide se o sprite fecha a passagem ou só está por perto.
+        if getattr(self, "_debug_route", False):
+            print(
+                f"[DEBUG-ROUTE] passo: pos=({x},{y}) target=({target_x},{target_y}) "
+                f"wanted={wanted} stale={stale} planned={planned} blocked={blocked}",
+                flush=True,
+            )
+        # O plano do static é a autoridade de terreno; o TileCollision é uma
+        # dica ao vivo que às vezes mente (wTileMap dessincronizado em
+        # transições ou mapas pequenos — medido 2026-08-13: GARON preso no
+        # Centro 64 com D lendo parede onde o static e o jogo abrem). Só
+        # gente (sprite) bloqueia um passo planejado; terreno duvidoso é
+        # tentado e o `route_bumped` corrige se o jogo recusar.
+        if planned is not None and blocked.get(planned) != "sprite":
+            return self._route_move(planned)
 
         # Ledge: o alvo pode estar do outro lado de um penhasco — descer pula
         # o tile do meio, que o planejador trata como parede. (79,8)->(79,10)
         # da Rota 4 é exatamente isso (a faixa de penhasco em y=9). Apertar na
         # parede comum não move nada, então tentar é de graça quando o alvo
         # está alinhado a dois tiles na direção e o pouso é andável.
+        #
+        # **Só depois do plano.** Um penhasco e uma parede com porta atrás têm
+        # a mesma assinatura no estático — meio sólido, pouso andável — e a
+        # regra disparava nos dois. Medido em 2026-08-16, na Route 5: o bot
+        # em (15,27) mirando a porta do Underground (17,27), com (16,27) de
+        # parede, apertou R contra a parede por 250 passos enquanto o
+        # planejador já tinha o desvio de quatro passos (D,R,R,U) na mão.
+        # Quem tem caminho andando não precisa pular: o pulo é o que sobra
+        # quando o plano não existe, e é exatamente assim que a Rota 4 é —
+        # o penhasco parte o mapa e não há desvio nenhum.
         if (
             (target_x == x or target_y == y)
             and abs(target_x - x) + abs(target_y - y) == 2
@@ -2913,15 +3844,22 @@ class ScriptedAgent(BaseAgent):
                 ):
                     return self._route_move(step)
 
-        # The plan outranks the eight-tile memory: that memory exists for when
-        # there is nothing better than a guess, and a committed path is better.
-        planned = self._planned_step(map_id, x, y, target_x, target_y)
-        if planned is not None and planned not in blocked:
-            return self._route_move(planned)
-
         for step in wanted:
             if step not in blocked and step not in stale:
                 return self._route_move(step)
+
+        # Waypoint gasto na memória recente: o bot já passou por ele (o trail
+        # cruza tiles já andados quando termina). Voltar para o tile do
+        # waypoint final é o caminho, não um vaivém — o stale não pode
+        # trancar o último passo (medido 2026-08-13: Route 6, o bot vagueava
+        # em volta do último ponto do trail porque (17,20) estava recente).
+        # No MEIO da rota, o stale continua valendo: emitir qualquer passo
+        # livre (incluindo voltar) é o vaivém que o operador viu em (19,27)
+        # oscilando com (20,27).
+        if self.route_index == len(waypoints) - 1:
+            for step in wanted:
+                if step not in blocked:
+                    return self._route_move(step)
 
         # Item ball é objeto sólido em Gen I: não se pisa, e apertar A de
         # frente não a pega — a colisão ao vivo a reporta como sprite e o
@@ -3016,6 +3954,28 @@ class ScriptedAgent(BaseAgent):
             return 0
         self.trail_plan = None
         return recorder.restart(cycle)
+
+    def _route_is_cycling(self, window=6):
+        """O bot está indo e voltando entre duas casas?
+
+        O contador de progresso mede **distância**, e é cego para vaivém: de
+        (3,2) para (4,2) a distância até (5,12) cai de 12 para 11, então o
+        passo de volta zera o contador e a paciência nunca acumula. Medido em
+        2026-08-16 no laboratório do Oak: três bots novos alternando entre
+        duas casas por centenas de passos com `route_no_progress` sempre baixo.
+
+        Ciclo de período 2 é o que um bot preso realmente produz, e o projeto
+        já o reconhece em outros lugares (o diário colapsa ciclo, o relay pede
+        replan por "2 estados repetidos 3 vezes"). Aqui ele vira o sinal que
+        falta: duas casas alternando na janela recente é estar preso, por mais
+        que a distância oscile.
+        """
+        history = list(getattr(self, "route_recent_tiles", []))[-window:]
+        if len(history) < 4:
+            return False
+        if len({tile for tile in history}) != 2:
+            return False
+        return all(a != b for a, b in zip(history, history[1:]))
 
     def _recently_walked_steps(self, map_id, x, y):
         """Directions that lead back into the last few tiles walked.
@@ -3241,17 +4201,65 @@ class ScriptedAgent(BaseAgent):
             # Treinador parado, NPC, fóssil e item ball não andam: o tile deles
             # sai do ROM e não muda até a luta/pickup. O plano normal os
             # contorna; o fallback abaixo é quem cruza o que já abriu.
+            #
+            # Mas o bloco de objetos do ROM é onde cada sprite **começa**, não
+            # onde ele está. Muitos andam (`movement` 255) e alguns nem
+            # entraram em cena ainda. Perto do jogador quem responde é a
+            # leitura ao vivo — que também é o cartucho, e mais atual: se a
+            # tela diz que o tile está livre, ele está livre.
+            #
+            # Medido em 2026-08-16, no laboratório do Oak: o rival é objeto
+            # `trainer` em (4,3) e ainda não tinha aparecido; o `_tile_truth`
+            # via só o Oak à direita, e mesmo assim o plano contornava (4,3)
+            # como parede. De (4,2) ele saía `L`, de (3,2) saía `R`, e os três
+            # bots novos passaram centenas de passos entre duas casas por
+            # causa de um obstáculo que não estava lá.
+            #
+            # Longe do jogador o estático continua mandando: fora da tela não
+            # há leitura ao vivo, e é lá que ele evita planejar por cima do
+            # treinador que fecha um corredor inteiro (o portão dos fósseis do
+            # B2F de Mt. Moon é exatamente isso, e continua bloqueado porque a
+            # essa distância o bot enxerga o sprite quando chega perto).
             static_objects = self._map_memory().object_positions(map_id)
-            occupied |= static_objects
+            occupied |= {
+                tile for tile in static_objects
+                if abs(tile[0] - x) > VISIBLE_TILE_RADIUS_X
+                or abs(tile[1] - y) > VISIBLE_TILE_RADIUS_Y
+            }
             # A door is walkable and it is also a trapdoor. Planning *through*
             # one is what made the Mart feel like it had gravity: the path to a
             # waypoint two tiles away crossed the doorway, the bot stepped in,
             # came out on the mat, and planned the same path again. Doors are
             # only ever a destination, never a shortcut.
+            #
+            # Com uma exceção, que é a própria convenção das rotas daqui: o
+            # último waypoint fica **um tile depois** da porta, fora do mapa
+            # andável, porque é ele que força o passo que atravessa. Bloquear
+            # a porta nesse caso torna o alvo inalcançável — não existe outro
+            # caminho para um tile que só a porta alcança — e sem plano o
+            # `route_no_progress` sobe até a regra de fronteira sequestrar o
+            # alvo. Medido em 2026-08-16, na casa inicial: o HARON andou até
+            # (7,6), voltou a casa inteira e ficou 11.355 relatórios de
+            # travamento oscilando em (0,2)/(1,2), o canto inexplorado, com a
+            # porta a oito passos. Dois bots novos, 10 minutos cada, nenhum
+            # saiu da primeira casa do jogo.
+            #
+            # A exceção é estreita de propósito: só vale quando o alvo **não
+            # é célula andável do estático** (a âncora de fora do mapa) e a
+            # porta é vizinha dele. Waypoint comum continua contornando toda
+            # porta, que é o que segura a gravidade do Mart.
             goal = (target_x, target_y)
+            static_cells = memory.static.get(int(map_id))
+            goal_is_past_the_door = (
+                static_cells is not None and goal not in static_cells
+            )
             occupied |= {
                 tile for tile in reader.warp_tiles()
                 if tile != goal and tile != (x, y)
+                and not (
+                    goal_is_past_the_door
+                    and abs(tile[0] - goal[0]) + abs(tile[1] - goal[1]) == 1
+                )
             }
             # Walls found by bumping belong in the plan, not only in the last
             # choice of step. Without this the planner kept proposing the same
@@ -3451,7 +4459,6 @@ class ScriptedAgent(BaseAgent):
         self.route_last_direction = direction
         self.route_last_issue = "move"
         return ROUTE_EVENTS[direction]
-
     def _fixed_route(self, route_id, actions):
         """Replay a measured D-pad segment without inventing collision facts."""
         if getattr(self, "fixed_route_id", None) != route_id:

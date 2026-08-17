@@ -20,7 +20,20 @@ planejado, executor implementado e trecho validado no cartucho.
    dele fica intacto.
 4. Scripts controlam história e batalha; PPO só deve aprender transições
    realmente controladas pela política. Não treine PPO com passos roteirizados.
-5. Rode os testes antes e depois de qualquer alteração de jogabilidade.
+5. Rode os testes antes e depois de qualquer alteração de jogabilidade — e,
+   junto deles, o **replay dos trechos já vencidos**. Teste de unidade não
+   pisa no cartucho: em 2026-08-16 a suíte estava verde com 548 testes e três
+   bots novos quebraram em quatro pontos seguidos (casa inicial, laboratório,
+   lista do balcão, prancha do navio), todos em código que ninguém tinha
+   rodado do zero desde 12/08.
+
+   ```bash
+   cd blue-agents && ../.venv/bin/python tools/replay_check.py
+   ```
+
+   Cada trecho vencido vira um save em `states/replay/` mais o que o cartucho
+   tem de responder depois de N passos. Venceu um trecho novo? Grave o save e
+   acrescente a entrada no manifesto — é assim que ele para de regredir.
 6. Preserve mudanças existentes. Não use limpeza ou reset global do Git.
 7. Atualize `docs/HANDOFF.md` **junto do commit**, sempre. Se a cobertura de uma
    quest mudou, atualize também `docs/QUEST_GRAPH.md`.
@@ -62,6 +75,7 @@ planejado, executor implementado e trecho validado no cartucho.
 sed -n '1,400p' docs/HANDOFF.md
 sed -n '1,320p' docs/QUEST_GRAPH.md
 cd blue-agents && MPLCONFIGDIR=tasks/matplotlib ../.venv/bin/python -m unittest discover -s tests -q
+cd blue-agents && ../.venv/bin/python tools/replay_check.py
 ```
 
 Não presuma que todos os 19 nós do QuestGraph possuem executor. O grafo define o

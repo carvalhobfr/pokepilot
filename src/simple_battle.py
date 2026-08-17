@@ -24,6 +24,7 @@ TYPE_NAMES = [
 # correct for dual-type Pokémon it has never seen before. The mapping lives
 # with the move table because the cartridge uses one set of ids for both.
 from src.move_data import GEN1_TYPE_NAMES, MoveTable
+from src import screen
 
 # Pokemon Type Mapping (Species ID -> Types)
 POKEMON_TYPES = {
@@ -65,6 +66,11 @@ EFFECTIVENESS = {
 HM_MOVE_IDS = {15, 19, 57, 70, 148}
 
 LEECH_SEED_MOVE_ID = 73
+
+# `wTileMap`: 20x18 tiles do que está desenhado na tela. É RAM, e é a resposta
+# do próprio jogo sobre qual tela está aberta.
+SCREEN_TILEMAP_ADDRESS = 0xC3A0
+SCREEN_TILES = 20 * 18
 
 # Ordem de preferência quando nenhum golpe de dano tem PP. Menor é melhor.
 # Leech Seed drena todo turno depois de plantada — vale uma vez. Sono e
@@ -373,6 +379,24 @@ class SimpleBattleAgent:
         # exposes one of the two recognized battle menu states.
         return "B"
 
+    @staticmethod
+    def _naming_screen_open(emulator):
+        """A tela de apelido está aberta?
+
+        Quem responde é a própria tela: `wTileMap` (0xC3A0) escreve NICKNAME
+        no cabeçalho do teclado. Ler o texto desenhado é mais seguro que um
+        byte de estado de menu — o mesmo truque que resolveu quem pode
+        aprender um HM, e pela mesma razão: é o cartucho dizendo, não um
+        palpite sobre qual valor significa o quê.
+
+        A leitura vive em `src/screen.py` — este arquivo era o terceiro a
+        decodificar o mesmo 0xC3A0 por conta própria.
+        """
+        try:
+            return screen.naming_screen_open(emulator.read_byte)
+        except Exception:
+            return False
+
     def get_action(self, emulator):
         """
         Returns the best action based on type matchup and move power.
@@ -382,6 +406,24 @@ class SimpleBattleAgent:
         3. Avoid using status moves in important battles
         """
         try:
+            # A tela de apelido vem **antes** de qualquer gate de texto: ela
+            # não é texto, é um teclado, e A nela digita letra. Medido em
+            # 2026-08-16 com três bots novos na Floresta: capturaram um
+            # Metapod, o jogo perguntou o apelido, o A respondeu SIM, e os
+            # três passaram onze chunks inteiros — 8.192 passos cada —
+            # digitando letras, com `battle_action_reason: "battle text on
+            # screen; move menu not drawn yet"` no diário e o nível parado.
+            #
+            # Em Gen I, START é o "END" do teclado: encerra com o nome
+            # padrão. Confirmado na RAM a partir do save travado — `0xD057`
+            # (em batalha) foi de 1 para 0 e a party ficou com o Metapod.
+            if self._naming_screen_open(emulator):
+                self.last_decision = {
+                    "kind": "finish_nickname",
+                    "reason": "tela de apelido aberta; START encerra com o nome padrão",
+                }
+                return "START"
+
             # Com texto na tela, 0xD01C não é o menu de golpes ainda — é o
             # que estiver na memória — e qualquer escolha montada em cima
             # dele é lixo. Pior que telemetria ruim: a lista de candidatos
@@ -484,6 +526,13 @@ class SimpleBattleAgent:
                     continue
                 
                 effectiveness = self.get_type_effectiveness(move_type, opponent_types)
+                # Imunidade não é empate: é proibição. ThunderShock contra
+                # Onix pontua 0.0 e ainda vencia o desempate por ser o slot 0
+                # (best_move_idx começa em 0). Ground imune a Electric é o
+                # caso medido ao vivo em 2026-08-12: Pikachu tentando
+                # ThunderShock no Brock.
+                if effectiveness <= 0:
+                    continue
                 stab = 1.5 if move_type in player_types else 1.0
                 
                 # Score the actual Gen I type product and STAB. This preserves

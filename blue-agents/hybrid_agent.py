@@ -26,6 +26,13 @@ if project_root not in sys.path:
 from src.simple_battle import SimpleBattleAgent
 from src.scripted_agent import POKEMON_CENTER_MAP_IDS, ScriptedAgent
 from src.knowledge_base import KnowledgeBase  # Import KnowledgeBase
+from src import screen
+from src.life_watchdog import (
+    FREEZE_DISTINCT_FLOOR,
+    FREEZE_WINDOW_STEPS,
+    LifeWatchdog,
+    cartridge_fingerprint,
+)
 from pyboy.utils import WindowEvent
 import json
 import os
@@ -75,11 +82,21 @@ CAPTURE_BALL_IDS = (1, 2, 3, 4)  # Master, Ultra, Great, Poké Ball
 # cursor address, so these are addresses this project has verified in game.
 MENU_CURSOR_ADDRESS = 0xCC26
 MENU_SCROLL_OFFSET_ADDRESS = 0xCC36
-# Which party slot is currently out on the field.
+# Which party slot is currently out on the field. **Lê desatualizado durante
+# transição de menu** — em particular com a lista da party aberta, que é
+# exatamente quando a decisão de troca é tomada.
 ACTIVE_PARTY_SLOT_ADDRESS = 0xCC2F
+# Quem está em campo, pela identidade e não pelo índice: `wBattleMon` começa
+# aqui, e o primeiro byte é a espécie interna do Pokémon que está lutando.
+# Este endereço não anda durante a navegação de menu.
+BATTLE_MON_INTERNAL_ID_ADDRESS = 0xD014
 # A switch that takes longer than this is not happening; back out instead of
 # mashing inputs into a menu that is not the one we think it is.
 SWITCH_MENU_STEP_LIMIT = 12
+
+# Teto de saves de congelamento no diretório inteiro (163 KB cada). Uma
+# situação nova para de virar save aqui; o evento no diário continua saindo.
+FREEZE_SNAPSHOT_LIMIT = 40
 
 # Steps on the same tile, out of battle, before the mission is restarted from
 # where the bot actually is. Long enough that a slow dialogue is not a restart,
@@ -368,6 +385,8 @@ class HybridGymEnv(RedGymEnv):
         )
         self.runtime_control_file = Path("tasks/runtime_controls.json")
         self.agent_paused = False
+        self.manual_mode = False
+        self.manual_queue_consumed = None
         self.playback_speed = 1.0
         self.viewer_count = 0
         self.last_route_replan_id = None
@@ -556,6 +575,20 @@ class HybridGymEnv(RedGymEnv):
         from collections import deque
         self.recent_map_ids = deque(maxlen=20)
         self.recent_tiles = deque(maxlen=20)  # Track (map_id, x, y) tuples
+
+        # Watchdog de vida: a impressão digital do cartucho a cada passo. Não
+        # decide nada — grava o save e a tela quando o estado para de mudar.
+        self.life_watchdog = LifeWatchdog(
+            window=int(os.environ.get(
+                "POKEAI_WATCHDOG_STEPS", FREEZE_WINDOW_STEPS
+            )),
+            distinct_floor=int(os.environ.get(
+                "POKEAI_WATCHDOG_DISTINCT", FREEZE_DISTINCT_FLOOR
+            )),
+        )
+        self.freeze_snapshot_dir = (
+            Path(project_root) / "states" / "replay" / "auto"
+        )
         
     def _init_shared_db(self):
         """Initialize shared exploration database"""
@@ -691,7 +724,14 @@ class HybridGymEnv(RedGymEnv):
             if node is None:
                 continue
             observed_at = self.quest_generations.get(quest_id)
-            if observed_at is not None and int(observed_at) < sealed:
+            # Geração 0 = journey antigo (antes dos carimbos existirem):
+            # NADA foi selado por checkpoint nessa geração, então a quest
+            # enfrenta a RAM de novo. Só geração > 0 anterior ao checkpoint
+            # é selada — ela foi observada e um Centro acima dela confirmou
+            # (medido 2026-08-13: `cerulean_gym_quest` na geração 0 com o
+            # Centro 64 na 222 — o selo antigo escondia que o badge 2 não
+            # estava no save).
+            if observed_at is not None and int(observed_at) > 0 and int(observed_at) < sealed:
                 continue
             if not self.quest_graph.node_matches(node, state):
                 denied.add(quest_id)
@@ -909,13 +949,133 @@ class HybridGymEnv(RedGymEnv):
             # no relay at all, which is training with nobody watching.
             self.viewer_count = max(int(global_control.get("viewers", 0) or 0), 0)
             self.agent_paused = bool(agent_control.get("paused", False))
+            new_manual_mode = bool(agent_control.get("manual_mode", False))
+            if self.manual_mode and not new_manual_mode:
+                # Operador terminou a guia: o caminho dirigido vira trail da
+                # quest, e o bot passa a saber destravar o trecho sozinho.
+                self._publish_manual_trail()
+            self.manual_mode = new_manual_mode
             request = agent_control.get("replan")
             if isinstance(request, dict) and request.get("id") != self.last_route_replan_id:
                 self.last_route_replan_id = request.get("id")
                 self.pending_route_replan = request
+            manual = agent_control.get("manual")
+            if isinstance(manual, dict) and isinstance(manual.get("queue"), list):
+                if manual["queue"] != self.manual_queue_consumed:
+                    self.manual_queue_consumed = list(manual["queue"])
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             # The relay writes atomically, but keeping the previous state is
             # safer than changing speed due to a transient read failure.
+            pass
+
+    def _consume_manual_step(self):
+        """Pop the next queued direction from the operator's manual guide.
+
+        A manual queue is the operator saying "do exactly this" — it exists to
+        unstick the bot (a defeated trainer's ghost blocking the bridge, a
+        route the executor has not mapped yet). It outranks everything the
+        bot would decide on its own, and every step taken is logged with the
+        queue that produced it, so the guide stays reviewable.
+        """
+        queue = getattr(self, "manual_queue_consumed", None)
+        if not queue:
+            return None
+        step = queue.pop(0)
+        self.manual_queue_consumed = queue
+        self._persist_manual_queue(queue)
+        print(f"[{self.agent_name}] 🎮 manual_step={step} restam={queue}")
+        return step
+
+    def _publish_manual_trail(self):
+        """Publica o caminho dirigido como trail da quest ativa.
+
+        O modo manual é teleoperação, mas o que o operador atravessou é uma
+        medida honesta de um trecho que funciona — um loop destravado por
+        mão que o bot volta a ter no repertório. Publica com `force=True`
+        porque o trail é deliberado, e registra no diário para a aula ficar
+        auditável.
+        """
+        quest_id = str(self.active_quest_id or "")
+        if not quest_id:
+            return
+        try:
+            scripted = self.scripted_agent
+            recorder = getattr(scripted, "trail_recorder", None)
+            store = getattr(scripted, "trail_store", None)
+            if recorder is None or store is None:
+                return
+            if recorder.quest_id != quest_id:
+                return
+            legs = recorder.legs(dense=True)
+            if not legs:
+                return
+            # Mescla com o trail existente: o operador guia trechos de cada
+            # vez, e cada trecho novo deve SOMAR ao caminho completo — nunca
+            # substituí-lo. Sem isso, guiar o Centro sobrescrevia o trail
+            # inteiro (Cerulean → Rota 5 → Underground → Vermilion) com o
+            # trecho pequeno, e o bot parava onde o trail novo acabava
+            # (medido 2026-08-13: o trail do mapa 3 virou só (3,7)→(15,13)).
+            previous = store.read(quest_id)
+            merged_legs = []
+            seen_maps = set()
+            for leg in legs:
+                mid = int(leg.get("map", -1))
+                seen_maps.add(mid)
+                merged_legs.append(leg)
+            for leg in previous.get("legs", []):
+                if int(leg.get("map", -1)) not in seen_maps:
+                    merged_legs.append(leg)
+            stored = store.publish(
+                quest_id,
+                self.agent_name,
+                merged_legs,
+                force=True,
+                dense=True,
+                steps=recorder.steps,
+            )
+            if stored:
+                print(f"[{self.agent_name}] 🧭 Trail manual publicado para {quest_id}")
+                self._log_event("trail_published", {
+                    "quest_id": quest_id,
+                    "source": "manual_guide",
+                    "reason": "caminho dirigido pelo operador; segue aprendido",
+                    "legs": len(legs),
+                    "steps": recorder.steps,
+                })
+        except Exception as error:
+            print(f"[{self.agent_name}] Trail manual falhou: {error}")
+
+    def _persist_manual_queue(self, queue):
+        """Write the remaining manual queue back so it is consumed exactly once.
+
+        The relay owns runtime_controls.json and rewrites it on every control
+        broadcast; a queue the hybrid only pops in memory would be re-read
+        from disk forever. Writing the remainder back is the one honest way to
+        say "this step is done" to the same file both sides share.
+        """
+        try:
+            with open(self.runtime_control_file, "r", encoding="utf-8") as handle:
+                controls = json.load(handle)
+            agent_control = controls.setdefault("agents", {}).setdefault(self.agent_name, {})
+            # O modo guia e o pause são do OPERADOR e vivem no arquivo (o
+            # relay é quem os escreve nos comandos). Aqui só preservamos o
+            # que o arquivo já diz — nunca forçamos True a partir da memória,
+            # senão o desligar do guia não teria efeito (medido 2026-08-13:
+            # manual_mode voltava a True após o relay desligar).
+            agent_control["manual_mode"] = bool(agent_control.get("manual_mode", False))
+            agent_control["paused"] = bool(agent_control.get("paused", False))
+            agent_control["manual"] = {
+                "queue": list(queue),
+                "requested_at": agent_control.get("manual", {}).get("requested_at")
+                or int(time.time() * 1000),
+            }
+            temporary = f"{self.runtime_control_file}.{os.getpid()}.tmp"
+            with open(temporary, "w", encoding="utf-8") as handle:
+                json.dump(controls, handle, indent=2)
+            os.replace(temporary, self.runtime_control_file)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            # The relay is the writer of record; losing one persist attempt is
+            # safe — the queue will simply be re-read next poll.
             pass
 
     def _apply_route_replan(self):
@@ -953,9 +1113,14 @@ class HybridGymEnv(RedGymEnv):
         # These are human-control and persistence paths, not game logic. Poll
         # them a few times per second instead of performing filesystem checks
         # and JSON reads for every emulator step.
+        # Em modo guia o operador clica a qualquer momento e o passo manual
+        # retorna antes do fluxo normal — o steps_elapsed não incrementa, e
+        # sem o poll a fila escrita pelo relay nunca seria relida (o guia
+        # parecia morto: manual_mode on, fila cheia, bot parado).
         poll_controls = (
             self.steps_elapsed == 0
             or self.steps_elapsed % self.control_poll_interval == 0
+            or getattr(self, "manual_mode", False)
         )
         if poll_controls:
             self._read_runtime_controls()
@@ -1016,9 +1181,58 @@ class HybridGymEnv(RedGymEnv):
                 except Exception:
                     pass
 
+        # Guia manual do operador: a fila consome antes de qualquer decisão
+        # do bot — batalha, quest, exploração ou pause. O operador segura o
+        # controle mesmo com o agente pausado: um clique no painel é um passo
+        # na hora, senão o guia pareceria morto. O passo executado é logado
+        # com a fila restante, então a intervenção fica registrada.
+        manual_step = self._consume_manual_step()
+        if manual_step is not None:
+            # O caminho dirigido vira aula: cada passo manual é registrado
+            # como perna do trail da quest ativa. Quando o operador desligar
+            # o modo manual, o caminho é publicado e o bot pode segui-lo
+            # sozinho na próxima vez — o loop destravado uma vez fica
+            # aprendido.
+            try:
+                recorder = getattr(getattr(self, "scripted_agent", None), "trail_recorder", None)
+                if recorder is not None:
+                    recorder.record(
+                        str(self.active_quest_id or ""),
+                        self.read_m(0xD35E),
+                        self.read_m(0xD362),
+                        self.read_m(0xD361),
+                    )
+            except Exception:
+                pass
+            manual_action = name_to_action(manual_step)
+            obs, reward, done, truncated, info = super().step(manual_action)
+            try:
+                print(
+                    f"[{self.agent_name}] 🎮 passo manual {manual_step} -> "
+                    f"mapa {self.read_m(0xD35E)} ({self.read_m(0xD362)},{self.read_m(0xD361)})"
+                )
+            except Exception:
+                pass
+            info.update({
+                "paused": False,
+                "playback_speed": self.playback_speed,
+                "policy_action": policy_action,
+                "executed_action": int(manual_action),
+                "action_source": "manual_guide",
+                "manual_step": manual_step,
+                "manual_queue_remaining": list(self.manual_queue_consumed or []),
+                "trainable_transition": False,
+            })
+            self._apply_playback_throttle(step_started_at)
+            return obs, reward, done, truncated, info
+
         # Per-agent pause keeps the emulator and journey counters still. The
         # global pause is handled by SIGSTOP in the relay and freezes PPO too.
+        # Pausing must not freeze persistence: the operator reading the
+        # dashboard after a pause deserves a fresh position, not yesterday's
+        # save. The manual guide and the manual_idle branch below share this.
         if self.agent_paused:
+            self._persist_while_idle()
             self._apply_playback_throttle(step_started_at)
             return self._get_obs(), 0.0, False, False, {
                 "paused": True,
@@ -1026,6 +1240,23 @@ class HybridGymEnv(RedGymEnv):
                 "policy_action": policy_action,
                 "executed_action": NOOP_ACTION,
                 "action_source": "pause",
+                "trainable_transition": False,
+            }
+
+        # Modo manual: o operador segura o controle. O bot não decide nada —
+        # fica parado esperando o próximo passo da fila. É um pause com
+        # teleoperador: o autopilot (batalha, quest, exploração) não roda.
+        if self.manual_mode:
+            self.journey_total_steps += 1
+            self._persist_while_idle()
+            self._apply_playback_throttle(step_started_at)
+            return self._get_obs(), 0.0, False, False, {
+                "paused": False,
+                "manual_mode": True,
+                "playback_speed": self.playback_speed,
+                "policy_action": policy_action,
+                "executed_action": NOOP_ACTION,
+                "action_source": "manual_idle",
                 "trainable_transition": False,
             }
 
@@ -1369,6 +1600,7 @@ class HybridGymEnv(RedGymEnv):
         self._track_party_changes()
         self._persist_center_checkpoints()
         self._watch_for_stagnation()
+        self._watch_for_freeze()
         self._track_journey()
         
         # 7. Check and save progress checkpoints
@@ -1674,6 +1906,16 @@ class HybridGymEnv(RedGymEnv):
             print(f"[{self.agent_name}] 🏆 BADGE GET! +{r}")
             self.last_badges = badge_count
             self._log_event("badge", {"count": badge_count})
+            # Salva o estado AGORA — um badge é progresso que não pode se
+            # perder num restart. O jogo só grava no Centro naturalmente,
+            # mas o operador autorizou save em qualquer ponto de avanço
+            # (medido 2026-08-13: a Misty foi vencida ao vivo e o save
+            # voltou ao Centro 64 com 1 badge no restart).
+            try:
+                self._write_resume_state(f"badge_{badge_count}")
+                print(f"[{self.agent_name}] 💾 Estado salvo após badge {badge_count}")
+            except Exception as e:
+                print(f"[{self.agent_name}] Falha ao salvar após badge: {e}")
         
         # 3.5. BOULDER BADGE (BROCK) - MEGA REWARD!
         has_boulder_badge = (self.read_m(0xD356) & 0b00000001) != 0
@@ -2889,6 +3131,42 @@ class HybridGymEnv(RedGymEnv):
             for move in pokemon.get("moves") or []
         )
 
+    def _active_battle_slot(self, party):
+        """Qual slot está **em campo**, pela identidade de quem está lutando.
+
+        O índice em `0xCC2F` lê desatualizado justamente quando a decisão de
+        troca é tomada — com a lista da party aberta. Quem não anda é
+        `wBattleMon` (0xD014): a espécie interna de quem está no campo. Casar
+        essa espécie com a party dá o slot certo em qualquer tela.
+
+        Medido no cartucho em 2026-08-16, no duelo do rival do S.S. Anne: com
+        o Ivysaur caído no slot 0 e a Butterfree de pé no slot 1, o slot ativo
+        lia 0, a troca escolhia o slot 1 — **a própria Butterfree que já
+        estava lutando** — e o menu ficava em ciclo. Nove minutos, o
+        Charmeleon do rival intacto em 56/56.
+
+        Espécie repetida na party desempata pelo índice cru, quando ele estiver
+        entre os candidatos; nunca é um palpite novo.
+        """
+        try:
+            battle_internal = int(self.read_m(BATTLE_MON_INTERNAL_ID_ADDRESS))
+        except Exception:
+            battle_internal = 0
+        try:
+            raw_slot = int(self.read_m(ACTIVE_PARTY_SLOT_ADDRESS))
+        except Exception:
+            raw_slot = 0
+        if battle_internal not in (0, 0xFF):
+            matches = [
+                slot for slot, mon in enumerate(party)
+                if int(mon.get("internal_id") or 0) == battle_internal
+            ]
+            if len(matches) == 1:
+                return matches[0]
+            if matches:
+                return raw_slot if raw_slot in matches else matches[0]
+        return raw_slot
+
     def _switch_target_slot(self):
         """Party slot of someone who can still deal damage, or None.
 
@@ -2900,38 +3178,20 @@ class HybridGymEnv(RedGymEnv):
         party = self.get_party_info()
         if len(party) < 2:
             return None
-        try:
-            active_slot = int(self.read_m(ACTIVE_PARTY_SLOT_ADDRESS))
-        except Exception:
-            active_slot = 0
+        active_slot = self._active_battle_slot(party)
         active = party[active_slot] if 0 <= active_slot < len(party) else None
         fainted = active is not None and int(active.get("hp") or 0) <= 0
-        if fainted:
-            # O slot ativo (0xCC2F) pode ler 0 durante uma transição de menu,
-            # enquanto o Pokémon de pé lutando está em 0xD014. Se o ativo de
-            # batalha real está de pé, não há troca a fazer — o "slot 0 caído"
-            # é leitura desatualizada, não um desmaio. AARON ficava num loop
-            # de switch contra o próprio Butterfree assim.
-            try:
-                battle_internal = int(self.read_m(0xD014))
-                for index, mon in enumerate(party):
-                    if int(mon.get("internal_id") or 0) == battle_internal:
-                        if int(mon.get("hp") or 0) > 0:
-                            return None
-                        break
-            except Exception:
-                pass
-        if active is not None and not fainted:
-            # Só troca quem caiu. A troca voluntária — ativo de pé, mas sem PP
-            # de dano — exige abrir o menu de batalha, ir até PKMN, escolher e
-            # confirmar TROCAR, e é aí que ela emperrava: BARON pediu o slot 4
-            # vinte vezes seguidas sem nunca completar, porque o caminho que
-            # este controlador conhece começa no aviso "Use next POKéMON?", que
-            # só aparece quando alguém desmaia.
-            #
-            # Lutar com o que tem na mão é pior turno e é saída: o de status
-            # gasta PP, o Struggle machuca, e o apagão devolve o time inteiro
-            # num Centro. Ficar preso no menu não é saída nenhuma.
+        if active is not None and not fainted and self._has_damaging_pp(active):
+            # Só troca quem caiu ou quem ficou sem como atacar. A troca
+            # voluntária — ativo de pé, mas sem dano — exige abrir o menu de
+            # batalha, ir até PKMN, escolher e confirmar TROCAR. O guard aqui
+            # não é mais absoluto: medido em 2026-08-12, uma Butterfree sem
+            # Confusion (evoluiu de Metapod no nível 13 e pulou o golpe do 12)
+            # lutava só com pós — Sleep/Stun/Poison/String — e o turno caía
+            # no desempate de status para sempre. Com o navegador de menu
+            # atual (2x2 lido ao vivo, com limite de passos e B de saída),
+            # trocar para quem tem dano é o turno que termina a batalha;
+            # continuar com o de status é turno perdido até o apagão.
             return None
 
         # A fainted lead has to be replaced by whoever is still standing, with
@@ -2985,8 +3245,70 @@ class HybridGymEnv(RedGymEnv):
             self, "capture_bag_open", False
         ):
             return None
+        # **Plano começado, plano terminado.** O par de A — escolher o
+        # Pokémon e confirmar TROCAR — é uma sequência: entre um e outro o
+        # cartucho desenha o submenu (TROCAR/DADOS/CANCELAR), e o detector de
+        # "lista da equipe aberta" ainda diz sim ali. Reavaliar a tela no meio
+        # do par fazia o cursor voltar ao laço de navegação e andar UP/DOWN no
+        # submenu, e a troca nunca fechava. Medido em 2026-08-16 no save
+        # travado do IARON: `A UP A UP UP UP UP...` sem nunca sair da batalha.
+        #
+        # Por isso o plano é consumido antes de qualquer leitura de tela.
+        if getattr(self, "switch_plan", None):
+            action = self.switch_plan.pop(0)
+            if not self.switch_plan and action == "A":
+                # That A opened the party list; the cursor loop takes over.
+                self.switch_menu_open = True
+            return action
+
+        # A lista da equipe aberta em batalha é **duas telas diferentes**, e
+        # confundi-las custou caro nos dois sentidos:
+        #
+        # - quem está em campo **caiu**: é troca forçada, o cartucho não
+        #   continua até alguém ser enviado, e aqui não vale a regra de
+        #   economia ("ativo de pé e com PP não troca") — não há ativo;
+        # - quem está em campo está **vivo**: é o menu PKMN aberto à toa, e
+        #   escolher quem já está lá faz o jogo responder "... is already
+        #   out!" e reabrir a lista, para sempre.
+        #
+        # Medido em 2026-08-16 na Floresta, no mesmo save: com a lista aberta
+        # e o Charmander de pé com 6 HP, escolher o slot dele devolveu
+        # exatamente esse texto. Quem separa as duas é o HP de quem está em
+        # campo, lido pela identidade (0xD014), não pelo índice.
+        party = self.get_party_info()
+        active_slot = self._active_battle_slot(party)
+        active = party[active_slot] if 0 <= active_slot < len(party) else None
+        active_down = active is not None and int(active.get("hp") or 0) <= 0
+        list_open = self._party_menu_open()
+        forced = list_open and active_down
+
         target = self._switch_target_slot()
+        if target is None and forced:
+            target = next(
+                (
+                    slot for slot, pokemon in enumerate(party)
+                    if slot != active_slot and int(pokemon.get("hp") or 0) > 0
+                ),
+                None,
+            )
         if target is None:
+            self.switch_menu_open = False
+            self.switch_plan = []
+            # Lista aberta sem ninguém para trocar é menu que não se fecha
+            # sozinho: B sai dela e devolve o turno ao controlador de golpe.
+            # Devolver None aqui deixava a tela aberta e a batalha parada.
+            return "B" if list_open else None
+
+        # Trocar por quem já está em campo não é um turno ruim: é um turno
+        # **impossível**. O cartucho recusa, o menu não fecha, e o
+        # controlador tenta de novo para sempre — foi o que o operador viu no
+        # duelo do rival. Este guard é a última linha: mesmo que a escolha do
+        # alvo erre por leitura desatualizada, o passo nunca sai.
+        #
+        # Com a lista aberta o guard sai de cena: quem "está em campo" acabou
+        # de cair, e escolher esse mesmo slot é justamente o que a tela pede
+        # quando ele é o único de pé.
+        if not forced and target == self._active_battle_slot(self.get_party_info()):
             self.switch_menu_open = False
             self.switch_plan = []
             return None
@@ -2996,10 +3318,7 @@ class HybridGymEnv(RedGymEnv):
         # cursor there does nothing — the prompt has to be answered.
         if not getattr(self, "switch_menu_open", False) and self._battle_prompt_open():
             party = self.get_party_info()
-            try:
-                active_slot = int(self.read_m(ACTIVE_PARTY_SLOT_ADDRESS))
-            except Exception:
-                active_slot = 0
+            active_slot = self._active_battle_slot(party)
             active = party[active_slot] if 0 <= active_slot < len(party) else None
             if active is not None and int(active.get("hp") or 0) <= 0:
                 self.switch_menu_open = True
@@ -3046,13 +3365,6 @@ class HybridGymEnv(RedGymEnv):
             # of the little menu that opens.
             self.switch_plan = ["A", "A"]
             return self.switch_plan.pop(0)
-
-        if getattr(self, "switch_plan", None):
-            action = self.switch_plan.pop(0)
-            if not self.switch_plan and action == "A":
-                # That A opened the party list; the cursor loop takes over.
-                self.switch_menu_open = True
-            return action
 
         self._log_event("switch_intent", {
             "reason": "sem PP de dano no ativo; trocar por quem ainda pode atacar",
@@ -3125,6 +3437,108 @@ class HybridGymEnv(RedGymEnv):
                 f"parado em {position[1]},{position[2]} do mapa {position[0]} "
                 f"por {self.stagnant_steps} passos"
             )
+
+    def _watch_for_freeze(self):
+        """A impressão digital do cartucho, a cada passo.
+
+        `_watch_for_stagnation` compara posição e desiste em toda tarefa que
+        começa com QUEST — que é o caso de quase toda corrida real. Este olha
+        para o que o cartucho guarda, sempre, e não tenta consertar nada:
+        quando o estado para de mudar, ele grava o save e a tela decodificada.
+        Cada congelamento novo nasce checkpoint com a tela que o causou anexada
+        — que é o que eu vinha fazendo à mão, copiando save e sondando.
+        """
+        try:
+            fingerprint = cartridge_fingerprint(self.read_m)
+        except Exception:
+            return
+        if not self.life_watchdog.observe(fingerprint):
+            return
+        self._report_freeze(fingerprint)
+
+    def _report_freeze(self, fingerprint):
+        """O relatório de um congelamento: a tela, o estado e o save ao lado.
+
+        O save é o ponto: teste de unidade não pisa no cartucho, e a suíte
+        estava verde com 548 testes enquanto três bots novos não saíam da
+        primeira casa. Um `.state` gravado no instante do travamento é o que
+        vira trecho de `tools/replay_check.py` depois de consertado.
+        """
+        watchdog = self.life_watchdog
+        report = {
+            "reason": (
+                f"o cartucho não mudou de estado em {watchdog.window_size} "
+                f"passos (impressões distintas: {watchdog.distinct_floor} ou "
+                f"menos)"
+            ),
+            "task": getattr(self, "current_task", ""),
+            "quest_id": str(getattr(self, "active_quest_id", "") or ""),
+            "route_id": str(
+                getattr(getattr(self, "scripted_agent", None), "route_id", "")
+                or ""
+            ),
+            "map_id": int(fingerprint[0]),
+            "coords": [int(fingerprint[1]), int(fingerprint[2])],
+            "in_battle": int(fingerprint[3]),
+            "bag_items": int(fingerprint[4]),
+            "badges": int(fingerprint[5]),
+            "party": [list(member) for member in fingerprint[6]],
+            "window_steps": watchdog.window_size,
+            "report_number": watchdog.reports,
+        }
+        try:
+            report.update(screen.describe(self.read_m))
+        except Exception as error:
+            report["tela"] = screen.DESCONHECIDA
+            report["screen_error"] = str(error)
+        report["snapshot"] = self._save_freeze_snapshot(report)
+        self._log_event("congelado", report)
+        print(
+            f"[{self.agent_name}] 🧊 congelado: mapa {report['map_id']} "
+            f"{tuple(report['coords'])}, tela {report.get('tela')} — "
+            f"save em {report['snapshot']}"
+        )
+
+    def _save_freeze_snapshot(self, report):
+        """Grava o save do travamento e o relatório ao lado dele.
+
+        Fora de `states/replay/` curado de propósito: o manifesto é escrito à
+        mão, com a regressão que cada trecho pega. O que sai daqui é matéria
+        bruta para promover a trecho, não trecho.
+
+        **Uma situação, um save.** O teto por processo (`FREEZE_MAX_REPORTS`)
+        não segura nada sozinho: um chunk é um processo novo com o contador
+        zerado — o mesmo erro que já custou o ciclo de morte e a vantagem de
+        largada. Medido em 2026-08-17, na corrida do operador: três bots
+        parados no mesmo tile da Floresta escreveram **2.190 arquivos, 179 MB
+        em duas horas, para 6 situações distintas**. O que identifica uma
+        situação é quem, onde — e é isso que passa a valer aqui, com um teto
+        de assinaturas para o diretório inteiro.
+        """
+        try:
+            directory = self.freeze_snapshot_dir
+            directory.mkdir(parents=True, exist_ok=True)
+            signature = (
+                f"{self.agent_name}-m{report['map_id']}-"
+                f"{report['coords'][0]}x{report['coords'][1]}"
+            )
+            captured = sorted(directory.glob(f"{signature}-*.state"))
+            if captured:
+                # Já capturado. O evento continua indo para o diário — e
+                # agora com carga idêntica, então o colapsador de repetição
+                # do diário faz o resto.
+                return str(captured[0])
+            if len(list(directory.glob("*.state"))) >= FREEZE_SNAPSHOT_LIMIT:
+                return None
+            stem = f"{signature}-{int(time.time())}"
+            with open(directory / f"{stem}.state", "wb") as state_file:
+                self.pyboy.save_state(state_file)
+            with open(directory / f"{stem}.json", "w") as report_file:
+                json.dump(report, report_file, indent=2, default=str)
+            return str(directory / f"{stem}.state")
+        except Exception as error:
+            print(f"[{self.agent_name}] snapshot do congelamento falhou: {error}")
+            return None
 
     def _battle_prompt_open(self):
         """Whether a text box or prompt is currently taking the input."""
@@ -4331,6 +4745,31 @@ class HybridGymEnv(RedGymEnv):
         but it intentionally performs no state save.
         """
         return None
+
+    def _persist_while_idle(self):
+        """Keep the dashboard and resume state fresh while paused or guiding.
+
+        Pause and manual-idle steps return before the normal persistence
+        block, so the position the operator sees (and the state a crash would
+        resume from) would otherwise freeze at the last pre-pause step. The
+        emulator itself is not advanced here — just the bookkeeping that
+        keeps a paused bot visible and recoverable.
+        """
+        try:
+            if time.time() - self.last_periodic_save_time > self.save_interval:
+                self._periodic_save()
+                self.last_periodic_save_time = time.time()
+            if self.step_count % self.state_update_interval == 0:
+                self._update_agent_state()
+            save_signal = Path('tasks/save_state_signal')
+            if save_signal.exists():
+                self._save_checkpoint(self.current_milestone)
+                try:
+                    save_signal.unlink()
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     def _manual_save(self, timestamp):
         """Keep manual-save compatibility without creating unsafe states."""

@@ -82,6 +82,7 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         agent._follow_route = lambda route_id, waypoints: agent.walked.append(
             (route_id, waypoints)
         ) or "WALKING"
+        agent._door_is_reachable = lambda map_id, door: True
         return agent
 
     def step(self, agent):
@@ -115,6 +116,15 @@ class HealBeforeAnythingElseTests(unittest.TestCase):
         agent = self.agent_in(2, self.HURT, doors={(13, 25): 58, (16, 17): 54})
         self.assertEqual("WALKING", self.step(agent))
         self.assertEqual([("center-door-13-25", [(13, 25)])], agent.walked)
+
+    def test_porta_inalcancavel_nao_desvia_para_o_centro(self):
+        # Medido 2026-08-12: AARON em (63,10) na Route 4, Centro em (11,5)
+        # do outro lado do penhasco. O desvio mandava o bot andar 52 tiles
+        # para trás e o executor do vermilion nunca rodava.
+        agent = self.agent_in(2, self.HURT, doors={(13, 25): 58})
+        agent._door_is_reachable = lambda map_id, door: False
+        self.assertIsNone(self.step(agent))
+        self.assertEqual([], agent.walked)
 
     def test_cidade_ja_registrada_nao_desvia(self):
         agent = self.agent_in(2, self.HURT, doors={(13, 25): 58})

@@ -135,13 +135,19 @@ class StreamWrapper(gym.Wrapper):
             # Encode only when someone is actually watching: without an
             # audience the frame is PIL+WebP work done for nobody. The replay
             # accumulator already gates on `_is_being_watched`; this gates the
-            # costly encode itself.
+            # costly encode itself. Envia o frame do jogo SEMPRE (mapa ou
+            # batalha) para o operador ver o que o jogo real mostra — sem
+            # isso o dashboard só exibia o mapa estático, que está
+            # desalinhado do cartucho, e o operador via "espaço livre" onde
+            # o jogo tem parede (medido 2026-08-13: o bot parado em (20,6)
+            # com o MapViz mostrando caminho).
             frame = (
-                self._encode_battle_frame()
-                if battle_info and self._is_being_watched()
+                self._encode_frame()
+                if self._is_being_watched()
                 else None
             )
             metadata["battle_frame"] = frame
+            metadata["live_frame"] = frame if not battle_info else None
             self._record_replay_frame(battle_info, frame)
             metadata["build"] = {
                 "personality": metadata.get("personality", "Unknown"),
@@ -245,8 +251,12 @@ class StreamWrapper(gym.Wrapper):
             # A replay is a nicety; never let it interrupt a journey.
             pass
 
-    def _encode_battle_frame(self):
-        """Encode the current PyBoy screen only while the agent is battling."""
+    def _encode_frame(self):
+        """Encode the current PyBoy screen for the operator's dashboard.
+
+        Serve para o mapa normal E a batalha — o operador precisa ver o
+        cartucho real, não o mapa estático desalinhado.
+        """
         try:
             frame = self.env.render(reduce_res=False)
             if frame.ndim == 3 and frame.shape[2] == 1:

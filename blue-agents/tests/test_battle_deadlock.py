@@ -96,10 +96,12 @@ class TrocaSoQuandoAlguemCaiTests(unittest.TestCase):
     TROVAO = {"hp": 15, "max_hp": 15, "moves": [{"id": 84, "pp": 30}]}
     CAIDO = {"hp": 0, "max_hp": 57, "moves": [{"id": 33, "pp": 35}]}
 
-    def test_ativo_de_pe_sem_dano_nao_pede_troca(self):
-        # Era o laço do BARON: pediu o slot 4 vinte vezes e nunca trocou.
+    def test_ativo_de_pe_sem_dano_pede_troca_para_quem_ataca(self):
+        # O laço do BARON era o navegador de menu, não o pedido; hoje o 2x2 é
+        # dirigido ao vivo com limite de passos. Ativo de pé e sem golpe de
+        # dano (só Harden) troca para quem ainda ataca.
         env = self.env([self.HARDEN, self.TROVAO], active_slot=0)
-        self.assertIsNone(env._switch_target_slot())
+        self.assertEqual(1, env._switch_target_slot())
 
     def test_ativo_caido_ainda_pede_troca(self):
         env = self.env([self.CAIDO, self.TROVAO], active_slot=0)

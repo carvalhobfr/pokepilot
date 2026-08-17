@@ -9,10 +9,12 @@ if PROJECT_ROOT not in sys.path:
 from src.tile_collision import (
     PLAYER_SCREEN_X,
     PLAYER_SCREEN_Y,
-    PLAYER_TILEMAP_COLUMN,
-    PLAYER_TILEMAP_ROW,
-    TILEMAP_ADDRESS,
-    TILEMAP_COLUMNS,
+    SCROLL_X_ADDRESS,
+    SCROLL_Y_ADDRESS,
+    VIDEO_MAP_BASE,
+    VIDEO_MAP_COLUMNS,
+    W_TILE_MAP_COLUMNS,
+    W_TILE_MAP_ROWS,
     WALK_COUNTER_ADDRESS,
     WINDOW_HIDDEN_Y,
     WINDOW_Y_ADDRESS,
@@ -29,7 +31,14 @@ class FakeMemory:
             self.data[("rom", 0x4000 + index)] = tile
         self.data[("rom", 0x4000 + len(walkable_tiles))] = 0xFF
         for (column, row), tile in tiles.items():
-            self.data[TILEMAP_ADDRESS + row * TILEMAP_COLUMNS + column] = tile
+            # O wTileMap (0xC3A0) é 20x18 tiles de 8px; a célula do jogador
+            # vem do OAM (slot 0). O jogador em (64,60) produz a célula do
+            # pé (9,9) — os fakes escrevem os vizinhos em (9,9)+offset.
+            self.data[0xC3A0 + row * 20 + column] = tile
+        # OAM do jogador (slot 0): (64,60) -> pé em (9,9) do wTileMap.
+        self.data[0xC100 + 0] = 1
+        self.data[0xC100 + 4] = PLAYER_SCREEN_Y
+        self.data[0xC100 + 6] = PLAYER_SCREEN_X
         for slot, (dx, dy) in enumerate(sprites, start=1):
             base = 0xC100 + slot * 0x10
             self.data[base] = 1
@@ -52,8 +61,9 @@ def scene(*, walls=(), sprites=()):
     for direction, (dx, dy) in (
         ("U", (0, -1)), ("D", (0, 1)), ("L", (-1, 0)), ("R", (1, 0)),
     ):
-        column = PLAYER_TILEMAP_COLUMN + dx * 2
-        row = PLAYER_TILEMAP_ROW + dy * 2
+        # Célula de colisão do jogador no wTileMap: (9,9) — o pé do sprite.
+        column = 9 + dx
+        row = 9 + dy
         tiles[(column, row)] = 99 if direction in walls else 44
     return TileCollision(FakeEmulator(FakeMemory(
         walkable_tiles=[44], tiles=tiles, sprites=sprites,
@@ -110,11 +120,11 @@ class TerrainMemoryTests(unittest.TestCase):
     """
 
     def screen(self, standing_tile, floor=44, window_y=WINDOW_HIDDEN_Y, walking=0):
-        # The grid samples every other tile from the player's own row and
-        # column, so the sampled rows are odd and the columns even.
-        tiles = {(PLAYER_TILEMAP_COLUMN, PLAYER_TILEMAP_ROW): standing_tile}
-        for row in range(PLAYER_TILEMAP_ROW % 2, 18, 2):
-            for column in range(PLAYER_TILEMAP_COLUMN % 2, 20, 2):
+        # The grid samples tiles around the player's own cell (the sprite's
+        # foot in the wTileMap, (9,9)).
+        tiles = {(9, 9): standing_tile}
+        for row in range(0, W_TILE_MAP_ROWS):
+            for column in range(0, W_TILE_MAP_COLUMNS):
                 tiles.setdefault((column, row), floor)
         memory = FakeMemory(walkable_tiles=[floor], tiles=tiles)
         memory.data[WINDOW_Y_ADDRESS] = window_y

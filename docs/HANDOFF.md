@@ -1,8 +1,489 @@
 # PokeAI 2026 — handoff canônico
 
-Última atualização: **2026-08-12**.
+Última atualização: **2026-08-17**.
+
+## Continuar daqui (2026-08-17)
+
+### Marco: o watchdog de vida está de pé, e achou uma tela no primeiro uso
+
+O item 1 do roadmap abaixo ("fazer primeiro") está feito. A cada passo tira-se
+uma **impressão digital do cartucho** — mapa, posição, equipe (espécie, nível,
+HP), tamanho da mochila, insígnias, em-batalha — e um conjunto que não cresce
+numa janela de passos é congelamento, independente do que cada camada ache que
+está fazendo. `src/life_watchdog.py`, chamado de `HybridGymEnv.step` ao lado
+dos outros rastreadores.
+
+Ao disparar: evento `congelado` no diário com a **tela decodificada**, e o save
+gravado sozinho em `states/replay/auto/` com um `.json` do mesmo nome ao lado.
+Era isso que eu vinha fazendo à mão — copiar save, sondar, escrever o
+checkpoint. O diretório é ignorado pelo git de propósito: o que vira trecho de
+replay é promovido à mão para `states/replay/` com entrada no manifesto.
+
+**Ele não conserta nada, e isso é decisão, não falta de tempo.** Uma
+recuperação automática esconderia o defeito de novo, que é exatamente o que o
+resgate acidental do PPO fazia com AARON..DARON.
+
+**Limiar medido no cartucho** (janela 600 passos, piso de 6 impressões
+distintas — configurável por `POKEAI_WATCHDOG_STEPS` e
+`POKEAI_WATCHDOG_DISTINCT`):
+
+| save, 800 passos roteirizados | tiles | disparos |
+|---|---|---|
+| `casa-inicial` andando | 42 | **0** |
+| `cais-ss-anne` andando | 131 | **0** |
+| `vermilion-com-hm` andando | 1 | **1** (passo 599, tela `esquecer_golpe`) |
+| `casa-inicial`, nenhum botão | 1 | **1** (passo 599) |
+| `cais-ss-anne`, nenhum botão | 1 | **1** (passo 599) |
+
+A janela importa: com 100 passos ele acusava trechos saudáveis (diálogo do
+laboratório, fila de texto do cais). Com 600 — quatro minutos de jogo — nenhum
+falso positivo nos dois trechos saudáveis medidos.
+
+A linha do `vermilion-com-hm` **não é falso positivo**: depois de ensinar o
+Cut, o executor não tem para onde ir (a árvore do ginásio de Vermilion é o
+próximo nó) e o bot fica no mesmo tile. É o travamento aberto nº 2 abaixo, e o
+watchdog o nomeou sozinho.
+
+### O que ele achou no primeiro uso: o teclado do inicial
+
+Rodando do save `casa-inicial` sem PPO, o disparo veio com a tela
+`teclado_nome` no mapa 40. **O teclado de apelido aparece também ao receber o
+inicial**, e ali `0xD057` já é zero — fora do alcance do controlador de
+batalha, que era o único que sabia respondê-lo (`START` é o `END` desta tela em
+Gen I). O executor via menu aberto e respondia `A`, que nesta tela digita
+letra.
+
+Medido dos dois jeitos, no cartucho: **não travava** — o cartucho auto-confirma
+quando o nome enche. Custava 11 passos digitando, e o inicial saía chamado
+`AAAAAAAAAA` em vez de `BULBASAUR`. Não depender desse acidente é o ponto: numa
+tela conhecida, quem responde é a tela. O gate subiu para o topo de
+`ScriptedAgent.step`, então vale para toda quest, não só a `start`.
+
+Trecho novo de replay: **`apelido-do-inicial`**, com o save gravado no exato
+passo do teclado. A expectativa é o apelido do slot 0 (`party_nickname`, novo em
+`replay_check.py`) — é o que separa "a tela foi respondida" de "o A foi
+martelado", já que as duas saem do teclado. Reprovado com o código de antes:
+`apelido do slot 0 é 'AAAAAAAAAA', esperado 'BULBASAUR'`.
+
+### `src/screen.py`: a tela num lugar só (item 2, parcial)
+
+Eram três arquivos decodificando o `wTileMap` por conta própria. Agora
+`rows`, `text`, `visible_lines`, `naming_screen_open`, `party_list_open`,
+`classify` e `describe` vivem em `src/screen.py`, e os três chamam de lá.
+`classify` devolve nome — `overworld`, `texto`, `texto_batalha`, `lista_golpes`,
+`menu_batalha`, `lista_equipe`, `lista_mart`, `quantidade`, `teclado_nome`,
+`menu_principal`, `mochila`, `usar_jogar_fora`, `sim_nao`, `esquecer_golpe`,
+`compra_venda` — ou `desconhecida`, que é o valor que faz o chamador registrar
+em vez de apertar A. Cada sinal usado já estava medido no código; nada foi
+deduzido.
+
+**O que falta do item 2:** migrar os controladores para perguntar a `classify`
+em vez de decorar byte (`_buy_first_shop_item`, `_teach_cut_action`,
+`_next_switch_action` e o gate de texto da batalha), e a escada de fuga
+(B → START → B) para `desconhecida`. Hoje só o relatório de congelamento
+consome a classificação.
+
+### Na corrida do operador: a trava de (1,1) da Floresta, com nome
+
+O watchdog subiu numa corrida viva de 3 slots e apontou o que estava aberto no
+roadmap. **IARON, JARON e KARON, os três parados no mapa 51**, alternando entre
+(1,1) e (1,2) — o canto noroeste da Floresta. O relatório diz o que faltava
+saber:
+
+```
+tela: overworld | caixa_de_texto: 0 | canto: [12,5]
+route_id: trail-override-viridian_forest_nav-51
+```
+
+Não é tela, não é menu, não é batalha: é **trail dirigindo o executor**.
+`TRAIL_BLOCKED_QUESTS` cobre `bill_quest`, `cerulean_gym_quest` e
+`vermilion_gym_quest`, e **não cobre `viridian_forest_nav`** — que tem rota
+medida (`_run_viridian_forest_nav`). Com `POKEAI_FOLLOW_TRAILS=1`, que é como a
+corrida do operador roda, o trail ganha. É a mesma assinatura do travamento de
+Vermilion de 16/08, na quest seguinte. Os saves ficaram em
+`states/replay/auto/{IARON,JARON,KARON}-m51-1x1-*.state`.
+
+**Não mexi na lista**: mudar `TRAIL_BLOCKED_QUESTS` muda o comportamento de uma
+corrida que está de pé, e isso é decisão do operador.
+
+### Uma situação, um save — 179 MB em duas horas
+
+O teto de relatórios por processo (`FREEZE_MAX_REPORTS`) não segura nada
+sozinho, e é o **mesmo erro que este documento já registra duas vezes**: um
+chunk é um processo novo com o contador zerado — foi assim com o contador de
+ciclo de morte e com a vantagem de largada. Medido na corrida acima: três bots
+no mesmo tile escreveram **2.190 arquivos e 179 MB em duas horas, para 6
+situações distintas** (163 KB por save, numa máquina de 8 GB).
+
+Agora o que identifica uma situação é `<agente>-m<mapa>-<x>x<y>`: já capturada,
+não grava de novo — e o evento no diário passa a ter carga idêntica, então o
+colapsador de repetição faz o resto. Mais um teto de 40 assinaturas para o
+diretório inteiro. O diretório foi limpo guardando o **primeiro** save de cada
+uma das 6 situações (179 MB → 1 MB).
+
+### Travamentos abertos, na ordem
+
+1. **O duelo do rival no S.S. Anne** (aberto desde 16/08): navegação resolvida,
+   batalha não — Butterfree 40 (124/124) contra um Charmeleon 20 (56/56) por 8
+   minutos sem lançar golpe, com `switch_intent` "sem PP de dano no ativo"
+   antes do congelamento.
+2. **Depois do Cut, o executor acaba** — `vermilion-com-hm` fica 800 passos no
+   mesmo tile. O próximo nó é a árvore do ginásio de Vermilion.
+
+Mudanças: `src/life_watchdog.py` e `src/screen.py` (novos);
+`blue-agents/hybrid_agent.py` (`_watch_for_freeze`, `_report_freeze`,
+`_save_freeze_snapshot`, chamada no `step`); `src/scripted_agent.py` (gate do
+teclado no topo do `step`, `_screen_rows` delegando); `src/simple_battle.py`
+(`_naming_screen_open` delegando); `blue-agents/tools/replay_check.py`
+(`party_nickname`); manifesto com o trecho `apelido-do-inicial`. Suíte: **590
+testes OK**; replay: **8/8 trechos de pé**.
+
+## ROADMAP — resolver a classe, não o travamento da vez (2026-08-16)
+
+Sete travamentos num dia, todos com a mesma forma: o bot para, ninguém percebe
+por horas, e a causa só aparece quando alguém lê a tela do cartucho. A lista
+abaixo é para parar de consertar um por um.
+
+### O que os sete tinham em comum
+
+| trava | faltou mapa? | o que era |
+|---|---|---|
+| casa inicial (m37) | não | o plano excluía a porta, e o alvo fica um tile depois dela |
+| lab do Oak (m40) | não | trail apontando para trás + objeto do ROM tratado como muro |
+| prancha do S.S. Anne (m94) | não | marinheiro pedindo o ticket; nada disso aparece no estático |
+| Mart de Viridian (m42) | **não é mapa** | lista lida 17 bytes fora + índice comparado com id |
+| teclado de apelido | não é mapa | tela que nenhum controlador conhecia |
+| lista da equipe em batalha | não é mapa | duas telas diferentes confundidas |
+| Floresta (1,1) — **aberto** | a medir | — |
+
+Em nenhum o bot estava perdido: nas três de navegação o mapa estava certo e o
+código o sobrepunha; nas outras ele nem estava no mapa, estava numa tela sem
+saber qual. **Mais dado de mapa não resolve nada disto.**
+
+E o estado do código explica a recorrência: **12 bytes diferentes de "estado de
+menu"** espalhados por três arquivos (`0xCC24`, `0xCC25`, `0xCC26`, `0xCC36`,
+`0xCC50`, `0xCFC4`, `0xCF8C`, `0xD52A`, `0xD125`…), cada controlador decorando
+os seus, e **três arquivos decodificando a tela** (`0xC3A0`) por conta própria.
+
+### 1. Watchdog de vida com snapshot automático — **feito em 2026-08-17**
+
+Nenhum detector atual pega os sete. `route_no_progress` mede **distância**, e o
+vaivém entre duas casas encurta distância a cada outro passo, então ele zera
+para sempre. O contador de batalhas do painel marcava 0 com 11 batalhas
+acontecendo. Cada camada tem sua noção de progresso e todas erraram.
+
+Um sinal só, que nenhuma camada pode mentir: **impressão digital do cartucho** a
+cada passo — mapa, posição, HP da equipe, tamanho da mochila, insígnias,
+em-batalha. Conjunto de impressões que não cresce em N passos = congelado,
+independente do que cada camada ache que está fazendo. Dispara nos sete.
+
+Ao disparar: loga a **tela decodificada** e **grava o save em
+`states/replay/`** sozinho. Hoje esse mecanismo fui eu, à mão: copiar save,
+sondar, escrever o checkpoint. Tem de ser o robô — cada congelamento novo
+nasce checkpoint com a tela que o causou anexada.
+
+Meio dia de trabalho. É ele que acha a trava de (1,1) que ficou aberta.
+
+### 2. Classificador de tela único, lido de `wTileMap` — **meio feito**
+
+A tela acertou nas três vezes em que foi usada hoje: `ABLE/NOT ABLE` disse quem
+aprende Cut, `NICKNAME` achou o teclado, `is already out!` explicou a recusa da
+troca. É RAM, é o que o jogador vê, e não é ambíguo — enquanto `0xCC50`
+significa coisas diferentes em cinco contextos.
+
+`src/screen.py` devolvendo um nome: `OVERWORLD`, `TEXTO`, `SIM_NAO`,
+`LISTA_EQUIPE`, `LISTA_MART`, `TECLADO_NOME`, `LISTA_GOLPES`, `MENU_BATALHA`,
+`QUANTIDADE`. Todo controlador pergunta a ele em vez de decorar byte. Migrar
+`_buy_first_shop_item`, `_teach_cut_action`, `_next_switch_action` e o gate de
+texto da batalha para ele — os quatro que quebraram hoje.
+
+**E tela desconhecida vira evento, nunca padrão silencioso.** Os sete
+terminaram em `press A` ou `return None` calado: é isso que transforma um bug
+de dez minutos em oito horas paradas. Não classificou → loga
+`tela_desconhecida` com o texto e sobe a escada de fuga (B → START → B).
+
+Um dia.
+
+### 3. Ordem de autoridade, escrita e coberta por teste
+
+As três correções de navegação de hoje são a mesma regra dita três vezes:
+
+> **leitura ao vivo > estático do ROM > trail** — e o plano ganha da heurística.
+
+Em regra: trail não dirige onde o executor tem rota medida; objeto do ROM só
+bloqueia **fora da tela**; pulo de penhasco e conversa com sprite só quando não
+há plano. Está no código; falta estar escrito e testado como uma coisa só.
+
+### 4. Tirar o resgate acidental do PPO da conta
+
+Foi ele que fez AARON..DARON passarem: quando o controlador devolve `None`, a
+política aperta botão aleatório e num menu de equipe isso acaba escolhendo
+alguém. Passava por acidente. Ele pode continuar apertando, mas **controlador
+que não decide numa tela conhecida tem de registrar defeito** — senão o
+acidente volta a esconder o próximo travamento.
+
+### 5. Só então: executores 13→19 e a Liga
+
+Com 1-4 de pé, cada nó novo custa medição de rota, não caça a travamento. A
+ordem do operador para o resto: Cut feito, **árvore do ginásio de Vermilion**,
+puzzle das lixeiras, Strength pronto mas usado mais à frente, itens no roadmap
+(fora da Liga não são necessários), overlevel por farm.
+
+## Continuar daqui (2026-08-16, fim do dia)
+
+### Marco: bot novo destravado do zero, e o S.S. Anne até o rival
+
+**O jogo não era mais recomeçável.** Dois bots novos, 10 minutos cada, nenhum
+saiu da primeira casa: 11.355 relatórios de travamento no mesmo tile (1,2) do
+mapa 37, com `blocked: {}`, `path_to_target` preenchido e o cartucho
+respondendo `reachable=47, steps=7, path=RDDDDRD` para a porta.
+
+Causa, reproduzida **sem PPO e sem hybrid** (só o `ScriptedAgent` em cima do
+save): `_planned_step` trata toda porta como intransponível — a regra que
+matou a gravidade do Mart. Só que as rotas daqui terminam de propósito **um
+tile depois da porta**, porque é esse passo que atravessa. O alvo (3,8) só é
+alcançável por (3,7), que é porta: sem caminho, `route_no_progress` sobe até a
+**regra de fronteira** trocar o alvo pelo canto inexplorado, e o bot passa o
+resto da vida indo para lá.
+
+A exceção nova é estreita: a porta só é liberada quando o alvo **não é célula
+andável do estático** (a âncora de fora do mapa) **e** a porta é vizinha dele.
+Mesmo save, depois: sai da casa em ~13 passos, cruza Pallet e entra no
+laboratório do Oak em ~200 passos roteirizados.
+
+**S.S. Anne, medido na ROM e validado no cartucho na mesma corrida:**
+
+| perna | como |
+|---|---|
+| Vermilion → cais | coluna LESTE (x=30): y=22..25 é parede de x=16 a 29, o centro da cidade não desce. Da linha 26 a oeste até x=18 — a coluna 19 tem o marinheiro parado em (19,30) |
+| cais → convés | o passo D em (14,1) **não move**: o marinheiro do cais pede o S.S. Ticket. D e A alternados resolvem (D anda quando abre, A fala quando não) |
+| convés (95) → 2º andar (96) | corredor y=6 a oeste até a escada (2,6) |
+| 2º andar → cabine (101) | corredor y=12 a leste, sobe a coluna x=36/37 até (37,4). (35,4) não é andável: a porta se aproxima pelo **leste** |
+| cabine | capitão é o NPC (4,2); fala-se de (4,3) virado para cima (`0xC109` = 4). Fim = **HM01 (0xC4) na mochila**, não um contador |
+
+**O rival está em cima da porta da cabine** — objeto `trainer` classe 225 no
+warp (36,4), lido do bloco de objetos. O executor encosta nele e a máquina
+`route_sprite_talk` abre o duelo.
+
+**Travamento aberto nº 1 agora**: o duelo do rival. AARON chegou, o Ivysaur
+subiu ao 23 e caiu, e o Butterfree 40 (124/124) ficou **8 minutos contra um
+Charmeleon 20 com 56/56 de HP intactos** — nenhum golpe lançado. É a mesma
+família do problema do Brock: navegação resolvida, batalha não. `switch_intent`
+com "sem PP de dano no ativo" aparece antes do congelamento.
+
+### O Cut aprendido, e a tela como fonte de verdade
+
+O HM01 saiu do capitão e o Cut está no Ivysaur — `[77, 45, 73, 22]` virou
+`[77, **15**, 73, 22]`, medido no save e repetido na corrida. Ensinar são seis
+telas de menu, e **sequência fixa de botões não serve**: o número de caixas de
+texto varia (a mensagem de "não cabe mais golpe" só aparece com quatro
+golpes), e um D apertado durante o texto é comido, o que dessincroniza tudo o
+que vem depois — errei assim três vezes antes de ler a tela.
+
+Cada tela é reconhecida pelo canto do menu (`wTopMenuItemY`/`X`, 0xCC24/0xCC25),
+como o `_buy_first_shop_item` já fazia com a loja:
+
+| tela | canto | o que fazer |
+|---|---|---|
+| menu principal | (2, 11) | cursor no índice 2 (ITEM) |
+| mochila | (4, 5) | índice = rolagem (0xCC36) + cursor (0xCC26) |
+| USE / TOSS | (11, 14) | USE é o de cima |
+| "Teach CUT?" | (8, 15) | SIM é o de cima |
+| lista da party | (1, 0) | quem a tela marca **ABLE** |
+| esquecer golpe | (8, 5) | pior status pela `STATUS_MOVE_PRIORITY` |
+
+**Quem pode aprender vem da RAM, não de uma tabela na ROM.** Com a lista da
+party aberta para um TM/HM, o cartucho escreve ABLE/NOT ABLE ao lado de cada
+um, e `wTileMap` (0xC3A0) — que este projeto já lê para terreno — entrega isso
+decodificado. Foi assim que caiu a ideia de ensinar Cut a quem não é o inicial:
+a **Butterfree não é compatível**, a tela diz NOT ABLE, e não havia escolha.
+
+O golpe sacrificado sai da régua que o controlador de batalha já usa: Growl
+vale 9 na `STATUS_MOVE_PRIORITY` (pior), Leech Seed vale 0, e golpe de dano só
+sai se não houver status. Foi o Growl. HM nunca entra na escolha — o cartucho
+recusa apagar, e escolher um seria um ciclo.
+
+Medido de ponta a ponta a partir do save real, sem PPO: **47 passos** do tile
+de Vermilion até `IVYSAUR learned CUT!`.
+
+### A rede: `tools/replay_check.py` (7 trechos)
+
+Teste de unidade não pisa no cartucho: a suíte estava **verde com 548 testes**
+enquanto três bots novos não saíam da primeira casa. Cada trecho vencido virou
+um save em `states/replay/` mais o que o cartucho tem de responder depois de N
+passos, e o manifesto guarda **a regressão que cada um pegou**.
+
+```bash
+cd blue-agents && ../.venv/bin/python tools/replay_check.py
+```
+
+Cobre executor **e** batalha (troca primeiro, golpe depois — a ordem do
+hybrid). Duas lições sobre o próprio teste, que custaram duas rodadas:
+
+- a expectativa "não estar em batalha no fim" **reprova bot saudável**:
+  farmando na grama, entrar em nova batalha é o certo. O que o bot preso nunca
+  faz é **sair do tile** — então a medida é `tiles_min`;
+- cobrir só o controlador de golpe deixava metade da luta de fora, e foi na
+  **troca** que os três ficaram presos.
+
+### O que o bot fazia antes, e era acidente
+
+Quando um controlador devolve `None`, o hybrid passa a vez ao PPO, que aperta
+botão aleatório — e num menu de equipe qualquer sequência aleatória acaba
+escolhendo alguém. **Era assim que AARON..DARON passavam.** Medido: o código
+commitado devolve `None` sessenta vezes seguidas na tela de troca do save
+travado do IARON. Não é regressão nova; é um buraco que o acaso tapava.
+
+### Um buraco na *verificação*, que valia para todas as rotas
+
+`find_path` isenta o alvo de propósito, então conferir uma cadeia hop a hop
+**aprovava waypoint em cima de parede**. Foi assim que (19,20) de Vermilion
+(muro) passou verde e o AARON gastou 120 passos batendo `L` contra ele com
+`path: L` no relatório. O helper de teste agora exige que todo waypoint do
+meio seja célula andável — e, ao ligar, reprovou na hora mais dois que já
+estavam no código: (17,24) da Route 5 e (20,11) do 2º andar do navio. Os
+waypoints passaram a ser **derivados do caminho real** do `find_path`, não
+escolhidos a olho.
+
+Mudanças: `src/scripted_agent.py` (exceção da porta-âncora; pernas do S.S.
+Anne; `_run_ss_anne_captain`; waypoints corrigidos de Route 5, 2º andar e
+Vermilion), `blue-agents/tests/test_door_last_waypoint.py` (4 testes),
+`test_vermilion_route.py` (30 testes). Suíte: **522 OK**.
+
+## Continuar daqui (2026-08-16)
+
+### Marco: AARON chegou a Vermilion, checkpoint `center_89` gravado
+
+Confirmado na RAM e no save, em 2026-08-16 às 14:25: `location_discovered`
+mapa 5 com `first_visit: true`, `major_locations` agora `[0, 3, 5]`, e o
+manifesto de retomada aponta para **`center_89`** (geração 409) — um apagão
+devolve o treinador a Vermilion, não mais a Cerulean. O trajeto Cerulean →
+Route 5 → Underground → Route 6 → Vermilion levou **~7 minutos de relógio**,
+3 batalhas, 0 mortes.
+
+Antes disso o AARON estava dois dias sem sair do lugar. Foram **quatro**
+travamentos empilhados, e o primeiro não era código:
+
+1. **O bot estava pausado.** `tasks/runtime_controls.json` tinha
+   `agents.AARON.paused: true` e `manual_mode: true` desde 14/08 16:36 — o
+   operador tinha assumido o controle para guiar à mão e o modo guia ficou
+   ligado. Em modo guia e em pausa o `step` devolve NOOP: dois dias de
+   emulador rodando com `decision_count: 0`. **Antes de investigar rota
+   parada, olhar esse arquivo** — foi o que custou mais tempo aqui.
+2. **A rota do vermilion ia para o lado errado.** Vermilion fica ao **sul**
+   de Cerulean; o executor mandava para **leste**, para a Rota 9 (mapa 20),
+   que é o caminho do Túnel da Rocha. O warp de lá cai num beco de 9 tiles
+   cuja única saída é voltar — e o mapa 3 mandava para leste de novo:
+   **1.976 transições m3↔m20** medidas no diário, zero progresso.
+   A saída sul é fato do estático: Cerulean tem dois componentes andáveis
+   separados pelo rio, e só o de **leste** alcança a borda sul. Do lado leste
+   a coluna x=36/37 é a única passagem pela faixa de penhascos em y=28, e a
+   coluna x=25..28 desce até (26,35) sem nenhum pulo. Um passo além entra na
+   Route 5 em (16,0) — a conexão soma 10 ao x. Do lado oeste (Centro,
+   ginásio) nada alcança o sul: o caminho é a casa acima do ginásio, cujo
+   buraco devolve o jogador em (27,9), já a leste. O teste de lado deixou de
+   ser caixa de coordenadas (`26 <= x <= 39 and 7 <= y <= 17` chamava o
+   ginásio (30,19) de "leste") e virou `_can_reach`, um BFS no estático.
+3. **Vermilion era o mapa 1 no código — que é Viridian.** O bloco da cidade
+   tinha sido copiado de `buy_pokeballs` e nunca corrigido: mapa 1, Centro
+   41, Mart 42, porta (23,25). Chegar em Vermilion não disparava nada, e
+   qualquer prédio de Viridian disparava a rota de outra cidade. Vermilion é
+   o mapa **5**, o Centro é o **89** e a porta é **(11,3)** — tudo já estava
+   em `knowledge/maps/pokemon_centers.json`, extraído da ROM.
+4. **O trail da guia manual sequestrou o executor.** Desligar `manual_mode`
+   chama `_publish_manual_trail`, que publicou o caminho do operador como
+   trail da quest — com a perna da Rota 9 dentro e entrando na Route 5 em
+   (9,0), a faixa do meio que os penhascos isolam da porta do Underground.
+   Com `POKEAI_FOLLOW_TRAILS=1` (a corrida do operador roda assim) o trail
+   ganha do executor: `route_id=trail-vermilion_gym_quest-16`, alvo (9,0),
+   `path_to_target: None`, 600 passos quicando em (15,0)..(15,5). Agora
+   `TRAIL_BLOCKED_QUESTS` cobre as três quests cujo executor tem rota medida
+   em todo o caminho (`bill_quest`, `cerulean_gym_quest`,
+   `vermilion_gym_quest`), nos **dois** lugares que consultam trail.
+
+### E um bug de navegação que valia para o jogo inteiro
+
+**Penhasco e parede-com-porta-atrás têm a mesma assinatura no estático**:
+tile do meio sólido, pouso andável, alvo alinhado a dois tiles. A regra de
+pulo de ledge disparava nos dois e vinha **antes** do planejador. Medido na
+Route 5: o bot em (15,27) mirando a porta do Underground (17,27), com
+(16,27) de parede, apertou `R` contra a parede por 250 passos enquanto o
+`_planned_step` já tinha o desvio de quatro passos (`D,R,R,U`) na mão.
+
+O desempate é o plano: **quem tem caminho andando não pula**. O pulo é o que
+sobra quando o plano não existe — que é exatamente a Rota 4, onde o penhasco
+parte o mapa e não há desvio. A regra do ledge foi movida para depois do
+`_planned_step`; o teste da Rota 4 continua verde e ganhou par
+(`test_sem_plano_o_pulo_continua_valendo`).
+
+Mudanças:
+
+- `src/scripted_agent.py`: `_run_vermilion_gym_quest` reescrito (Cerulean sul,
+  Route 5 pela coluna leste, Underground terminando no tile do warp (2,41),
+  Route 6, cidade 5 e Centro 89); `_can_reach`; `VERMILION_CITY_MAP_ID`,
+  `VERMILION_CENTER_MAP_ID`, `CERULEAN_SOUTH_EXIT`, `TRAIL_BLOCKED_QUESTS`;
+  ledge depois do plano; perna do Centro de Cerulean (mapa 64), que é onde um
+  apagão devolve o treinador.
+- `blue-agents/tests/test_vermilion_route.py`: 17 testes novos. Cada cadeia de
+  waypoints é conferida hop a hop com o `find_path` do MapMemory — a mesma
+  pergunta que o executor faz em tempo de execução.
+- Suíte: **507 testes OK**.
+
+**A fazer daqui:** o AARON está parado em (11,4), a porta do Centro, porque o
+executor acaba aqui — o ginásio do Lt. Surge depende do **Cut**, que vem do
+capitão do S.S. Anne. A doca é o warp (18,31)/(19,31) → mapa 94, e o
+`find_path` do estático diz que ela é alcançável do Centro em 58 passos. O
+ticket já está na mochila desde o `bill_quest`. Esse é o próximo executor.
+
+Cuidado ao medir: `POKEAI_FOLLOW_TRAILS=1` está ligado nesta corrida, então
+todo trail publicado dirige — `ps eww` não mostra o env do processo no macOS,
+e conferir por lá dá falso negativo.
 
 ## Continuar daqui (2026-08-12)
+
+### Marco: AARON saiu de Cerulean para a Rota 9 pela casa acima do ginásio
+
+A rota do vermilion estava **invertida**: o executor antigo mandava o bot para
+a borda **oeste** de Cerulean (0,18), que conecta na Route 4 — de volta ao
+Mt. Moon. A tabela de conexões do cartucho diz o contrário: mapa 3 tem
+E→20 (Route 9) e W→15 (Route 4). AARON e FARON ficaram 3000+ passos parados
+em (0,18) e depois na Route 4 (63,10), e o executor nem rodava.
+
+**O caminho real para a Rota 9** (confirmado na RAM, em 2026-08-12):
+
+1. Cerulean → porta da casa acima do ginásio (27,11) — warps do mapa 3.
+2. Casa 62: atravessar até o buraco na parede (3,0) — o warp devolve ao
+   mapa 3 em (27,9), o lado leste do rio.
+3. Descer a margem leste: (27,9) → (39,16), conexão com a Rota 9 (mapa 20).
+   AARON chegou a **m20 (0,8)** com `FIRST DISCOVERY` na run de validação.
+
+**O que destravou** (a sequência de travamentos que a medição revelou):
+
+1. **O executor do vermilion mirava o lado errado.** `cerulean-to-route4`
+   ia para (0,18) (borda oeste = Route 4/Mt. Moon). Reescrito: vai para a
+   casa (27,12), entra em 62, e o lado leste desce até (39,16)/(40,16).
+   Além disso, o ramo do lado leste só cobria `26 <= x <= 33` — o bot em
+   (34,12) caía no ramo errado e voltava para a casa num ciclo RIGHT/UP.
+2. **`_center_first_action` sequestrava o bot para uma porta inalcançável.**
+   `wLastBlackoutMap` ainda apontava Pallet, e o mapa 15 (Route 4) tem Centro
+   em (11,5) — 52 tiles a oeste, do outro lado do penhasco. O desvio rodava
+   antes do executor e o bot ficava 3000 passos parado com
+   `route_id: center-door-11-5`. Agora `_walk_to_door` só desvia quando a
+   porta está **alcançável** (`_door_is_reachable` = `find_path` no
+   MapMemory), e o teste `test_porta_inalcancavel_nao_desvia_para_o_centro`
+   cobre o caso.
+3. **O `ROUTE_EVENTS["U"]` da porta da casa era string, não WindowEvent.**
+   O hybrid converte com `event_to_action` que espera int — string vira
+   NOOP. O bot parava na porta (27,12) sem entrar.
+
+**Roster agora tem 3 slots**: AARON (speedrunner, guia), FARON (completionist,
+**pausado** via `tasks/runtime_controls.json` `agents.FARON.paused=true`),
+GARON (team_builder, **Squirtle**, novo — começou do início em 2026-08-12,
+arquivado o GARON antigo de 06/08 em `archives/20260812-old-GARON/`).
+GARON confirmou Squirtle (interno 177 → nacional 7) e atravessou a Floresta
+até (51, 16,44) na mesma run em que o AARON chegou à Rota 9.
+
+Mudanças:
 
 ### Marco: Mt. Moon atravessado de novo, confirmado na RAM
 

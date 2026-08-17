@@ -1,31 +1,49 @@
 {
   "version": 1,
-  "slot_count": 2,
-  "next_agent_index": 6,
+  "slot_count": 3,
+  "next_agent_index": 11,
   "slots": [
     {
       "slot": 0,
-      "agent_name": "AARON",
-      "identity_index": 0,
+      "agent_name": "IARON",
+      "identity_index": 8,
       "profile_index": 0,
-      "generation": 4,
+      "generation": 1,
       "status": "active",
       "archetype": "speedrunner",
       "route_role": "guide"
     },
     {
       "slot": 1,
-      "agent_name": "FARON",
-      "identity_index": 5,
+      "agent_name": "JARON",
+      "identity_index": 9,
       "profile_index": 1,
       "generation": 1,
       "status": "active",
       "archetype": "completionist",
       "route_role": "follower"
+    },
+    {
+      "slot": 2,
+      "agent_name": "KARON",
+      "identity_index": 10,
+      "profile_index": 2,
+      "generation": 1,
+      "status": "active",
+      "archetype": "team_builder",
+      "route_role": "follower"
     }
   ],
   "completed_runs": [],
   "retired_slots": [
+    {
+      "agent_name": "AARON",
+      "reason": "fora do roster para o teste dos tres bots novos (2026-08-16); jornada preservada em trainers/AARON: Vermilion, Cut aprendido, checkpoint center_89"
+    },
+    {
+      "agent_name": "HARON",
+      "reason": "bot novo de 2026-08-16; travou na casa inicial (mapa 37) nos dois testes de 10 min, jornada preservada em trainers/HARON para o bisect do start"
+    },
     {
       "agent_name": "DARON",
       "reason": "fora do roster; jornada preservada em trainers/"
@@ -53,6 +71,14 @@
     {
       "agent_name": "CARON",
       "reason": "fora do roster para cronometrar um bot sozinho"
+    },
+    {
+      "agent_name": "FARON",
+      "reason": "reserva; jornada preservada em trainers/ (pausado pelo operador)"
+    },
+    {
+      "agent_name": "GARON",
+      "reason": "slot removido; treinador preservado em trainers/"
     }
   ]
 }
