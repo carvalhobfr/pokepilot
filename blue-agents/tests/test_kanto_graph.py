@@ -224,11 +224,20 @@ class GrafoComoRedeDaRotaTests(unittest.TestCase):
             agent.map_memory.find_path(59, (10, 23), (5, 5)),
             "o estático diz que dá — é por isso que 'sem caminho' não bastava",
         )
-        agent.route_stuck_steps = 60
+        # O contador é o do orçamento do waypoint, que conta passos no mesmo
+        # alvo e **não zera na oscilação** — `route_no_progress` zera, e por
+        # isso não serve de gatilho aqui.
+        agent.route_waypoint_steps = 60
         agent._run_mt_moon_nav()
         route_id, waypoints = agent.walked[-1]
         self.assertEqual("grafo-59", route_id)
         self.assertTrue(waypoints)
+
+    def test_com_o_orcamento_baixo_a_rota_medida_segue_no_volante(self):
+        agent = self.agent_at(59, (10, 23))
+        agent.route_waypoint_steps = 5
+        agent._run_mt_moon_nav()
+        self.assertEqual("mt-moon-59", agent.walked[-1][0])
 
 
 if __name__ == "__main__":

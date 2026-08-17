@@ -3241,7 +3241,15 @@ class ScriptedAgent(BaseAgent):
         map_id = int(self.emulator.memory.get_map_id())
         here = tuple(self.emulator.memory.get_player_pos())
         anchor = tuple(waypoints[-1])
-        stalled = int(getattr(self, "route_stuck_steps", 0)) >= GRAPH_TAKEOVER_STEPS
+        # O contador certo é o do **orçamento do waypoint**: ele conta passos
+        # gastos no mesmo alvo e não zera na oscilação. `route_no_progress` mede
+        # "não encostou" e zera a cada passo que encurta distância — é o
+        # contador que o handoff já registra como cego para vaivém, e usá-lo
+        # aqui fazia a rede nunca entrar (medido no LARON: 76 relatórios em
+        # `mt-moon-59` depois de eu ligar o gatilho no atributo errado).
+        stalled = (
+            int(getattr(self, "route_waypoint_steps", 0)) >= GRAPH_TAKEOVER_STEPS
+        )
         reachable = self._map_memory().find_path(map_id, here, anchor) is not None
         if reachable and not stalled:
             return self._follow_route(route_id, waypoints)
