@@ -1,4 +1,4 @@
-# Arquitetura PokeAI 2026
+# Arquitetura do pokepilot
 
 ## Estado atual
 

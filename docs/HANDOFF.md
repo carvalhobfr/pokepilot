@@ -1,8 +1,45 @@
-# PokeAI 2026 — handoff canônico
+# pokepilot — handoff canônico
 
 Última atualização: **2026-08-17**.
 
 ## Continuar daqui (2026-08-17)
+
+### O repositório é público, chama pokepilot e não tem mais ROM no histórico
+
+`poke-ai-2026` virou **`pokepilot`** (https://github.com/carvalhobfr/pokepilot) e
+passou a público. O diretório local continua `poke-ai-2026` — os caminhos
+absolutos deste arquivo são reais e não foram mexidos.
+
+O que apareceu na hora de publicar: `origin/master` estava **28 commits atrás**
+do local, e naquele ponto `roms/PokemonBlue.gb` e `PokemonRed.gb` estavam na
+**árvore final**, não só no histórico. O `c5b479d`, que tirou a ROM do índice,
+nunca tinha sido pushado — então o repo listava dois arquivos de 1 MB da Nintendo
+na página inicial. Comparar `git ls-remote` com o local é o passo que faltava no
+diagnóstico.
+
+Corrigido com `git filter-repo` num clone bare isolado: `roms/*.gb` e
+`roms/*.gb.ram` saíram dos 122 commits, que foram todos preservados. `.git` caiu
+de 15 MB para 2,8 MB. O purge **não** roda no worktree — `filter-repo` termina com
+`git reset --hard` e apagaria trabalho não commitado; como a árvore do HEAD já
+não tinha `roms/`, o sync local foi `git fetch && git reset --soft origin/master`,
+sem tocar em nada. Backup do histórico antigo em
+`~/Dev/2025/cursor/pokepilot-backup-pre-purge-20260817.bundle`.
+
+Duas coisas que continuam **locais** e ainda contêm ROM: a tag
+`backup-antes-de-limpar-coauthor` e a branch `feat/rom-fast-blue`. Nunca foram
+pushadas e não devem ser — um `git push --tags` reintroduz tudo.
+
+Consequências para quem continua daqui:
+
+- clone anterior a 17/08/2026 tem histórico incompatível e precisa ser refeito;
+- **regra 13 do `AGENTS.md`**: só sobe treino que avança a jornada e que foi
+  testado dando o mesmo resultado, com `replay_check.py` rodado duas vezes do
+  zero. `runtime/` (63 MB de log), `blue-agents/tasks/*.txt` e a pasta
+  `blue-agents/blue-agents/` passaram a ser ignorados — estavam untracked e sem
+  barramento;
+- o README agora é bilíngue (inglês por padrão, `README.pt-BR.md` ao lado) e
+  declara o estado real de cada peça: arquétipos e PPO em BETA, ordens por LLM
+  como "em breve", o projeto inteiro marcado como em desenvolvimento.
 
 ### Watchdog agora pega ciclo, e menu aberto sem dono fecha com B
 

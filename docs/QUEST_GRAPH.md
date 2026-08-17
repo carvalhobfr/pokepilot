@@ -1,4 +1,4 @@
-# PokeAI 2026 — mapa visual da jornada
+# pokepilot — mapa visual da jornada
 
 Este documento explica visualmente como o bot progride no Pokémon Blue real.
 Ele é uma visão humana do sistema, não uma segunda fonte de verdade.

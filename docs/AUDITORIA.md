@@ -1,4 +1,4 @@
-# PokeAI 2026 — dossiê para auditoria externa
+# pokepilot — dossiê para auditoria externa
 
 Documento autocontido: descreve o que o projeto é, as regras que o governam e
 os limites conhecidos. No fim há um **prompt pronto** para entregar a um

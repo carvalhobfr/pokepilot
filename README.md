@@ -1,322 +1,368 @@
-# PokeAI 2026
+# pokepilot
 
-Bots jogando **Pokémon Blue de verdade** — a ROM original num emulador, não uma
-simulação. Você acompanha pelo navegador: o mapa de Kanto com os treinadores se
-movendo, o time de cada um, e um diário explicando por que cada decisão foi
-tomada.
+**English** · [Português](README.pt-BR.md)
 
-A ideia é um bot que **entende objetivos**, não um script que decora botões. Hoje
-ele já atravessa meia Kanto sozinho; o rumo é receber ordens em português —
-*"captura um Pikachu"* — e descobrir sozinho onde ir e o que fazer.
+Bots playing **the real Pokémon Blue** — the original ROM on an emulator, not a
+simulation. You watch from the browser: the map of Kanto with the trainers
+moving across it, each one's party, and a journal explaining why every decision
+was made.
 
-O que garante que nada é inventado: **todo progresso é conferido na memória do
-cartucho**. Nenhum script pode dizer "consegui a insígnia" — o bit dela precisa
-aparecer na RAM.
+The goal is a bot that **understands objectives**, not a script that memorizes
+button presses. Today it crosses half of Kanto on its own; the direction is
+taking orders in plain language — *"catch a Pikachu"* — and working out for
+itself where to go and what to do.
+
+What guarantees nothing is invented: **every bit of progress is verified in
+cartridge memory**. No script gets to say "I earned the badge" — the badge bit
+has to show up in RAM.
+
+> ### 🚧 Work in progress
+>
+> Nothing here is finished, and the game is not beaten. Everything marked ✅ was
+> **reproduced from scratch**, more than once, with the same result. The rest is
+> beta or doesn't work yet — and it's labeled that way in each section, instead
+> of hidden behind a promise.
+
+## Status of each piece
+
+| Piece | Status |
+|---|---|
+| graph navigation and quests, Pallet through Cut | ✅ tested, reproducible from scratch |
+| battle (expert system reading RAM) | ✅ tested |
+| dashboard, live map, arena and replays | ✅ works |
+| **archetypes** (the four personalities) | 🟡 **BETA** — they run, but no complete run has compared all four to the same point |
+| **reinforcement learning (PPO)** | 🟡 **BETA** — it trains, but decides **0%** of actions today ([measured](#learning-measured-rather-than-estimated)) |
+| **plain-language orders via LLM** | ⛔ **coming soon** — does not work yet; the LLM only answers the "Ask AI" button |
+| Lt. Surge's gym through the League | ⛔ no executor |
 
 ---
 
-## Até onde os bots chegam
+## How far the bots get
 
-Um bot começando um jogo novo, sem ninguém ajudando, em **menos de duas horas**:
+One bot, from a brand new game, with nobody helping, in **under two hours**:
 
 | | |
 |---|---|
-| sai de casa, escolhe o inicial, entrega a encomenda do Oak | ✅ |
-| compra Poké Bolas, atravessa Viridian e a Floresta | ✅ |
-| treina até o inicial evoluir | ✅ |
-| **vence o Brock — 1ª insígnia** | ✅ |
-| cruza a Rota 3 e **Mt. Moon inteira** (três andares) | ✅ |
-| chega a Cerulean, resolve o quebra-cabeça do Bill | ✅ |
-| **vence a Misty — 2ª insígnia** | ✅ |
-| chega a Vermilion, entra no S.S. Anne, ganha o HM01 | ✅ |
-| **aprende Cut** | ✅ |
-| ginásio do Lt. Surge (puzzle das lixeiras) | ⛔ ainda não |
+| leaves home, picks a starter, delivers Oak's parcel | ✅ |
+| buys Poké Balls, crosses Viridian and the Forest | ✅ |
+| trains until the starter evolves | ✅ |
+| **beats Brock — 1st badge** | ✅ |
+| crosses Route 3 and **all of Mt. Moon** (three floors) | ✅ |
+| reaches Cerulean, solves Bill's puzzle | ✅ |
+| **beats Misty — 2nd badge** | ✅ |
+| reaches Vermilion, boards the S.S. Anne, earns HM01 | ✅ |
+| **learns Cut** | ✅ |
+| Lt. Surge's gym (the trash can puzzle) | ⛔ not yet |
 
-Isso foi reproduzido por **dois bots independentes** no mesmo dia, cada um
-partindo do zero. Onze dos 19 objetivos do jogo estão fechados; o que falta está
-listado, com nome e causa, no [handoff](docs/HANDOFF.md).
+This was reproduced by **two independent bots** on the same day, each starting
+from zero. Eleven of the game's 19 objectives are closed; what remains is
+listed, by name and cause, in the [handoff](docs/HANDOFF.md).
 
-## O que você vê na tela
+## What you see on screen
 
-- **o mapa de Kanto** com cada bot andando em tempo real (arrastar move, roda do
-  mouse dá zoom, clicar num bot trava a câmera nele);
-- **o time de cada treinador** — espécie, nível, HP, golpes;
-- **o diário**: "escolhi Vine Whip porque é 4× contra Rocha", "não capturei
-  porque não tenho bola", "travei nesta tela";
-- **a arena**, quando você clica: até quatro batalhas ao vivo, com replay das
-  últimas de cada bot.
+- **the map of Kanto** with each bot walking in real time (drag to pan, scroll
+  to zoom, click a bot to lock the camera on it);
+- **each trainer's party** — species, level, HP, moves;
+- **the journal**: "picked Vine Whip because it's 4× against Rock", "didn't
+  catch it, no balls left", "stuck on this screen";
+- **the arena**, when you click in: up to four live battles, with replays of
+  each bot's most recent ones.
 
-Cada bot tem uma **personalidade fixa** e joga diferente de propósito: um
-completista que quer registrar tudo, um rushador que só para pelo que vale a
-parada, um construtor de time, e um temático que só usa fogo e dragão. Mesmas
-regras, mesmo mapa, respostas diferentes.
+Every bot has a **fixed personality** and plays differently on purpose: a
+completionist that wants everything registered, a rusher that only stops for
+what's worth it, a team builder, and a themed one that fields nothing but fire
+and dragon. Same rules, same map, different answers.
 
-## Como rodar
+## Running it
 
-Funciona em **Windows, macOS e Linux**. Você precisa de três coisas: Python
-3.11+, Node.js e a sua cópia de Pokémon Blue.
+Works on **Windows, macOS and Linux**. You need three things: Python 3.11+,
+Node.js, and your own copy of Pokémon Blue.
 
-1. Instale [Python 3.11+](https://www.python.org/downloads/) e
-   [Node.js LTS](https://nodejs.org). **No Windows, marque "Add python.exe to
-   PATH"** — é o erro mais comum.
-2. Ponha a **sua** cópia legal em `roms/PokemonBlue.gb` (Red também serve).
-3. Inicie:
+1. Install [Python 3.11+](https://www.python.org/downloads/) and
+   [Node.js LTS](https://nodejs.org). **On Windows, tick "Add python.exe to
+   PATH"** — it's the most common mistake.
+2. Put **your** legal copy at `roms/PokemonBlue.gb` (Red works too).
+3. Start it:
 
-   | Sistema | Como |
+   | System | How |
    |---|---|
-   | **Windows** | dois cliques em `start.bat` |
-   | **macOS** | dois cliques em `start.command` |
-   | qualquer um | `python start.py` no terminal |
+   | **Windows** | double-click `start.bat` |
+   | **macOS** | double-click `start.command` |
+   | any | `python start.py` in a terminal |
 
-Ele instala o que faltar, sobe o painel, abre o navegador e começa a jogar. A
-primeira vez demora alguns minutos baixando dependências; as seguintes sobem em
-segundos. `Ctrl+C` encerra **salvando** o progresso.
+It installs what's missing, brings up the dashboard, opens the browser and
+starts playing. The first run takes a few minutes pulling dependencies; later
+ones come up in seconds. `Ctrl+C` shuts down **saving** progress.
 
-Útil saber: `--slots 1` roda um bot só (mais leve), `--no-browser` não abre o
-navegador. **Dois bots é o teto num laptop de 8 GB** — com três, o sistema mata
-um sem avisar (falta de memória, não calor).
+Worth knowing: `--slots 1` runs a single bot (lighter), `--no-browser` skips
+opening the browser. **Two bots is the ceiling on an 8 GB laptop** — with three,
+the OS kills one without warning (out of memory, not heat).
 
-> **macOS:** se o sistema bloquear na primeira vez, botão direito → *Abrir*.
-> **Windows:** se o SmartScreen avisar, *Mais informações* → *Executar assim mesmo*.
+> **macOS:** if the system blocks it the first time, right-click → *Open*.
+> **Windows:** if SmartScreen warns you, *More info* → *Run anyway*.
 
-## Perguntas que todo mundo faz
+## Questions everyone asks
 
-**Isso é IA de verdade?** Sim, mas não a que a palavra sugere hoje. Não é um
-modelo que aprendeu a jogar assistindo, nem um LLM apertando botões. É um agente
-com quatro peças clássicas de IA — busca em grafo, planejamento com
-pré-condições, um sistema especialista de batalha e detecção de anomalia — mais
-uma rede de aprendizado por reforço que, medida, hoje decide **0%** das ações.
-Detalhe honesto na [parte técnica](#parte-técnica).
+**Is this real AI?** Yes, though not the kind the word suggests today. It isn't
+a model that learned to play by watching, nor an LLM mashing buttons. It's an
+agent built from four classical AI pieces — graph search, planning with
+preconditions, a battle expert system, and anomaly detection — plus a
+reinforcement learning network that, when measured, currently decides **0%** of
+the actions. The honest breakdown is in the [technical
+details](#technical-details).
 
-**Ele aprende ou está tudo escrito?** As duas coisas, e a divisão é medida. O
-caminho vem de um mapa **extraído do cartucho** e de busca — não de rota decorada
-—, e o bot recalcula de onde estiver. O que está escrito à mão são os objetivos e
-alguns trechos difíceis. A rede neural existe, mas quem joga hoje é a busca.
+**Does it learn, or is it all hand-written?** Both, and the split is measured.
+The pathing comes from a map **extracted from the cartridge** plus search — not
+from a memorized route — and the bot recomputes from wherever it stands. What is
+hand-written are the objectives and a few hard stretches. The neural network
+exists, but what plays today is the search.
 
-**É trapaça ler a memória do jogo?** É o contrário: é o que impede a trapaça. O
-bot não pode alegar progresso — a insígnia, a captura, o golpe aprendido, tudo
-tem de aparecer na RAM. Nada é escrito na memória para forçar resultado.
+**Isn't reading game memory cheating?** It's the opposite: it's what prevents
+cheating. The bot can't claim progress — the badge, the capture, the move
+learned, all of it has to appear in RAM. Nothing is ever written to memory to
+force a result.
 
-**Preciso da ROM?** Sim, a sua. Pokémon Blue é software comercial e não vem no
-repositório.
+**Do I need the ROM?** Yes, your own. Pokémon Blue is commercial software and
+does not ship with this repository.
 
-**Por que Pokémon?** Porque é um mundo grande, com regras fechadas e um juiz
-imparcial: o próprio cartucho diz se você venceu.
+**Why Pokémon?** Because it's a large world with closed rules and an impartial
+judge: the cartridge itself says whether you won.
 
-## Para onde vai: ordens em português
+## Where this is going: plain-language orders (coming soon)
 
-O objetivo do projeto não é terminar o jogo mais rápido — é o bot **entender uma
-ordem**. *"Captura um Pikachu"* deveria bastar: ele sabe que Pikachu aparece na
-Floresta de Viridian a 5%, que precisa de Poké Bolas, e calcula o caminho até
-lá de onde estiver.
+**Nothing in this section works today.** It's the project's direction, written
+against pieces that already exist — not a feature you'll find running.
 
-O desenho para isso, com as peças que já existem:
+The point of the project isn't finishing the game faster — it's the bot
+**understanding an order**. *"Catch a Pikachu"* should be enough: it knows
+Pikachu shows up in Viridian Forest at 5%, that it needs Poké Balls, and it
+computes the path there from wherever it is.
 
-1. **um vocabulário de objetivos** — estar em tal lugar, ter tal espécie, ter tal
-   item, ter N insígnias — cada um verificável na RAM (é o que o QuestGraph já
-   faz com os 19 nós do jogo);
-2. **um solucionador**: dado o objetivo, o grafo de Kanto responde o caminho e as
-   pré-condições dizem o que falta antes (bola na mochila, insígnia que libera a
-   área);
-3. **a LLM como tradutora** — só isso: converter a frase em objetivo, uma vez por
-   ordem. Ela nunca decide passo a passo, onde é lenta e erra; quem executa é a
-   busca, e quem confere é o cartucho.
+The design for that, using pieces that already exist:
 
-Zerar o jogo, nesse desenho, é só uma ordem entre outras: "consiga as oito
-insígnias".
+1. **a vocabulary of objectives** — be in place X, own species Y, hold item Z,
+   have N badges — each one verifiable in RAM (which is what the QuestGraph
+   already does across the game's 19 nodes);
+2. **a solver**: given the objective, the Kanto graph answers the path and the
+   preconditions say what's missing first (a ball in the bag, the badge that
+   unlocks the area);
+3. **the LLM as translator** — that's all: turn the sentence into an objective,
+   once per order. It never decides step by step, where it's slow and wrong;
+   execution belongs to the search, and verification to the cartridge.
+
+Finishing the game, under that design, is just one order among others: "get the
+eight badges".
 
 ---
 
-# Parte técnica
+# Technical details
 
-Daqui para baixo é detalhe de implementação: arquitetura, o que foi medido, e as
-armadilhas que custaram caro. Se você só quer ver os bots jogando, a parte de
-cima já basta.
+From here down it's implementation: architecture, what was measured, and the
+traps that cost real time. If you only want to watch the bots play, the part
+above is enough.
 
-## Que IA tem aqui, exatamente
+## What AI is actually in here
 
-| peça | o que é | onde |
+| piece | what it is | where |
 |---|---|---|
-| **busca** | Kanto como grafo — 49.412 células, 2.152 portas, 106 bordas — e busca em largura de qualquer ponto a qualquer ponto | `src/kanto_graph.py` |
-| **planejamento** | 19 objetivos com pré-condições verificadas na RAM; nada é "concluído" por tempo ou por botão apertado | `blue-agents/quest_graph.py` |
-| **sistema especialista** | política de batalha lendo tipo, potência e PP da tabela do próprio cartucho | `src/simple_battle.py` |
-| **detecção de anomalia** | impressão digital do cartucho a cada passo; estado que não muda, ou volta repetida com o plano parado, viram save + tela gravados | `src/life_watchdog.py` |
-| **aprendizado por reforço** | PPO (stable-baselines3) sobre a exploração | `blue-agents/hybrid_agent.py` |
+| **search** | Kanto as a graph — 49,412 cells, 2,152 doors, 106 edges — and breadth-first search from any point to any point | `src/kanto_graph.py` |
+| **planning** | 19 objectives with preconditions verified in RAM; nothing is "done" because time passed or a button was pressed | `blue-agents/quest_graph.py` |
+| **expert system** | battle policy reading type, power and PP from the cartridge's own tables | `src/simple_battle.py` |
+| **anomaly detection** | a cartridge fingerprint every step; state that stops changing, or a loop repeating while the plan stands still, dumps a save plus the screen | `src/life_watchdog.py` |
+| **reinforcement learning** 🟡 BETA | PPO (stable-baselines3) over exploration — decides 0% of actions today | `blue-agents/hybrid_agent.py` |
 
-Um LLM opcional existe (`src/llm_agent.py`), hoje usado só pelo botão "Ask AI" do
-painel. A jornada não depende dele e não acessa a rede.
+**The LLM part does not work yet.** There is an `src/llm_agent.py`, but today it
+only answers the dashboard's "Ask AI" button — it decides nothing during the
+journey, which neither depends on it nor touches the network. Translating a
+plain-language order into a verifiable objective is the [project's next
+step](#where-this-is-going-plain-language-orders-coming-soon), not something
+already standing.
 
-## Aprendizado, medido e não estimado
+## Learning, measured rather than estimated
 
-Instrumentando a origem de cada ação numa travessia real até o Brock, em 471
-passos:
+Instrumenting the origin of every action across a real run to Brock, over 471
+steps:
 
 ```
-battle_controller : 252  (53.5%)   heurística lendo a RAM
-quest_controller  : 219  (46.5%)   busca e rotas medidas
+battle_controller : 252  (53.5%)   heuristic reading RAM
+quest_controller  : 219  (46.5%)   search and measured routes
 ppo               :   0   (0.0%)
-transições treináveis: nenhuma
+trainable transitions: none
 ```
 
-O PPO só recebe o passo quando nenhum controlador quer agir. Além disso,
-`ScriptAwarePPO` descarta o rollout inteiro se **qualquer** passo foi
-sobrescrito por script — creditar recompensa a uma ação que a rede não tomou
-seria treinar com dado falso.
+PPO only gets the step when no controller wants to act. On top of that,
+`ScriptAwarePPO` discards the entire rollout if **any** step was overridden by a
+script — crediting reward to an action the network didn't take would be training
+on fabricated data.
 
-**O caminho honesto para o aprendizado pesar mais** é o inverso do que se
-costuma tentar: usar as travessias gravadas como **demonstrações** (behavior
-cloning) e deixar o reforço refinar onde não existe executor, em vez de disputar
-o volante com o script.
+**The honest path to making learning matter more** is the reverse of the usual
+attempt: use the recorded runs as **demonstrations** (behavior cloning) and let
+reinforcement refine where no executor exists, instead of fighting the script
+for the wheel.
 
-Os **arquétipos** (`blue-agents/archetypes.py`) fixam traços, inicial e o que
-fazer com um selvagem capturável. São a variável do experimento: mesmo mapa,
-mesmas rotas, decisões diferentes.
+### Archetypes 🟡 BETA
 
-| Arquétipo | Postura diante de uma captura possível |
+The **archetypes** (`blue-agents/archetypes.py`) fix traits, starter, and what
+to do with a catchable wild encounter. They're the experiment's variable: same
+map, same routes, different decisions.
+
+They're beta because the easy half is done and the hard half isn't: all four run
+and each decides differently on a catch, but **no complete run has compared the
+four to the same point**. Until then the table below is the intended design, not
+a measured result — unlike the PPO numbers above, which are a count from a real
+traversal.
+
+| Archetype | Stance on a possible catch |
 |---|---|
-| Completista | 100% do alcançável em cada área; raridade nunca escapa |
-| Rushador | reserva e Pokémon forte; o resto é turno perdido |
-| Construtor de time | o que ocupa vaga ou melhora a linha de frente |
-| Fogo e dragão | só fogo e dragão no time; a corrida mais difícil de Kanto |
+| Completionist | 100% of what's reachable in each area; rarity never gets away |
+| Rusher | spare balls and a strong Pokémon; the rest is a wasted turn |
+| Team builder | whatever fills a slot or upgrades the front line |
+| Fire and dragon | fire and dragon only; the hardest run in Kanto |
 
-A meta do completista é 100% do que é **alcançável**, que não é 100% da área:
-Surf e as varas trancam tabelas inteiras de encontro, então o conjunto cobrado
-cresce conforme as insígnias chegam (`knowledge/maps/encounters.json`). Raridade
-vem antes da cota — Pikachu é 5% da Floresta contra 45% de Caterpie, e nenhuma
-meta cumprida faz o bot passar batido por ele.
+The completionist's target is 100% of what is **reachable**, which isn't 100% of
+the area: Surf and the rods lock away whole encounter tables, so the required
+set grows as badges arrive (`knowledge/maps/encounters.json`). Rarity outranks
+quota — Pikachu is 5% of the Forest against Caterpie's 45%, and no fulfilled
+quota makes the bot walk past it.
 
-## Como os bots acham o caminho
+## How the bots find their way
 
-**A geometria vem do cartucho, não de esbarrar.** `tools/extract_map_data.py` lê
-parede, mato, treinador, item e porta dos 248 mapas direto da ROM: 238 mapas e
-49.412 células em `knowledge/maps/static_maps.json`. A versão anterior aprendia
-paredes esbarrando, e isso rendeu 21 mapas e **4.067 paredes que nunca
-existiram** — um NPC parado é indistinguível de parede, e uma batalha na tela faz
-todo tile ler como parede.
+**The geometry comes from the cartridge, not from bumping into things.**
+`tools/extract_map_data.py` reads wall, grass, trainer, item and door for all
+248 maps straight from the ROM: 238 maps and 49,412 cells in
+`knowledge/maps/static_maps.json`. The previous version learned walls by
+colliding, and that produced 21 maps and **4,067 walls that never existed** — a
+standing NPC is indistinguishable from a wall, and a battle on screen makes
+every tile read as one.
 
-Desde 2026-08-17 as três ligações do mundo estão no mesmo grafo: passo dentro do
-mapa, **borda** entre mapas e **porta**, as duas últimas extraídas do cabeçalho
-de mapa e da tabela de warps (`tools/extract_connections.py`). Com isso, "ir de
-onde estou até `(mapa, tile)`" é uma busca só — de Pallet até o Brock são 371
-passos cruzando dez mapas, sem uma coordenada escrita à mão. O grafo modela até
-o pulo de penhasco, como aresta de mão única, e acha atalhos que nenhuma rota
-escrita tinha (Vermilion pela Diglett's Cave).
+Since 2026-08-17 all three kinds of world connection live in the same graph:
+a step within a map, a **border** between maps, and a **door**, the last two
+extracted from the map header and the warp table
+(`tools/extract_connections.py`). With that, "go from where I am to
+`(map, tile)`" is a single search — Pallet to Brock is 371 steps across ten
+maps, without a single hand-written coordinate. The graph even models the ledge
+hop, as a one-way edge, and finds shortcuts no written route had (Vermilion via
+Diglett's Cave).
 
-A ordem de autoridade é fixa, e cada inversão dela custou horas:
-**leitura ao vivo > estático do ROM > trilha gravada**. A rota medida dirige
-enquanto alcança; o grafo é a rede quando ela não alcança. Trilha gravada nunca
-dirige onde existe executor — isso causou quatro travamentos num único dia.
+The order of authority is fixed, and every inversion of it cost hours:
+**live reads > ROM statics > recorded trail**. The measured route drives while
+it reaches; the graph is the net for when it doesn't. A recorded trail never
+drives where an executor exists — that caused four freezes in a single day.
 
-Quem vigia é a **impressão digital do cartucho**: a cada passo, mapa, posição,
-equipe, mochila, insígnias e HP de batalha. Estado que não cresce em 600 passos,
-ou a mesma volta repetida com o plano parado, é congelamento — e aí o save e a
-tela decodificada são gravados sozinhos, para o defeito virar teste em vez de
-virar madrugada.
+The watchdog is the **cartridge fingerprint**: every step, map, position, party,
+bag, badges and battle HP. State that doesn't grow in 600 steps, or the same
+loop repeating while the plan stands still, is a freeze — and the save plus the
+decoded screen get written automatically, so the defect becomes a test instead
+of an all-nighter.
 
-## Rede de proteção
+## Safety net
 
 ```bash
 cd blue-agents && MPLCONFIGDIR=tasks/matplotlib ../.venv/bin/python -m unittest discover -s tests -q
 cd blue-agents && ../.venv/bin/python tools/replay_check.py
 ```
 
-O primeiro são os testes de unidade (632). O segundo é o que importa mais: cada
-trecho já vencido virou um **save real** em `states/replay/` mais o que o
-cartucho tem de responder depois de N passos. Teste de unidade não pisa no
-cartucho — a suíte já esteve verde com 548 testes enquanto três bots novos
-quebravam em quatro pontos seguidos.
+The first is the unit suite (632). The second matters more: every stretch
+already beaten became a **real save** in `states/replay/` plus what the
+cartridge must answer after N steps. Unit tests don't touch the cartridge — the
+suite once sat green at 548 tests while three fresh bots broke at four
+consecutive points.
 
-## Estrutura
+## Layout
 
-- `blue-agents/`: ambiente PPO, agentes, WebSocket e dashboard.
-- `blue-agents/knowledge/`: QuestGraph, mapas extraídos da ROM, conexões,
-  encontros por área e os 8 ginásios.
-- `blue-agents/tools/`: extratores (mapa, warps, conexões, Centros), sonda de
-  rotas, replay dos trechos vencidos e minerador de trilha.
-- `src/`: emulador, memória, grafo de Kanto, navegação, batalha e watchdog.
-- `roms/`: sua cópia legal, ignorada pelo git.
-- `states/`: estados de partida e os saves de replay.
-- `trainers/<AGENTE>/`: save, journey e diário de decisões de cada treinador.
-- `archives/<data>-<AGENTE>/`: jornadas encerradas, com manifesto de hashes.
+- `blue-agents/`: PPO environment, agents, WebSocket and dashboard.
+- `blue-agents/knowledge/`: QuestGraph, ROM-extracted maps, connections,
+  per-area encounters and the 8 gyms.
+- `blue-agents/tools/`: extractors (map, warps, connections, Centers), route
+  probe, replay of beaten stretches, and the trail miner.
+- `src/`: emulator, memory, Kanto graph, navigation, battle and watchdog.
+- `roms/`: your legal copy, git-ignored.
+- `states/`: game states and the replay saves.
+- `trainers/<AGENT>/`: each trainer's save, journey and decision journal.
+- `archives/<date>-<AGENT>/`: closed journeys, with a hash manifest.
 
-## A ROM
+## The ROM
 
-Pokémon Blue é software comercial e **não faz parte deste repositório**. Cada
-pessoa traz a própria cópia legal em `roms/PokemonBlue.gb`.
+Pokémon Blue is commercial software and is **not part of this repository**.
+Everyone brings their own legal copy at `roms/PokemonBlue.gb`. The git history
+doesn't carry it either: the ROMs that were versioned while the repository was
+private were purged from every commit before it was made public.
 
-`blue-agents/rom_identity.py` identifica o cartucho pelo **cabeçalho**: Red ou
-Blue servem, porque compartilham mapas, endereços de RAM e o QuestGraph inteiro.
-Yellow não, e é recusada de propósito. Não há conferência de SHA-1 — cartuchos
-legais são dumpados por pessoas diferentes com ferramentas diferentes, e exigir
-um arquivo idêntico só forçaria uma equipe a passar ROM de mão em mão. O digest
-continua sendo calculado e gravado nos arquivos gerados, para uma jornada
-arquivada dizer de qual dump ela veio.
+`blue-agents/rom_identity.py` identifies the cartridge by its **header**: Red or
+Blue both work, because they share maps, RAM addresses and the entire
+QuestGraph. Yellow doesn't, and is rejected on purpose. There is no SHA-1 check
+— legal cartridges get dumped by different people with different tools, and
+demanding a byte-identical file would only push a team into passing a ROM around.
+The digest is still computed and recorded into generated files, so an archived
+journey can say which dump it came from.
 
-## Velocidade e desempenho
+## Speed and performance
 
-O controle no topo do painel começa em `1×`, o ritmo do Game Boy, e vai a `0.5×`,
-`2×` e `TREINO` (sem limite). **Com nenhum painel aberto o limite some sozinho**
-— ele existe só para a arena ser assistível, e custa caro: o mesmo binário fez 4
-passos por segundo com `1×` e **446** sem limite, no mesmo M1.
+The control at the top of the dashboard starts at `1×`, Game Boy pace, and goes
+to `0.5×`, `2×` and `TRAINING` (uncapped). **With no dashboard open the cap
+lifts by itself** — it exists only so the arena is watchable, and it costs a lot:
+the same binary did 4 steps per second at `1×` and **446** uncapped, on the same
+M1.
 
-Os ambientes rodam **em sequência dentro de um processo só**, então a vazão
-satura por volta de 4 bots:
+The environments run **sequentially inside a single process**, so throughput
+saturates around 4 bots:
 
-| Bots | Passos/s no total | Por bot | Vezes o ritmo do Game Boy |
+| Bots | Total steps/s | Per bot | Times Game Boy pace |
 |---|---|---|---|
 | 2 | 285 | 143 | ~57× |
 | 4 | 377 | 94 | ~38× |
 | 6 | 381 | 64 | ~25× |
 | 8 | 390 | 49 | ~20× |
 
-Reduzir o número de bots **não apaga ninguém**: o treinador sai da lista ativa
-mas mantém save, diário e progresso em `trainers/`, e volta de onde parou.
+Reducing the bot count **deletes nobody**: the trainer leaves the active list
+but keeps save, journal and progress under `trainers/`, and resumes where it
+stopped.
 
-## Rever as batalhas
+## Replaying battles
 
-O botão **Replays** abre as últimas batalhas de cada treinador, com play, pausa e
-passo a passo. A gravação só acontece com o painel aberto e até `2×` — acima
-disso as batalhas terminam mais rápido do que alguém assistiria. Não custa
-desempenho: são exatamente os quadros que a arena já codifica.
+The **Replays** button opens each trainer's most recent battles, with play,
+pause and step-through. Recording only happens with the dashboard open and up to
+`2×` — above that, battles end faster than anyone would watch. It costs no
+performance: these are exactly the frames the arena already encodes.
 
-## Telemetria da jornada
+## Journey telemetry
 
-Cada agente lê a RAM do PyBoy e registra em `trainers/<AGENTE>/logs/`:
+Each agent reads PyBoy's RAM and records into `trainers/<AGENT>/logs/`:
 
-- mapas, objetivos e checkpoints alcançados;
-- início/fim de batalha, vitória, derrota e whiteout;
-- golpe escolhido, efetividade, motivo e Pokémon ativo;
-- capturas confirmadas pela party/Pokédex, inclusive envio ao PC;
-- level up, evolução, depósito no PC e alvo real de XP;
-- congelamentos, com a tela decodificada e o save anexado.
+- maps, objectives and checkpoints reached;
+- battle start/end, win, loss and whiteout;
+- move chosen, effectiveness, reasoning and active Pokémon;
+- catches confirmed via party/Pokédex, including sends to the PC;
+- level ups, evolutions, PC deposits and the real XP target;
+- freezes, with the decoded screen and the save attached.
 
-Em batalhas selvagens, a captura só é considerada disponível depois do evento
-real `EVENT_GOT_POKEDEX` e quando existe uma Poké Bola de verdade na mochila. O
-agente explica se capturou por perfil colecionador, por melhoria do time ou por
-raridade; caso contrário, explica que derrotou o encontro para treinar. Batalhas
-de treinador nunca tentam captura, e o log distingue decisão, tentativa e
-captura confirmada pela RAM.
+In wild battles, catching is only considered available after the real
+`EVENT_GOT_POKEDEX` event and when an actual Poké Ball is in the bag. The agent
+explains whether it caught out of collector profile, team improvement or rarity;
+otherwise it explains that it knocked the encounter out to train. Trainer
+battles never attempt a catch, and the log distinguishes decision, attempt, and
+capture confirmed in RAM.
 
-## Continuidade do desenvolvimento
+## Continuing development
 
-Colaboradores (humanos ou agentes) começam por [AGENTS.md](AGENTS.md) e pelo
-[handoff canônico](docs/HANDOFF.md), que registra o estado real do save, o
-travamento em andamento e o comando seguro para continuar sem reiniciar uma
-jornada. O [mapa do QuestGraph](docs/QUEST_GRAPH.md) separa o que já foi
-validado no cartucho, o que tem executor e o que é só planejamento.
+Contributors (human or agent) start from [AGENTS.md](AGENTS.md) and the
+[canonical handoff](docs/HANDOFF.md), which records the real save state, the
+freeze in progress, and the safe command to continue without restarting a
+journey. The [QuestGraph map](docs/QUEST_GRAPH.md) separates what is already
+validated on the cartridge, what has an executor, and what is still only a plan.
 
-## Créditos e origem dos assets
+## Credits and asset provenance
 
-Este projeto é um fork de trabalho anterior da comunidade. O crédito fica aqui,
-por escrito, em vez de gravado dentro das imagens:
+This project is a fork of earlier community work. The credit lives here, in
+writing, rather than burned into the images:
 
-| Origem | O que veio de lá | Link |
+| Source | What came from it | Link |
 |---|---|---|
-| **Peter Whidden (PWhiddy)** — *PokemonRedExperiments* | Mapa completo de Kanto (`kanto_big_done1.png`), `map_data.json`, `global_map.py`, base do ambiente Gym e do visualizador | https://github.com/PWhiddy/PokemonRedExperiments |
-| **Joseph Suárez (jsuarez5341) / PufferAI** | Ferramental de RL que acompanha o projeto original | https://github.com/PufferAI |
-| **PyBoy** | Emulador de Game Boy usado para rodar a ROM real | https://github.com/Baekalfen/PyBoy |
+| **Peter Whidden (PWhiddy)** — *PokemonRedExperiments* | The full Kanto map (`kanto_big_done1.png`), `map_data.json`, `global_map.py`, the base of the Gym environment and the visualizer | https://github.com/PWhiddy/PokemonRedExperiments |
+| **Joseph Suárez (jsuarez5341) / PufferAI** | The RL tooling that ships with the original project | https://github.com/PufferAI |
+| **PyBoy** | The Game Boy emulator used to run the real ROM | https://github.com/Baekalfen/PyBoy |
 
-As marcas d'água que vinham embutidas no PNG do mapa (três blocos, sobre a Route
-1) foram removidas do asset e substituídas por esta atribuição textual. A
-remoção foi feita reconstruindo o padrão de grama do próprio mapa — um tile de
-8×8 com duas cores — e não apagou nenhum elemento de jogo.
+The watermarks embedded in the map PNG (three blocks, over Route 1) were removed
+from the asset and replaced by this textual attribution. The removal was done by
+reconstructing the map's own grass pattern — an 8×8 tile in two colors — and
+erased no game element.
