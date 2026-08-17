@@ -56,12 +56,16 @@ FREEZE_MAX_REPORTS = 8
 # teto de repetições é alto de propósito — quinze voltas idênticas não são
 # coincidência, e ainda deixa passar o farm, que muda de mato e de alvo.
 CYCLE_MAX_PERIOD = 12
-# Cem voltas idênticas — o número é do operador, e a primeira medição com quinze
-# mostrou por que ele é alto: em um minuto de corrida, quinze voltas acusaram o
-# **farm** (o MARON andando dois tiles no mato de propósito, rota `treino-51`) e
-# o LARON parado num menu. Farm é ciclo legítimo; cem voltas sem desviar uma
-# casa, não.
-CYCLE_REPEATS = 100
+# Quantas voltas idênticas contam como ciclo — **e só valem com o plano parado**
+# (ver `observe`). O gate existe porque contagem de voltas, sozinha, não separa
+# nada: medido em 2026-08-17, o farm da Floresta (rota `treino-51`, seis tiles)
+# faz **59 voltas idênticas em 1.200 passos e 275 em 4.000**. Farm é vaivém de
+# propósito, e qualquer corte fixo é cruzado por um farm suficientemente longo.
+#
+# O que separa é intenção: quem farma **alcança** o alvo dele; quem está preso
+# gasta o orçamento do waypoint sem alcançar — na Rota 3 o LARON tinha 283 de
+# 300 no mesmo alvo. Com esse gate, quarenta voltas bastam.
+CYCLE_REPEATS = 40
 # Período 1 é "não saiu do tile", e isso já é medido pela impressão digital —
 # em janela de 600 passos, não de 15. Incluí-lo aqui fazia toda caixa de texto
 # longa virar relatório.
@@ -202,23 +206,29 @@ class LifeWatchdog:
                 return period
         return None
 
-    def observe(self, fingerprint, place=None):
+    def observe(self, fingerprint, place=None, plan_stalled=False):
         """`True` no passo em que o congelamento é declarado, uma vez só.
 
         A janela é esvaziada ao declarar: o que vem depois é uma medição nova,
         senão o mesmo travamento continuaria disparando enquanto durasse.
 
-        `place` é a posição `(mapa, x, y)` — quando vem, um **ciclo de posição**
+        `place` é a posição `(mapa, x, y)` — com ela, um **ciclo de posição**
         repetido também declara congelamento, mesmo que a impressão digital
         esteja crescendo. É o caso que a impressão sozinha não pega: girar por
         oito tiles com batalha no meio muda HP e posição a cada passo.
+
+        `plan_stalled` é o que separa girar de farmar, e sem ele o ciclo não é
+        declarado. Farm **é** vaivém: medido, seis tiles e 275 voltas idênticas
+        em 4.000 passos. A diferença é que quem farma alcança o alvo dele, e quem
+        está preso queima o orçamento do waypoint sem alcançar. Quem sabe disso é
+        o executor; aqui ele entra como sinal.
         """
         if self.quiet_steps > 0:
             self.quiet_steps -= 1
             return False
         if place is not None:
             self.places.append(tuple(place))
-            period = self._cycle_period()
+            period = self._cycle_period() if plan_stalled else None
             if period is not None:
                 self.cycle = {
                     "period": period,

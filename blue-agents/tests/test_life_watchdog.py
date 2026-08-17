@@ -239,11 +239,11 @@ class CicloDePosicaoTests(unittest.TestCase):
 
     def watchdog(self, **kwargs):
         opcoes = dict(window=10_000, distinct_floor=6, cooldown=0,
-                      cycle_repeats=100, cycle_max_period=12)
+                      cycle_repeats=40, cycle_max_period=12)
         opcoes.update(kwargs)
         return LifeWatchdog(**opcoes)
 
-    def andar(self, watchdog, cartridge, tiles, voltas):
+    def andar(self, watchdog, cartridge, tiles, voltas, plan_stalled=True):
         """Roda `voltas` voltas por `tiles`, com HP mudando a cada passo."""
         fired = []
         passo = 0
@@ -257,6 +257,7 @@ class CicloDePosicaoTests(unittest.TestCase):
                 if watchdog.observe(
                     cartridge_fingerprint(cartridge.read_byte),
                     place=(cartridge.map_id, x, y),
+                    plan_stalled=plan_stalled,
                 ):
                     fired.append(passo)
         return fired
@@ -265,13 +266,13 @@ class CicloDePosicaoTests(unittest.TestCase):
         tiles = [(19, 9), (20, 9), (21, 9), (22, 9),
                  (22, 8), (21, 8), (20, 8), (19, 8)]
         watchdog = self.watchdog()
-        fired = self.andar(watchdog, FakeCartridge(map_id=14), tiles, 120)
-        self.assertTrue(fired, "oito tiles girando 120 vezes é círculo")
+        fired = self.andar(watchdog, FakeCartridge(map_id=14), tiles, 60)
+        self.assertTrue(fired, "oito tiles girando 60 vezes com o plano parado")
         self.assertEqual(8, watchdog.cycle["period"])
 
     def test_vaivem_de_dois_tiles_dispara(self):
         watchdog = self.watchdog()
-        fired = self.andar(watchdog, FakeCartridge(), [(3, 6), (3, 7)], 150)
+        fired = self.andar(watchdog, FakeCartridge(), [(3, 6), (3, 7)], 60)
         self.assertTrue(fired)
         self.assertEqual(2, watchdog.cycle["period"])
 
@@ -281,6 +282,17 @@ class CicloDePosicaoTests(unittest.TestCase):
         watchdog = self.watchdog()
         tiles = [(19, 9), (20, 9), (21, 9), (22, 9)]
         self.assertEqual([], self.andar(watchdog, FakeCartridge(), tiles, 20))
+
+    def test_farm_nao_e_ciclo_porque_o_plano_anda(self):
+        # Medido em 2026-08-17: o farm da Floresta faz 59 voltas idênticas em
+        # 1.200 passos e **275 em 4.000**, em seis tiles. Contagem de voltas
+        # sozinha não separa nada — quem farma alcança o alvo dele, e é isso
+        # que o gate `plan_stalled` carrega.
+        watchdog = self.watchdog()
+        fired = self.andar(watchdog, FakeCartridge(map_id=51), [(12, 16), (12, 17)],
+                           300, plan_stalled=False)
+        self.assertEqual([], fired)
+        self.assertIsNone(watchdog.cycle)
 
     def test_parado_no_mesmo_tile_nao_e_ciclo(self):
         # Período 1 é "não saiu do tile", medido pela impressão digital em

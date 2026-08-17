@@ -98,6 +98,11 @@ SWITCH_MENU_STEP_LIMIT = 12
 # situação nova para de virar save aqui; o evento no diário continua saindo.
 FREEZE_SNAPSHOT_LIMIT = 40
 
+# Passos no mesmo waypoint antes de o plano contar como parado. É o gate do
+# detector de ciclo: sem ele, farm (que é vaivém de propósito — 275 voltas
+# idênticas medidas em 4.000 passos) viraria relatório.
+CYCLE_PLAN_STALL_STEPS = 120
+
 # Steps on the same tile, out of battle, before the mission is restarted from
 # where the bot actually is. Long enough that a slow dialogue is not a restart,
 # short enough that nobody spends a night on one square.
@@ -3453,7 +3458,15 @@ class HybridGymEnv(RedGymEnv):
             place = (fingerprint[0], fingerprint[1], fingerprint[2])
         except Exception:
             return
-        if not self.life_watchdog.observe(fingerprint, place=place):
+        # O executor diz se o plano dele está parado: `route_waypoint_steps`
+        # conta passos gastos no **mesmo** waypoint e não zera na oscilação. É
+        # isso que separa girar de farmar — farm alcança o alvo, preso não.
+        plan_stalled = int(getattr(
+            getattr(self, "scripted_agent", None), "route_waypoint_steps", 0
+        ) or 0) >= CYCLE_PLAN_STALL_STEPS
+        if not self.life_watchdog.observe(
+            fingerprint, place=place, plan_stalled=plan_stalled
+        ):
             return
         self._report_freeze(fingerprint)
 
