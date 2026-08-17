@@ -3528,8 +3528,16 @@ class HybridGymEnv(RedGymEnv):
                 # agora com carga idêntica, então o colapsador de repetição
                 # do diário faz o resto.
                 return str(captured[0])
-            if len(list(directory.glob("*.state"))) >= FREEZE_SNAPSHOT_LIMIT:
-                return None
+            existing = sorted(
+                directory.glob("*.state"), key=lambda path: path.stat().st_mtime
+            )
+            # Cheio, o teto **recusava informação nova**: o LARON travou dois
+            # minutos depois de nascer e o relatório saiu com `snapshot: None`,
+            # porque o diretório estava cheio de travamentos de outra corrida.
+            # Disco é limite de disco, não de conhecimento — o mais antigo sai.
+            for stale in existing[:max(0, len(existing) - FREEZE_SNAPSHOT_LIMIT + 1)]:
+                stale.unlink(missing_ok=True)
+                stale.with_suffix(".json").unlink(missing_ok=True)
             stem = f"{signature}-{int(time.time())}"
             with open(directory / f"{stem}.state", "wb") as state_file:
                 self.pyboy.save_state(state_file)

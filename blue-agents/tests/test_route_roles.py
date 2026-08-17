@@ -130,23 +130,45 @@ class RouteRoleTests(unittest.TestCase):
             [{"map": 51, "points": [[5, 5]]}], follower.trail_recorder.legs()
         )
 
+    # As duas abaixo usam uma quest **sem executor** de propósito. Desde
+    # 2026-08-17 o trail dirige só onde não existe `_run_<quest>`: a lista de
+    # bloqueio cresceu quatro vezes num dia, uma por travamento, e a última foi
+    # um bot novo parado na borda de Pallet com
+    # `route_id: trail-override-buy_pokeballs-0`. O `celadon_story_quest` é um
+    # dos sete nós que ainda não têm executor, e é lá que o trail vale.
+    TRAIL_QUEST = "celadon_story_quest"
+
     def test_following_a_trail_is_opt_in(self):
         store = TrailStore(self.directory.name)
         store.publish(
-            "route_2_nav", "AARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
+            self.TRAIL_QUEST, "AARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
         )
-        follower = self.make_agent((5, 5), "follower")
+        follower = self.make_agent((5, 5), "follower", quest=self.TRAIL_QUEST)
         with mock.patch("src.scripted_agent.FOLLOW_TRAILS", True):
             self.assertEqual(
                 WindowEvent.PRESS_ARROW_UP, follower._follow_route("r", [(9, 5)])
             )
 
+    def test_o_trail_nao_dirige_onde_existe_executor(self):
+        # Mesma trilha, mesma posição, só o nome da quest muda: com executor
+        # (`_run_route_2_nav`), a rota desenhada ganha.
+        store = TrailStore(self.directory.name)
+        store.publish(
+            "route_2_nav", "AARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
+        )
+        follower = self.make_agent((5, 5), "follower", quest="route_2_nav")
+        with mock.patch("src.scripted_agent.FOLLOW_TRAILS", True):
+            self.assertEqual(
+                WindowEvent.PRESS_ARROW_RIGHT,
+                follower._follow_route("r", [(9, 5)]),
+            )
+
     def test_the_other_trainer_joins_the_same_trail(self):
         store = TrailStore(self.directory.name)
         store.publish(
-            "route_2_nav", "BARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
+            self.TRAIL_QUEST, "BARON", [{"map": 51, "points": [[5, 5], [5, 1]]}]
         )
-        guide = self.make_agent((5, 5), "guide")
+        guide = self.make_agent((5, 5), "guide", quest=self.TRAIL_QUEST)
         with mock.patch("src.scripted_agent.FOLLOW_TRAILS", True):
             self.assertEqual(
                 WindowEvent.PRESS_ARROW_UP, guide._follow_route("r", [(9, 5)])

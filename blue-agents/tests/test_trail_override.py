@@ -72,7 +72,10 @@ class OnePointLegTests(unittest.TestCase):
         agent.emulator = type(
             "FakeEmulator", (), {"memory": TrailMemory(map_id, position)}
         )()
-        agent.current_task_name = "route_2_nav"
+        # Quest **sem executor** de propósito: desde 2026-08-17 o trail dirige
+        # só onde não existe `_run_<quest>`, e a regra do ponto solto continua
+        # valendo justamente para esses nós.
+        agent.current_task_name = "celadon_story_quest"
         agent.trail_store = Store(legs)
         agent.tile_collision = Reader(warps)
         agent._manual_mode_active = lambda: False
@@ -95,7 +98,7 @@ class OnePointLegTests(unittest.TestCase):
         agent = self.agent(LAB_LEG, (4, 2))
         self.assertEqual("WALKING", agent._trail_override_step())
         route_id, waypoints = agent.walked[-1]
-        self.assertEqual("trail-override-route_2_nav-40", route_id)
+        self.assertEqual("trail-override-celadon_story_quest-40", route_id)
         self.assertGreaterEqual(len(waypoints), 2)
 
     def test_o_ultimo_ponto_perto_de_uma_porta_ganha_a_porta(self):

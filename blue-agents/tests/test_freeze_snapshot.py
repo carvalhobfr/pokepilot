@@ -124,16 +124,23 @@ class FreezeSnapshotTests(unittest.TestCase):
             caminhos = {report["snapshot"] for _, report in env.logged}
             self.assertEqual(1, len(caminhos))
 
-    def test_situacao_nova_no_diretorio_cheio_para_de_gravar(self):
+    def test_no_diretorio_cheio_o_mais_antigo_sai(self):
+        # O teto recusava informação nova: o LARON travou dois minutos depois de
+        # nascer e o relatório saiu com `snapshot: None`, porque o diretório
+        # estava cheio de travamentos de outra corrida. Disco é limite de disco.
         with tempfile.TemporaryDirectory() as directory:
+            antigos = []
             for index in range(40):
-                (Path(directory) / f"OUTRO-m{index}-0x0-1.state").write_bytes(b"x")
+                caminho = Path(directory) / f"OUTRO-m{index}-0x0-1.state"
+                caminho.write_bytes(b"x")
+                antigos.append(caminho)
             env = self.env(directory)
             for _ in range(10):
                 env._watch_for_freeze()
 
             self.assertEqual(1, len(env.logged))
-            self.assertIsNone(env.logged[0][1]["snapshot"])
+            self.assertIsNotNone(env.logged[0][1]["snapshot"])
+            self.assertFalse(antigos[0].exists(), "o mais antigo saiu")
             self.assertEqual(40, len(list(Path(directory).glob("*.state"))))
 
     def test_uma_leitura_que_falha_nao_derruba_o_passo(self):

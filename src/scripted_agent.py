@@ -138,6 +138,11 @@ FOLLOW_TRAILS = os.getenv("POKEAI_FOLLOW_TRAILS", "0") == "1"
 #   As rotas no relatório eram `trail-brock_quest-54` e
 #   `trail-override-brock_quest-54`. O executor daqui tem rota medida dos dois
 #   lados da porta (`_run_pewter_city_nav` e `brock-approach`).
+# Esta lista virou **rede, não regra**, em 2026-08-17: quem decide agora é
+# `_trail_may_drive`, e o critério é existir executor (`_run_<quest>`). A lista
+# fica para as quests cujo executor mora em outro nome (o `start` é
+# `_run_start_deterministic`, o `oak_event` e o `route_2_nav` entram pelo fluxo
+# da largada) e como registro dos quatro travamentos que a construíram.
 TRAIL_BLOCKED_QUESTS = frozenset({
     "start", "oak_event", "parcel_event",
     "viridian_forest_nav", "brock_quest",
@@ -2212,7 +2217,7 @@ class ScriptedAgent(BaseAgent):
         # operador estiver dirigindo.
         if self._manual_mode_active():
             return None
-        if getattr(self, "current_task_name", None) in TRAIL_BLOCKED_QUESTS:
+        if not self._trail_may_drive(getattr(self, "current_task_name", None)):
             return None
         quest_id = getattr(self, "current_task_name", None)
         if not quest_id:
@@ -3125,6 +3130,30 @@ class ScriptedAgent(BaseAgent):
             int(move_id) in self._party_move_ids(slot) for slot in range(count)
         )
 
+    def _trail_may_drive(self, quest_id):
+        """O trail dirige só onde **não existe executor**.
+
+        A lista de quests bloqueadas cresceu quatro vezes em 2026-08-17, uma por
+        travamento, sempre com a mesma assinatura no relatório
+        (`route_id: trail-override-<quest>-<mapa>`): Floresta, ginásio de
+        Pewter, e por fim o LARON — bot novo, dois minutos de corrida — parado
+        na borda norte de Pallet com `trail-override-buy_pokeballs-0`.
+
+        Ir consertando quest por quest é tratar o sintoma: **toda** quest com
+        rota medida acaba precisando entrar na lista, e a que faltar entrar é a
+        próxima madrugada perdida. A regra certa é a ordem de autoridade que o
+        handoff já escreve — leitura ao vivo > estático > trail, e o plano ganha
+        da heurística: onde existe `_run_<quest>`, quem dirige é ele.
+
+        O trail continua sendo **gravado e publicado** — é a medida do que uma
+        travessia custou, e é o que sobra para os nós que ainda não têm
+        executor (`celadon_story_quest` e os outros seis).
+        """
+        quest_id = str(quest_id or "")
+        if not quest_id or quest_id in TRAIL_BLOCKED_QUESTS:
+            return False
+        return not hasattr(self, f"_run_{quest_id}")
+
     def _naming_screen_open(self):
         """O teclado de apelido está desenhado? Pergunta feita à tela."""
         if self.emulator is None:
@@ -3512,7 +3541,7 @@ class ScriptedAgent(BaseAgent):
             quest_id
             and store is not None
             and FOLLOW_TRAILS
-            and quest_id not in TRAIL_BLOCKED_QUESTS
+            and self._trail_may_drive(quest_id)
             and not route_id.startswith("trail-override-")
         ):
             # Recomputing the join every step is what made the trail bounce:
