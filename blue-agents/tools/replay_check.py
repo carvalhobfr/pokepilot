@@ -35,6 +35,7 @@ from pyboy import PyBoy
 from pyboy.utils import WindowEvent
 
 from src import screen
+from src import scripted_agent
 from src.memory import Memory
 from src.scripted_agent import ScriptedAgent
 from src.simple_battle import SimpleBattleAgent
@@ -131,6 +132,15 @@ def bag_items(pyboy):
 
 
 def run_check(check, rom, quiet=True):
+    # `"trails": true` roda o trecho **com o trail dirigindo**, que é como a
+    # corrida do operador roda (`POKEAI_FOLLOW_TRAILS=1`). Sem isto o trecho da
+    # porta do ginásio passaria com o bug em pé: a regra que ele cobre é
+    # "executor com rota medida ganha do trail", e ela só é exercitada quando
+    # existe trail dirigindo. O env é lido no import do módulo, então quem
+    # manda aqui é a constante.
+    follow_trails = bool(check.get("trails", False))
+    previous_follow = scripted_agent.FOLLOW_TRAILS
+    scripted_agent.FOLLOW_TRAILS = follow_trails or previous_follow
     state_path = ROOT / check["state"]
     pyboy = PyBoy(str(rom), window="null", sound_emulated=False)
     with state_path.open("rb") as handle:
@@ -200,6 +210,12 @@ def run_check(check, rom, quiet=True):
         failures.append(
             f"golpe {expect['party_move']} não está na equipe ({party_moves(pyboy)})"
         )
+    if "badges_min" in expect:
+        badges = bin(int(pyboy.memory[0xD356])).count("1")
+        if badges < int(expect["badges_min"]):
+            failures.append(
+                f"{badges} insígnias, esperado ao menos {expect['badges_min']}"
+            )
     if "battles_min" in expect and battles < int(expect["battles_min"]):
         # A medida de vida de um trecho de farm. "Andou N tiles" reprova bot
         # saudável aqui: o executor da Floresta **para no mato de propósito** e
@@ -221,6 +237,7 @@ def run_check(check, rom, quiet=True):
     if expect.get("not_in_battle") and int(pyboy.memory[0xD057]) != 0:
         failures.append("continua preso em batalha depois do orçamento de passos")
     pyboy.stop(False)
+    scripted_agent.FOLLOW_TRAILS = previous_follow
     return failures, sorted(seen_maps), len(seen_tiles), battles
 
 

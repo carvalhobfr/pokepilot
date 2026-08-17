@@ -153,6 +153,50 @@ colapsador de repetição faz o resto. Mais um teto de 40 assinaturas para o
 diretório inteiro. O diretório foi limpo guardando o **primeiro** save de cada
 uma das 6 situações (179 MB → 1 MB).
 
+### Porta giratória no ginásio de Pewter, e o trail de novo
+
+Apontado pelo operador olhando o painel: JARON e KARON indo e voltando na porta
+do ginásio. O diário deu a assinatura em três coordenadas — `(5,13)` dentro,
+`(4,13)` dentro, `(16,17)` na cidade — e **78 transições de mapa em 400
+eventos**.
+
+Minha primeira leitura foi errada e a medição a derrubou. Eu culpei a rota:
+`brock-approach` começava em `(4,13)`, e `warps.json` diz que a porta são
+**dois** tiles de warp, `(4,13)` e `(5,13)` — quem entra por um andaria para o
+outro e sairia. Só que rodando o save vivo do KARON (mapa 54, parado em
+`(5,13)`) **sem trail**, nenhuma das duas rotas sai do ginásio: a antiga tirou
+a insígnia em 400 passos.
+
+O que separa os dois casos é uma variável de ambiente. Mesmo save, mesmo
+código, 400 passos:
+
+| `POKEAI_FOLLOW_TRAILS` | trocas de mapa | insígnia | rotas no relatório |
+|---|---|---|---|
+| ligado (como a corrida do operador roda) | **32** | 0 | `trail-brock_quest-54`, `trail-override-brock_quest-54` |
+| desligado | 0 | **1** | `brock-approach` |
+
+`brock_quest` entrou em `TRAIL_BLOCKED_QUESTS` — terceira quest hoje com a mesma
+causa, depois de `viridian_forest_nav`. Com o bloqueio, o save travado do KARON
+tira a **Boulder Badge em 600 passos**.
+
+A rota também mudou, mas como regra e não como conserto: `[(4,12), (4,8),
+(4,4), (4,2)]`, sem porta no meio (a regra do projeto já dizia isso) e sem o
+desvio pelo x=1, porque a coluna x=4 é corredor reto de `(4,12)` a `(4,2)` —
+11 passos, medido no estático.
+
+Trecho novo: **`porta-do-ginasio`**, o save vivo do KARON com `badges_min: 1`.
+Ele roda **com o trail dirigindo** (`"trails": true`, novo no manifesto): sem
+isso o trecho passaria com o bug em pé, porque a regra que ele cobre só é
+exercitada quando existe trail no volante. Com o código de antes: `0 insígnias,
+esperado ao menos 1`.
+
+**O padrão já se repetiu três vezes hoje.** Toda quest com executor de rota
+medida acaba precisando entrar nessa lista, e o que falta é o inverso da lista:
+o trail deveria dirigir só onde **não** existe executor, em vez de ser bloqueado
+quest por quest depois de cada travamento. Restam fora `mt_moon_nav`,
+`route_2_nav` e `buy_pokeballs`, todas com `_run_*` medido — não entraram por
+falta de medição, não por decisão.
+
 ### A primeira corrida real reprovou a impressão digital: falta o HP da batalha
 
 Subir o painel na corrida de 3 slots mostrou o watchdog escrevendo **28

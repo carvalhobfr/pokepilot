@@ -77,6 +77,18 @@
       "regressao": "2026-08-16: três bots capturaram um Metapod, o jogo pediu apelido, o A respondeu SIM e eles passaram onze chunks inteiros digitando letras no teclado. Em Gen I, START é o END da tela de nome. A medida era 'andou N tiles' e virou 'começou N batalhas' em 2026-08-17: com o trail fora do volante, o executor para no mato de propósito e o que ele produz é encontro, não deslocamento — 'andar' reprovava bot saudável. Encontro cobre as duas regressões: o bot no teclado digita sem lutar, e o arrastado pelo trail fica num canto sem mato. Piso e janela escolhidos por medição, não a olho: em 600 passos o executor começa 7 batalhas e o trail 2 (em 400 os dois davam 2, e o piso não separava nada)."
     },
     {
+      "name": "porta-do-ginasio",
+      "state": "states/replay/porta-do-ginasio.state",
+      "quest": "brock_quest",
+      "steps": 600,
+      "trails": true,
+      "expect": {
+        "badges_min": 1,
+        "map_in": [54]
+      },
+      "regressao": "2026-08-17: save vivo do KARON, parado em (5,13) do mapa 54 — a porta do ginásio de Pewter, que são dois tiles de warp. Com POKEAI_FOLLOW_TRAILS=1 o trail dirigia (trail-brock_quest-54) e o bot fazia porta giratória: 32 trocas de mapa 54↔2 em 400 passos, nenhuma insígnia, o executor da cidade trazendo de volta a cada saída. Com brock_quest em TRAIL_BLOCKED_QUESTS, o mesmo save vira insígnia em 600 passos. O trecho roda com o trail publicado em disco, então ele cobre a regra e não só a rota."
+    },
+    {
       "name": "apelido-do-inicial",
       "state": "states/replay/apelido-do-inicial.state",
       "quest": "start",

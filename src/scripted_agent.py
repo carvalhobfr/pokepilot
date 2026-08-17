@@ -130,9 +130,17 @@ FOLLOW_TRAILS = os.getenv("POKEAI_FOLLOW_TRAILS", "0") == "1"
 #   um canto sem mato, com `route_id=trail-override-viridian_forest_nav-51` —
 #   em MISSION: AUTO, que é o modo que deveria estar farmando. Foi o watchdog
 #   de vida que apontou os três.
+# - `brock_quest`: a porta do ginásio são **dois** tiles de warp, (4,13) e
+#   (5,13), e o trail guarda o tile de entrada como ponto. Medido em
+#   2026-08-17, do save vivo do KARON (mapa 54, parado em (5,13)), 400 passos,
+#   mudando só `POKEAI_FOLLOW_TRAILS`: **32 trocas de mapa 54↔2 e nenhuma
+#   insígnia** com o trail dirigindo, contra chegar em (4,2) e lutar sem ele.
+#   As rotas no relatório eram `trail-brock_quest-54` e
+#   `trail-override-brock_quest-54`. O executor daqui tem rota medida dos dois
+#   lados da porta (`_run_pewter_city_nav` e `brock-approach`).
 TRAIL_BLOCKED_QUESTS = frozenset({
     "start", "oak_event", "parcel_event",
-    "viridian_forest_nav",
+    "viridian_forest_nav", "brock_quest",
     "bill_quest", "cerulean_gym_quest", "vermilion_gym_quest",
 })
 
@@ -1969,9 +1977,20 @@ class ScriptedAgent(BaseAgent):
         if map_id == 54:
             position = self.emulator.memory.get_player_pos()
             if position != (4, 2):
+                # A porta do ginásio são **dois** tiles, (4,13) e (5,13), e os
+                # dois voltam para a cidade. A rota antiga começava em (4,13):
+                # quem entrasse pelo (5,13) andava `L` para o outro tile de
+                # warp e saía. Medido na corrida do operador em 2026-08-17,
+                # com o painel aberto: JARON e KARON em porta giratória,
+                # (5,13) → (4,13) → cidade (16,17) → de volta, 78 transições
+                # de mapa em 400 eventos. A regra deste projeto já dizia isto:
+                # porta nunca é alvo de rota, exceto a última.
+                #
+                # E o desvio pelo x=1 era inútil: a coluna x=4 é um corredor
+                # reto de (4,12) até (4,2) — 11 passos, medido no estático.
                 return self._follow_route(
                     "brock-approach",
-                    [(4, 13), (4, 8), (1, 8), (1, 4), (4, 4), (4, 2)],
+                    [(4, 12), (4, 8), (4, 4), (4, 2)],
                 )
             if int(self.emulator.memory.read_byte(0xD52A)) != 8:
                 self.last_action_was_move = True
